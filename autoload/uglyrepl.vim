@@ -40,27 +40,20 @@ export def! g:SendCell(kernel_name: string, repl_name: string, delim: string, ru
     if kernel_name == "terminal"
         finish # This finish will not work
     endif
-
+    #%%
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(repl_name)
          g:Repl(kernel_name, repl_name, shell)
         wincmd h
     endif
-    # In Normal mode, go to the next line
-    norm! j
-    # echo delim
-    # In search n is for don't move the cursor, b is backwards and W to don't wrap
-    # around
-    var line_in = search(delim, 'nbW')
-    # We use -1 because we want right-open intervals, i.e. [a,b).
-    # Note that here we want the cursor to move to the next cell!
-    norm! k
-    var line_out = search(delim, 'W') - 1
-    if line_out == - 1
-        line_out = line("$")
-    endif
+
+    var line_in = search(delim, 'cnbW')
+    var line_out = search(delim, 'cw')
     # For debugging
-    # echo [line_in, line_out]
+    echo [line_in, line_out]
+    if line_in > line_out
+        line_out = line("$")
+
     delete(fnameescape(tmp_filename))
     writefile(getline(line_in + 1, line_out), tmp_filename, "a")
     #call term_sendkeys(term_list()[0],"run -i ". tmp_filename . "\n")

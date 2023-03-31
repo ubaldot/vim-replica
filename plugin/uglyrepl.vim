@@ -54,6 +54,8 @@ if !exists('g:ugly_kernel_name_default')
      g:ugly_kernel_name_default = 'terminal'
 endif
 
+g:ugly_delimiters = {"python": "# %%", "julia": "# %%"}
+
 g:ugly_repl_name_default = "TERMINAL"
 g:ugly_cell_delimiter_default = "# %%"
 # Perhaps we could define a default ugly_run_command_default that align all the lines of
