@@ -17,6 +17,8 @@ endif
 g:plugin_uglyrepl = 1
 
 
+highlight UglyCodeCells  gui=underline cterm=underline
+
 # Defaults for the REPL
 # To add another language define
 #
@@ -67,6 +69,7 @@ command! -range UglySendLines :call uglyrepl#SendLines(<line1>, <line2>, get(b:,
 
 nnoremap <silent> <F9> <Cmd>UglySendLines<cr>
 xnoremap <silent> <F9> :UglySendLines<cr>
+
 
 
 # command! UglySendCell silent :call uglyrepl#SendCell(
