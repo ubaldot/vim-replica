@@ -57,7 +57,7 @@ export def! g:HighlightCell(hlgrpID_old: number, cell_delimiter: string): number
             var lower_range = range(line_out, line("$"))
             var hlgrpID = matchaddpos("CursorWord0", lower_range + upper_range)
             # echo hlgrpID_old
-            echo hlgrpID
+            # echo hlgrpID
             matchdelete(hlgrpID_old)
             line_in_old = line_in
             line_out_old = line_out
