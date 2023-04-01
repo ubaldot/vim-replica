@@ -10,14 +10,13 @@ vim9script
 # github.com/ubaldot/sci-repl
 
 
-if exists('g:plugin_uglyrepl')
+if exists('g:uglyvimrepl_loaded')
     finish
 endif
 
-g:plugin_uglyrepl = 1
+g:uglyvimrepl_loaded = 1
 
 
-highlight UglyCodeCells  gui=underline cterm=underline
 
 # Defaults for the REPL
 # To add another language define
@@ -57,6 +56,7 @@ if !exists('g:ugly_kernel_name_default')
 endif
 
 g:ugly_delimiters = {"python": "# %%", "julia": "# %%"}
+g:ugly_kernels = {"python": "python3", "julia": "julia-1.8"}
 
 g:ugly_repl_name_default = "TERMINAL"
 g:ugly_cell_delimiter_default = "# %%"
@@ -64,26 +64,19 @@ g:ugly_cell_delimiter_default = "# %%"
 # TMP separated by &&, e.g. git add -u && git commit -m "foo" && ls ...
 g:ugly_run_command_default = "run -i" # TODO
 
+# Commands definition
 command! UglyReplOpen silent :call uglyrepl#Repl(get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), g:ugly_shell)
 command! -range UglySendLines :call uglyrepl#SendLines(<line1>, <line2>, get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), g:ugly_shell)
 
-nnoremap <silent> <F9> <Cmd>UglySendLines<cr>
-xnoremap <silent> <F9> :UglySendLines<cr>
+command! UglySendCell silent :call uglyrepl#SendCell(get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), get(b:, 'ugly_cell_delimiter', g:ugly_cell_delimiter_default), get(b:, 'ugly_run_command', g:ugly_run_command_default), g:ugly_tmp_filename, g:ugly_shell)
+
+# Default mappings
+if !hasmapto('<Plug>UglySendLines')
+    nnoremap <silent> <F9> <Cmd>UglySendLines<cr>
+    xnoremap <silent> <F9> :UglySendLines<cr>
+endif
 
 
-
-# command! UglySendCell silent :call uglyrepl#SendCell(
-#     get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default),
-#     get(b:, 'ugly_repl_name', g:ugly_repl_name_default),
-#     get(b:, 'ugly_cell_delimiter', g:ugly_cell_delimiter_default),
-#     get(b:, 'ugly_run_command', g:ugly_run_command_default), g:ugly_tmp_filename,
-#     g:ugly_shell)<cr><cr>
-
-
-
-# Some key-bindings for the REPL
-# nnoremap <silent> <F9> yy \| :call term_sendkeys(get(b:, 'ugly_repl_name', ugly_repl_name_default),@")<cr>j0
-# xnoremap <silent> <F9> y \| :<c-u>call term_sendkeys(get(b:, 'ugly_repl_name', ugly_repl_name_default),@")<cr>j0
-# nnoremap <silent> <c-enter> \| :call g:SendCell(get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', ugly_repl_name_default), get(b:, 'ugly_cell_delimiter', ugly_cell_delimiter_default), get(b:, 'ugly_run_command', ugly_run_command_default))<cr><cr>
-# Clear REPL
-# nnoremap <c-c> :call term_sendkeys(get(b:, 'ugly_repl_name', ugly_repl_name_default),"\<c-l>")<cr>
+if !hasmapto('<Plug>UglySendCell')
+    nnoremap <silent> <c-enter> <Cmd>UglySendCell<cr>
+endif

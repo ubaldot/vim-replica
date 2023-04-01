@@ -29,28 +29,27 @@ enddef
 
 
 # For highlighting and sending cells
-# export def! g:GetExtremes(): list<number>
-#     var line_in = search("\^# %%", 'cnbW') # TODO
-#     var line_out = search("\^# %%", 'nW')
-#     if line_in > line_out
-#         line_out = line("$")
-#     endif
-#     # if getcurpos()[2] < line_out
-#     #     cursor(line_out, 0)
-#     # endif
-#     return [line_in, line_out]
-# enddef
+export def! g:GetExtremes(cell_delimiter: string): list<number>
+    var line_in = search("\^"  .. cell_delimiter, 'cnbW')
+    var line_out = search("\^" .. cell_delimiter, 'nW') # The cursor shall not jump when you highlight a cell
+    if line_out == 0
+        line_out = line("$")
+    endif
+    echo [line_in, line_out]
+    return [line_in, line_out]
+enddef
+
 
 var line_in_old = 0
 var line_out_old = 1
 
 export def! g:HighlightCell(hlgrpID_old: number, cell_delimiter: string): number
-    var line_in = search("\^"  .. cell_delimiter, 'cnbW')
-    var line_out = search("\^" .. cell_delimiter, 'nW') # The cursor shall not jump when you highlight a cell
-    echo [line_in, line_out]
+    var extremes = uglyrepl#GetExtremes(cell_delimiter)
+    var line_in = extremes[0]
+    var line_out = extremes[1]
 
     # There is at least one cell
-    if line_in != 0 || line_out != line("$")
+    if line_in != 1 || line_out != line("$")
         # If the cursor moved into another cell recompute the match
         if line_in != line_in_old || line_out != line_out_old
             # echo [line_in, getcurpos()[1], line_out]
@@ -72,7 +71,7 @@ enddef
 
 
 # Actually sending code-cell
-export def! g:SendCell(kernel_name: string, repl_name: string, delim: string, run_command: string, tmp_filename: string, shell: string)
+export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, shell: string)
     # If the kernel_name is the terminal there is no sense in sending cells of code copied in a
     # TMP file.  Perhaps we could define a default g:run_command_default that align all the lines of
     # TMP separated by &&, e.g. git add -u && git commit -m "foo" && ls ...
@@ -83,17 +82,20 @@ export def! g:SendCell(kernel_name: string, repl_name: string, delim: string, ru
     #%%
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(repl_name)
-         g:Repl(kernel_name, repl_name, shell)
+         uglyrepl#Repl(kernel_name, repl_name, shell)
         wincmd h
     endif
 
-    var line_in = search("\^# %%", 'cnbW') # TODO
-    var line_out = search("\^# %%", 'W') # The cursor jump when you send a cell
+    # Get beginning and end of the cell
+    var extremes = uglyrepl#GetExtremes(cell_delimiter)
+    var line_in = extremes[0]
+    var line_out = extremes[1]
+
+    # Jump to the next cell
+    cursor(line_out, getcurpos()[2])
 
     delete(fnameescape(tmp_filename))
-    writefile(getline(line_in + 1, line_out), tmp_filename, "a")
-    #call term_sendkeys(term_list()[0],"run -i ". tmp_filename . "\n")
-    # At startup, it is always terminal 2 or the name is hard-coded IPYTHON
+    writefile(getline(line_in, line_out), tmp_filename, "a")
     call term_sendkeys(repl_name, run_command .. "\n")
 enddef
 #
