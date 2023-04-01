@@ -8,36 +8,34 @@ b:ugly_run_command = "run -i " .. g:ugly_tmp_filename
 
 # Functions defined for debugging
 def CreateHiGroup(): number
-    echo "New match ID!"
-    # echo ugly_hlgrpID_next
-    return matchaddpos("CursorWord0", [1])
+    var ugly_hlgrpID_init = matchaddpos("CursorWord0", [1])
+    echom "New match ID:" .. ugly_hlgrpID_init
+    return ugly_hlgrpID_init
 enddef
 
 def UpdateHiGroup(ugly_hlgrpID: number): number
     var ugly_hlgrpID_next = uglyrepl#HighlightCell(ugly_hlgrpID, b:ugly_cell_delimiter)
-    # echo ugly_hlgrpID_next
     return ugly_hlgrpID_next
 enddef
 
 
 def DeleteHiGroup(ugly_hlgrpID: number)
     matchdelete(ugly_hlgrpID)
-    echo "Deleted left match ID!"
+    echom "Deleted match ID: " .. ugly_hlgrpID
 enddef
 
-# Init
-w:ugly_hlgrpID = 1
 
 # Iteration
 augroup highlight_cell
     au!
-    # autocmd BufEnter *.py w:ugly_hlgrpID = CreateHiGroup()
-    autocmd Bufenter,WinEnter  *.py if !exists("w:ugly_hlgrpID") | CreateHiGroup(w:ugly_hlgrpID) | endif
+    # autocmd BufEnter,WinEnter,BufWinEnter *.py if !exists("w:ugly_hlgrpID") | w:ugly_hlgrpID = CreateHiGroup() | endif
+    autocmd BufWinEnter  *.py w:ugly_hlgrpID = CreateHiGroup()
     autocmd CursorMoved,CursorMovedI *.py w:ugly_hlgrpID = UpdateHiGroup(w:ugly_hlgrpID)
-    # We have to separate the events because if the next window has a buffer different than this window
-    # then BufLeave and WinLeave will be called in sequence.
+    # OBS! Vim calls BufLeave and then WinLeave if the next win has another buffer.
     # autocmd BufLeave *.py DeleteHiGroup(w:ugly_hlgrpID)
-    autocmd BufLeave,WinLeave *.py if exists("w:ugly_hlgrpID") | DeleteHiGroup(w:ugly_hlgrpID) | endif
+    # autocmd BufWinLeave *.py if exists("w:ugly_hlgrpID") | DeleteHiGroup(w:ugly_hlgrpID) | endif
+    autocmd BufWinLeave *.py  DeleteHiGroup(w:ugly_hlgrpID) | unlet w:ugly_hlgrpID
+    # autocmd WinLeave *.py if exists("w:ugly_hlgrpID") | DeleteHiGroup(w:ugly_hlgrpID) | endif
 augroup END
 
 match Underlined  "# %%" # TODO
