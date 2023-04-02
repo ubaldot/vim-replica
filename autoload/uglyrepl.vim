@@ -89,7 +89,7 @@ export def! g:HighlightCell(cell_delimiter: string)
             # Cleanup old list
             list_sign_id_old = []
 
-            if go_fast == 0
+            if go_fast == 1
                 # Case Slow
                 upper_range = range(1, line_in - 1)
                 lower_range = range(line_out, line("$"))
@@ -100,9 +100,9 @@ export def! g:HighlightCell(cell_delimiter: string)
                 endfor
             else
                 # Case Fast
+                # # TODO
                 var list_sign_id = []
-                # exe ":g/" .. b:ugly_cell_delimiter .. "/add(" .. list_sign_id ..  ", line('.'))"
-                exe ":g/" .. b:ugly_cell_delimiter .. "/add(" .. list_sign_id .. ", line('.'))"
+                # exe ":g/" .. b:ugly_cell_delimiter .. "/add(list_sign_id, line('.'))"
 
                 for line in list_sign_id
                     sign_place(line, "", "UglyReplHlFast", expand("%:p"), {"lnum": line})
