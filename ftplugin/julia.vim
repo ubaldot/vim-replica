@@ -5,6 +5,10 @@ b:ugly_repl_name = 'JULIA'
 b:ugly_cell_delimiter = g:ugly_delimiters[&filetype]
 b:ugly_run_command = 'include("' .. g:ugly_tmp_filename .. '")'
 
+augroup highlight_cells
+    autocmd CursorMoved,CursorMovedI,BufEnter *.jl uglyrepl#HighlightCell(b:ugly_cell_delimiter, g:ugly_fast)
+augroup END
+
 # b:hlgrpID = matchaddpos("CursorWord0", [1])
 # augroup highlight_cell
 #     au!
