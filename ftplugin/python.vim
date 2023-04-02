@@ -7,5 +7,5 @@ b:ugly_cell_delimiter = g:ugly_delimiters[&filetype]
 b:ugly_run_command = "run -i " .. g:ugly_tmp_filename
 
 augroup highlight_cells
-    autocmd CursorMoved,CursorMovedI,BufEnter *.py uglyrepl#HighlightCell(b:ugly_cell_delimiter)
+    autocmd CursorMoved,CursorMovedI,BufEnter *.py uglyrepl#HighlightCell(b:ugly_cell_delimiter, g:ugly_fast)
 augroup END

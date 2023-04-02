@@ -57,6 +57,7 @@ endif
 
 g:ugly_delimiters = {"python": "# %%", "julia": "# %%"}
 g:ugly_kernels = {"python": "python3", "julia": "julia-1.8"}
+g:ugly_fast = false
 
 g:ugly_repl_name_default = "TERMINAL"
 g:ugly_cell_delimiter_default = "# %%"

@@ -40,9 +40,9 @@ export def! g:GetExtremes(cell_delimiter: string): list<number>
     if line_out == 0
         line_out = line("$")
     endif
-    # if line_in != 1 || line_out != line("$")
-    #     echo "cell_range=[" .. line_in ", " .. line_out .. "]\n"
-    # endif
+    if line_in != 1 || line_out != line("$")
+        echo "cell_range=[" .. line_in ", " .. line_out .. "]"
+    endif
     return [line_in, line_out]
 enddef
 
@@ -50,28 +50,26 @@ enddef
 
 # for highlightning cells
 sign define UglyReplHl text=- linehl=CursorLine
-sign define UglyReplHlFast text=- linehl=UnderLine
+sign define UglyReplHlFast text=- linehl=UnderLined
 
 var line_in_old = 1
 var line_out_old = line("$")
-
-# Specific for g:HighlightCell function
-# var list_all_signs = sign_getplaced(expand("%:p"))[0]['signs']
 var list_sign_id_old = []
-# for s in list_all_signs
-#     if s['name'] == "UglyReplHl"
-#         add(list_sign_id_old, s['lnum'])
-#     endif
-# endfor
+var list_sign_id = []
+
 
 # When adding a sign keep in mind that we set sign_id = line number
-export def! g:HighlightCell(cell_delimiter: string)
+export def! g:HighlightCell(cell_delimiter: string, fast: bool)
     var extremes = uglyrepl#GetExtremes(cell_delimiter)
     var line_in = extremes[0]
     var line_out = extremes[1]
-    var go_fast = 0
-    var upper_range = []
-    var lower_range = []
+    var hlgroup = ""
+
+    if fast == false
+        hlgroup = "UglyReplHl"
+    else
+        hlgroup = "UglyReplHlFast"
+    endif
 
     # There is at least one cell
     if line_in != 1 || line_out != line("$")
@@ -89,26 +87,20 @@ export def! g:HighlightCell(cell_delimiter: string)
             # Cleanup old list
             list_sign_id_old = []
 
-            if go_fast == 1
+            # Find lines
+            if fast == false
                 # Case Slow
-                upper_range = range(1, line_in - 1)
-                lower_range = range(line_out, line("$"))
-
-                for line in upper_range + lower_range
-                    sign_place(line, "", "UglyReplHl", expand("%:p"), {"lnum": line})
-                    add(list_sign_id_old, line)
-                endfor
+                list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else
-                # Case Fast
-                # # TODO
-                var list_sign_id = []
-                # exe ":g/" .. b:ugly_cell_delimiter .. "/add(list_sign_id, line('.'))"
-
-                for line in list_sign_id
-                    sign_place(line, "", "UglyReplHlFast", expand("%:p"), {"lnum": line})
-                    add(list_sign_id_old, line)
-                endfor
+                # exe ":g/" .. b:ugly_cell_delimiter .. "/add(list_sign_id, line('.')"
+                list_sign_id = [line_in, line_out]
             endif
+
+            # Place signs
+            for line in list_sign_id
+                sign_place(line, "", hlgroup, expand("%:p"), {"lnum": line})
+                add(list_sign_id_old, line)
+            endfor
         endif
     else
         # If there are no cells left remove all the signs
