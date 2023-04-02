@@ -1,5 +1,6 @@
 vim9script
 
+
 export def! g:Repl(kernel_name: string, repl_name: string, shell: string)
     # Reuse open terminal buffer, if any
     if !bufexists(repl_name)
@@ -31,43 +32,93 @@ enddef
 # For highlighting and sending cells
 export def! g:GetExtremes(cell_delimiter: string): list<number>
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
-    var line_out = search("\^" .. cell_delimiter, 'nW') # The cursor shall not jump when you highlight a cell
+    var line_out = search("\^" .. cell_delimiter, 'nW')
+    # If search returns 0 it means that the pattern has not been found
+    if line_in == 0
+        line_in = 1
+    endif
     if line_out == 0
         line_out = line("$")
     endif
-    echo [line_in, line_out]
+    # if line_in != 1 || line_out != line("$")
+    #     echo "cell_range=[" .. line_in ", " .. line_out .. "]\n"
+    # endif
     return [line_in, line_out]
 enddef
 
 
-var line_in_old = 0
-var line_out_old = 1
 
-export def! g:HighlightCell(hlgrpID_old: number, cell_delimiter: string): number
+# for highlightning cells
+sign define UglyReplHl text=- linehl=CursorLine
+sign define UglyReplHlFast text=- linehl=UnderLine
+
+var line_in_old = 1
+var line_out_old = line("$")
+
+# Specific for g:HighlightCell function
+# var list_all_signs = sign_getplaced(expand("%:p"))[0]['signs']
+var list_sign_id_old = []
+# for s in list_all_signs
+#     if s['name'] == "UglyReplHl"
+#         add(list_sign_id_old, s['lnum'])
+#     endif
+# endfor
+
+# When adding a sign keep in mind that we set sign_id = line number
+export def! g:HighlightCell(cell_delimiter: string)
     var extremes = uglyrepl#GetExtremes(cell_delimiter)
     var line_in = extremes[0]
     var line_out = extremes[1]
+    var go_fast = 0
+    var upper_range = []
+    var lower_range = []
 
     # There is at least one cell
     if line_in != 1 || line_out != line("$")
-        # If the cursor moved into another cell recompute the match
+        # ...and if the cursor moved into another cell,
+        # then update the highlight recompute the match
         if line_in != line_in_old || line_out != line_out_old
-            # echo [line_in, getcurpos()[1], line_out]
-            var upper_range = range(0, line_in - 1)
-            var lower_range = range(line_out, line("$"))
-            var hlgrpID = matchaddpos("CursorWord0", lower_range + upper_range)
-            # echo hlgrpID_old
-            # echo hlgrpID
-            matchdelete(hlgrpID_old)
-            line_in_old = line_in
-            line_out_old = line_out
-            return hlgrpID
+
+            # Remove existing signs related to UglyReplHl
+            if !empty(list_sign_id_old)
+                for line in list_sign_id_old
+                    sign_unplace("", {"buffer": expand("%:p"), "id": line})
+                endfor
+            endif
+
+            # Cleanup old list
+            list_sign_id_old = []
+
+            if go_fast == 0
+                # Case Slow
+                upper_range = range(1, line_in - 1)
+                lower_range = range(line_out, line("$"))
+
+                for line in upper_range + lower_range
+                    sign_place(line, "", "UglyReplHl", expand("%:p"), {"lnum": line})
+                    add(list_sign_id_old, line)
+                endfor
+            else
+                # Case Fast
+                var list_sign_id = []
+                # exe ":g/" .. b:ugly_cell_delimiter .. "/add(" .. list_sign_id ..  ", line('.'))"
+                exe ":g/" .. b:ugly_cell_delimiter .. "/add(" .. list_sign_id .. ", line('.'))"
+
+                for line in list_sign_id
+                    sign_place(line, "", "UglyReplHlFast", expand("%:p"), {"lnum": line})
+                    add(list_sign_id_old, line)
+                endfor
+            endif
         endif
-        return hlgrpID_old
     else
-        return hlgrpID_old
+        # If there are no cells left remove all the signs
+        for line in list_sign_id_old
+            sign_unplace("", {"buffer": expand("%:p"), "id": line})
+        endfor
     endif
 enddef
+
+
 
 
 # Actually sending code-cell
