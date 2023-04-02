@@ -10,20 +10,20 @@ vim9script
 # github.com/ubaldot/sci-repl
 
 
-if exists('g:uglyvimrepl_loaded')
+if exists('g:scivimrepl_loaded')
     finish
 endif
 
-g:uglyvimrepl_loaded = 1
+g:scivimrepl_loaded = 1
 
 
 
 # Defaults for the REPL
 # To add another language define
 #
-# b:ugly_kernel_name
-# b:ugly_repl_name
-# b:ugly_cell_delimiter
+# b:sci_kernel_name
+# b:sci_repl_name
+# b:sci_cell_delimiter
 #
 # in the ~/.vim/ftplugin folder by creating e.g. julia.vim file.
 #
@@ -34,42 +34,42 @@ g:uglyvimrepl_loaded = 1
 # Defaults
 #
 if has("gui_win32")
-    g:ugly_tmp_filename = $TMP .. "\\my_cell.tmp"
+    g:sci_tmp_filename = $TMP .. "\\my_cell.tmp"
 elseif has("mac")
-    g:ugly_tmp_filename = expand("~/my_cell.tmp")
+    g:sci_tmp_filename = expand("~/my_cell.tmp")
 endif
 
 
-if !exists('g:ugly_shell')
+if !exists('g:sci_shell')
     if has("gui_win32")
-        g:ugly_shell = "powershell"
+        g:sci_shell = "powershell"
     elseif has("mac")
-        g:ugly_shell = "zsh"
+        g:sci_shell = "zsh"
     else
         echo "Try to set global variable g:shell"
 endif
 
 endif
 
-if !exists('g:ugly_kernel_name_default')
-     g:ugly_kernel_name_default = 'terminal'
+if !exists('g:sci_kernel_name_default')
+     g:sci_kernel_name_default = 'terminal'
 endif
 
-g:ugly_delimiters = {"python": "# %%", "julia": "# %%"}
-g:ugly_kernels = {"python": "python3", "julia": "julia-1.8"}
-g:ugly_fast = false
+g:sci_delimiters = {"python": "# %%", "julia": "# %%"}
+g:sci_kernels = {"python": "python3", "julia": "julia-1.8"}
+g:sci_fast = false
 
-g:ugly_repl_name_default = "TERMINAL"
-g:ugly_cell_delimiter_default = "# %%"
-# Perhaps we could define a default ugly_run_command_default that align all the lines of
+g:sci_repl_name_default = "TERMINAL"
+g:sci_cell_delimiter_default = "# %%"
+# Perhaps we could define a default sci_run_command_default that align all the lines of
 # TMP separated by &&, e.g. git add -u && git commit -m "foo" && ls ...
-g:ugly_run_command_default = "run -i" # TODO
+g:sci_run_command_default = "run -i" # TODO
 
 # Commands definition
-command! UglyReplOpen silent :call uglyrepl#Repl(get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), g:ugly_shell)
-command! -range UglySendLines :call uglyrepl#SendLines(<line1>, <line2>, get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), g:ugly_shell)
+command! UglyReplOpen silent :call scirepl#Repl(get(b:, 'sci_kernel_name', g:sci_kernel_name_default), get(b:, 'sci_repl_name', g:sci_repl_name_default), g:sci_shell)
+command! -range UglySendLines :call scirepl#SendLines(<line1>, <line2>, get(b:, 'sci_kernel_name', g:sci_kernel_name_default), get(b:, 'sci_repl_name', g:sci_repl_name_default), g:sci_shell)
 
-command! UglySendCell silent :call uglyrepl#SendCell(get(b:, 'ugly_kernel_name', g:ugly_kernel_name_default), get(b:, 'ugly_repl_name', g:ugly_repl_name_default), get(b:, 'ugly_cell_delimiter', g:ugly_cell_delimiter_default), get(b:, 'ugly_run_command', g:ugly_run_command_default), g:ugly_tmp_filename, g:ugly_shell)
+command! UglySendCell silent :call scirepl#SendCell(get(b:, 'sci_kernel_name', g:sci_kernel_name_default), get(b:, 'sci_repl_name', g:sci_repl_name_default), get(b:, 'sci_cell_delimiter', g:sci_cell_delimiter_default), get(b:, 'sci_run_command', g:sci_run_command_default), g:sci_tmp_filename, g:sci_shell)
 
 # Default mappings
 if !hasmapto('<Plug>UglySendLines')
