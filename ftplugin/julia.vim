@@ -1,10 +1,13 @@
 vim9script
 
-b:sci_kernel_name = "julia-1.8"
-b:sci_repl_name = 'JULIA'
-b:sci_cell_delimiter = g:sci_delimiters[&filetype]
-b:sci_run_command = 'include("' .. g:sci_tmp_filename .. '")'
+# My python custom stuff
+b:sci_kernel_name = g:sci_kernels[&filetype]
+b:sci_repl_name = g:sci_repl_names[&filetype]
+b:sci_cells_delimiter = g:sci_cells_delimiter[&filetype]
+b:sci_run_command = g:sci_run_commands[&filetype]
+
 
 augroup highlight_cells
-    autocmd CursorMoved,CursorMovedI,BufEnter *.jl uglyrepl#HighlightCell(b:sci_cell_delimiter, g:sci_fast)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.jl scirepl#HighlightCell(b:sci_cells_delimiter, g:sci_fast)
+    autocmd CursorMoved,CursorMovedI *.jl scirepl#HighlightCell(b:sci_cells_delimiter, g:sci_fast, true)
 augroup END

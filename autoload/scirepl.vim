@@ -30,7 +30,7 @@ enddef
 
 
 # For highlighting and sending cells
-export def! g:GetExtremes(cell_delimiter: string): list<number>
+export def! g:GetExtremes(cell_delimiter: string, display_range: bool = false): list<number>
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
     # If search returns 0 it means that the pattern has not been found
@@ -40,8 +40,8 @@ export def! g:GetExtremes(cell_delimiter: string): list<number>
     if line_out == 0
         line_out = line("$")
     endif
-    if line_in != 1 || line_out != line("$")
-        echo "cell_range=[" .. line_in ", " .. line_out .. "]"
+    if line_in != 1 || line_out != line("$") && display_range
+        echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
     endif
     return [line_in, line_out]
 enddef
@@ -59,8 +59,8 @@ var list_sign_id = []
 
 
 # When adding a sign keep in mind that we set sign_id = line number
-export def! g:HighlightCell(cell_delimiter: string, fast: bool)
-    var extremes = scirepl#GetExtremes(cell_delimiter)
+export def! g:HighlightCell(cell_delimiter: string, fast: bool, display_range: bool = false)
+    var extremes = scirepl#GetExtremes(cell_delimiter, display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
@@ -109,8 +109,6 @@ export def! g:HighlightCell(cell_delimiter: string, fast: bool)
         endfor
     endif
 enddef
-
-
 
 
 # Actually sending code-cell
