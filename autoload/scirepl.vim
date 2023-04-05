@@ -4,14 +4,16 @@ vim9script
 # Functions for sending stuff to the REPL
 # =======================================
 
-export def! g:ReplToggle(kernel_name: string, repl_name: string, shell: string, direction: string, size: number)
+export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
     # If repl (terminal) buffer does not exists create one
     if !bufexists(repl_name)
         if kernel_name == "terminal"
-            term_start(shell, {'term_name': repl_name} )
+            term_start(&shell, {'term_name': repl_name} )
         else
             term_start("jupyter-console --kernel=" .. kernel_name, {'term_name': repl_name} )
         endif
+        # setbufvar(repl_name, "buflisted", 0)
+        # setbufvar(repl_name, "&buflisted", false)
         exe "wincmd " .. direction
         if size > 0
             exe "resize " .. size
@@ -37,10 +39,10 @@ enddef
 
 
 
-export def! g:SendLines(firstline: number, lastline: number, kernel_name: string, repl_name: string, shell: string, direction: string, size: number)
+export def! g:SendLines(firstline: number, lastline: number, kernel_name: string, repl_name: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(repl_name)
-         scirepl#ReplToggle(kernel_name, repl_name, shell, direction, size)
+         scirepl#ReplToggle(kernel_name, repl_name, direction, size)
         wincmd p # p = previous
     endif
     # Actual implementation
@@ -51,10 +53,10 @@ enddef
 
 
 # Actually sending code-cell
-export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, shell: string, direction: string, size: number)
+export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(repl_name)
-         scirepl#ReplToggle(kernel_name, repl_name, shell, direction, size)
+         scirepl#ReplToggle(kernel_name, repl_name,  direction, size)
         wincmd p # p = previous
     endif
 

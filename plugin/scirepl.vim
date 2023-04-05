@@ -21,15 +21,6 @@ elseif has("mac")
     g:sci_tmp_filename = expand($TMPDIR .. "/my_cell.tmp")
 endif
 
-if !exists('g:sci_shell')
-    if has("gui_win32")
-        g:sci_shell = "powershell"
-    elseif has("mac")
-        g:sci_shell = "zsh"
-    else
-        echo "Try to set global variable g:shell"
-    endif
-endif
 
 if !exists('g:sci_fast')
      g:sci_fast = false
@@ -44,9 +35,7 @@ if !exists('g:sci_repl_size')
 endif
 
 # This leads the defaults
-if !exists('g:sci_kernel_default')
-    g:sci_kernel_default = 'terminal' # Must be a vim filetype
-endif
+g:sci_kernel_default = 'terminal' # Must be a vim filetype
 
 # Dicts. Keys must be Vim filetypes
 var sci_kernels_default = {
@@ -93,14 +82,12 @@ g:sci_run_commands = sci_run_command_default
 command! SciReplToggle :call scirepl#ReplToggle(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ g:sci_shell,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default] ),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ g:sci_shell,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
@@ -110,7 +97,6 @@ command! SciSendCell silent :call scirepl#SendCell(
             \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]),
             \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
             \ g:sci_tmp_filename,
-            \ g:sci_shell,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
