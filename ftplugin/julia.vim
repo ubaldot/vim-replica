@@ -1,6 +1,5 @@
 vim9script
 
-# My python custom stuff
 b:sci_kernel_name = g:sci_kernels[&filetype]
 b:sci_repl_name = g:sci_repl_names[&filetype]
 b:sci_cells_delimiter = g:sci_cells_delimiter[&filetype]
