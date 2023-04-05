@@ -40,7 +40,7 @@ export def! g:GetExtremes(cell_delimiter: string, display_range: bool = false): 
     if line_out == 0
         line_out = line("$")
     endif
-    if line_in != 1 || line_out != line("$") && display_range
+    if (line_in != 1 || line_out != line("$")) && display_range
         echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
     endif
     return [line_in, line_out]
@@ -113,14 +113,7 @@ enddef
 
 # Actually sending code-cell
 export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, shell: string)
-    # If the kernel_name is the terminal there is no sense in sending cells of code copied in a
-    # TMP file.  Perhaps we could define a default g:run_command_default that align all the lines of
-    # TMP separated by &&, e.g. git add -u && git commit -m "foo" && ls ...
-    # # TODO
-    if kernel_name == "terminal"
-        finish # This finish will not work
-    endif
-    #%%
+
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(repl_name)
          scirepl#Repl(kernel_name, repl_name, shell)

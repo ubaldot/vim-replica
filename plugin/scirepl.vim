@@ -38,17 +38,33 @@ endif
 
 # This leads the defaults
 if !exists('g:sci_kernel_default')
-     g:sci_kernel_default = 'terminal' # Must be a vim filetype
+    g:sci_kernel_default = 'terminal' # Must be a vim filetype
 endif
 
-var sci_kernels_default = {"python": "python3", "julia": "julia-1.8", "matlab": "matlab", "terminal": "terminal"}
-var sci_repl_names_default = {"python": "IPYTHON", "julia": "JULIA", "matlab": "MATLAB", "terminal": "TERMINAL"}
-var sci_cells_delimiter_default = {"python": "# %%", "julia": "# %%", "matlab": "%%", "terminal": ""}
+# Dicts. Keys must be Vim filetypes
+var sci_kernels_default = {
+            \ "python": "python3",
+            \ "julia": "julia-1.8",
+            \ "matlab": "jupyter_matlab_kernel",
+            \ "terminal": "terminal"}
+
+var sci_repl_names_default = {
+            \ "python": "IPYTHON",
+            \ "julia": "JULIA",
+            \ "matlab": "MATLAB",
+            \ "terminal": "TERMINAL"}
+
+var sci_cells_delimiter_default = {
+            \ "python": "# %%",
+            \ "julia": "# %%",
+            \ "matlab": "%%",
+            \ "terminal": "#--"}
+
 var sci_run_command_default = {
             \ "python": "run -i " .. g:sci_tmp_filename,
             \ "julia": 'include("' .. g:sci_tmp_filename .. '")',
-            \ "matlab": 'run("' .. g:sci_tmp_filename .. '")'
-            \ "terminal": ""}
+            \ "matlab": 'run("' .. g:sci_tmp_filename .. '")',
+            \ "terminal": "sh " .. g:sci_tmp_filename}
 
 # User is allowed to change only sci_kernels and sci_cells_delimiters
 if exists('g:sci_kernels')
@@ -64,9 +80,6 @@ g:sci_cells_delimiter = sci_cells_delimiter_default
 g:sci_repl_names = sci_repl_names_default
 g:sci_run_commands = sci_run_command_default
 
-# These cannot be changed
-# Perhaps we could define a default sci_run_command_default that align all the lines of
-# TMP separated by &&, e.g. git add -u && git commit -m "foo" && ls ...
 
 # Commands definition
 command! SciReplOpen silent :call scirepl#Repl(
@@ -75,17 +88,18 @@ command! SciReplOpen silent :call scirepl#Repl(
             \ g:sci_shell)
 
 command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
-            \ get(b:, 'sci_kernel_name',g:sci_kernels[g:sci_kernel_default] ),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default] ),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
             \ g:sci_shell)
 
 command! SciSendCell silent :call scirepl#SendCell(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ get(b:, 'sci_cell_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]),
+            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]),
             \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
             \ g:sci_tmp_filename,
             \ g:sci_shell)
+
 
 # Default mappings
 if !hasmapto('<Plug>SciSendLines')
