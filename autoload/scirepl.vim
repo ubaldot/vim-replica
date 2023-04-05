@@ -74,11 +74,8 @@ enddef
 #
 
 
-# ======================================
-# Functions for highlighing cells
-# ======================================
 
-# For highlighting and sending cells
+# Find lines range based on cell_delimiter
 export def! g:GetExtremes(cell_delimiter: string, display_range: bool = false): list<number>
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
@@ -96,6 +93,9 @@ export def! g:GetExtremes(cell_delimiter: string, display_range: bool = false): 
 enddef
 
 
+# ======================================
+# Functions for highlighing cells
+# ======================================
 
 # for highlightning cells
 sign define SciReplHl text=- linehl=CursorLine
