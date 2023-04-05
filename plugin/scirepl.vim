@@ -35,6 +35,13 @@ if !exists('g:sci_fast')
      g:sci_fast = false
 endif
 
+if !exists('g:sci_repl_direction')
+     g:sci_repl_direction = "L"
+endif
+
+if !exists('g:sci_repl_size')
+     g:sci_repl_size = 0
+endif
 
 # This leads the defaults
 if !exists('g:sci_kernel_default')
@@ -82,15 +89,20 @@ g:sci_run_commands = sci_run_command_default
 
 
 # Commands definition
-command! SciReplOpen silent :call scirepl#Repl(
+# # TODO Replace silent
+command! SciReplToggle :call scirepl#ReplToggle(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ g:sci_shell)
+            \ g:sci_shell,
+            \ g:sci_repl_direction,
+            \ g:sci_repl_size)
 
 command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default] ),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ g:sci_shell)
+            \ g:sci_shell,
+            \ g:sci_repl_direction,
+            \ g:sci_repl_size)
 
 command! SciSendCell silent :call scirepl#SendCell(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
@@ -98,7 +110,9 @@ command! SciSendCell silent :call scirepl#SendCell(
             \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]),
             \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
             \ g:sci_tmp_filename,
-            \ g:sci_shell)
+            \ g:sci_shell,
+            \ g:sci_repl_direction,
+            \ g:sci_repl_size)
 
 
 # Default mappings
