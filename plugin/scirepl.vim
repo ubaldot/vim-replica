@@ -34,89 +34,90 @@ if !exists('g:sci_repl_size')
      g:sci_repl_size = 0
 endif
 
-# This leads the defaults
-g:sci_kernel_default = 'terminal' # DONT CHANGE!
 
 # Dicts. Keys must be Vim filetypes
 var sci_kernels_default = {
             \ "python": "python3",
             \ "julia": "julia-1.8",
             \ "matlab": "jupyter_matlab_kernel",
-            \ "terminal": "terminal"}
+            \ "default": "terminal"}
 
 var sci_repl_names_default = {
             \ "python": "IPYTHON",
             \ "julia": "JULIA",
             \ "matlab": "MATLAB",
-            \ "terminal": "TERMINAL"}
+            \ "default": "TERMINAL"}
 
-var sci_cells_delimiter_default = {
+var sci_cells_delimiters_default = {
             \ "python": "# %%",
             \ "julia": "# %%",
             \ "matlab": "%%",
-            \ "terminal": "#--"}
+            \ "default": "#--"}
 
-var sci_run_command_default = {
+var sci_run_commands_default = {
             \ "python": "run -i " .. g:sci_tmp_filename,
             \ "julia": 'include("' .. g:sci_tmp_filename .. '")',
             \ "matlab": 'run("' .. g:sci_tmp_filename .. '")',
-            \ "terminal": "sh " .. g:sci_tmp_filename}
+            \ "default": "sh " .. g:sci_tmp_filename}
 
 # User is allowed to change only sci_kernels and sci_cells_delimiters
 if exists('g:sci_kernels')
     extend(sci_kernels_default, g:sci_kernels, "force")
 endif
 
-if exists('g:sci_cells_delimiter')
-    extend(sci_delimiters_default, g:sci_cells_delimiter, "force")
+if exists('g:sci_cells_delimiters')
+    extend(sci_delimiters_default, g:sci_cells_delimiters, "force")
 endif
 
 g:sci_kernels = sci_kernels_default
-g:sci_cells_delimiter = sci_cells_delimiter_default
+g:sci_cells_delimiters = sci_cells_delimiters_default
 g:sci_repl_names = sci_repl_names_default
-g:sci_run_commands = sci_run_command_default
+g:sci_run_commands = sci_run_commands_default
 
 
-# Commands definition
+# Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
 command! SciReplToggle :call scirepl#ReplToggle(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
-            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default] ),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! SciSendCell silent :call scirepl#SendCell(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]),
-            \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
+            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"]),
+            \ get(b:, 'sci_run_command', g:sci_run_commands["default"]),
             \ g:sci_tmp_filename,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! SciSendFile silent :call scirepl#SendFile(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
-            \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
+            \ get(b:, 'sci_run_command',  g:sci_run_commands["default"]),
             \ g:sci_tmp_filename,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
-command! SciReplShutoff silent :call scirepl#ReplShutoff(get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]))
-command! SciRemoveCells silent :call scirepl#RemoveCells(get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]))
-command! SciReplRestart silent :call scirepl#ReplShutoff(get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]))
+command! SciReplShutoff silent :call scirepl#ReplShutoff(
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]))
+
+command! SciRemoveCells silent :call scirepl#RemoveCells(
+            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"]))
+
+command! SciReplRestart silent :call scirepl#ReplShutoff(
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]))
             \  | scirepl#ReplToggle(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
+            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
-
-
 
 
 # Default mappings

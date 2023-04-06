@@ -33,6 +33,7 @@ export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: stri
         endfor
     # Otherwise, if repl exists but it is not displayed in any window
     else
+        # Same as in ReplOpen
         exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
         exe "wincmd " .. direction
         if size > 0
