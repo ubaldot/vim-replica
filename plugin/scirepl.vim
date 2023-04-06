@@ -15,14 +15,8 @@ endif
 
 g:scivimrepl_loaded = 1
 
-
+# Used for sending cells or files
 g:sci_tmp_filename = tempname()
-# if has("gui_win32")
-#     g:sci_tmp_filename = $TMP .. "\\my_cell.tmp"
-# else
-#     g:sci_tmp_filename = expand($TMPDIR .. "/my_cell.tmp")
-# endif
-
 
 if !exists('g:sci_fast')
      g:sci_fast = false
@@ -33,7 +27,7 @@ if !exists('g:sci_repl_direction')
 endif
 
 if !exists('g:sci_repl_size')
-     g:sci_repl_size = 0
+     g:sci_repl_size = 0 # Use 0 to take the half of the whole space
 endif
 
 
@@ -90,17 +84,24 @@ command! SciReplRestart silent :call scirepl#ReplShutoff() | scirepl#ReplOpen()
 
 
 # Default mappings
-if !hasmapto('<Plug>SciSendLines')
+if !hasmapto('<Plug>SciSendLines') || empty(mapcheck("<F9>", "nix"))
     nnoremap <silent> <F9> <Cmd>SciSendLines<cr>
+    inoremap <silent> <F9> <Cmd>SciSendLines<cr>
     xnoremap <silent> <F9> :SciSendLines<cr>
 endif
 
-if !hasmapto('<Plug>SciReplToggle')
+if !hasmapto('<Plug>SciSendFile') || empty(mapcheck("<F5>", "ni"))
+    nnoremap <silent> <F5> <Cmd>SciSendFile<cr>
+    inoremap <silent> <F5> <Cmd>SciSendFile<cr>
+endif
+
+if !hasmapto('<Plug>SciReplToggle') || empty(mapcheck("<F2>", "nit"))
     nnoremap <silent> <F2> <Cmd>SciReplToggle<cr>
     inoremap <silent> <F2> <Cmd>SciReplToggle<cr>
     tnoremap <silent> <F2> <Cmd>SciReplToggle<cr>
 endif
 
-if !hasmapto('<Plug>SciSendCell')
+if !hasmapto('<Plug>SciSendCell') || empty(mapcheck("<c-enter>", "ni"))
     nnoremap <silent> <c-enter> <Cmd>SciSendCell<cr>
+    inoremap <silent> <c-enter> <Cmd>SciSendCell<cr>
 endif
