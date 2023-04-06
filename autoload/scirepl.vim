@@ -6,7 +6,7 @@ vim9script
 
 export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string, size: number)
     # If not already opened
-    if !bufexists(bufnr('^' .. repl_name .. '$'))
+    if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
         if kernel_name == "terminal"
             term_start(&shell, {'term_name': repl_name} )
         else
@@ -24,10 +24,9 @@ enddef
 
 export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
     # If repl (terminal) buffer does not exists create one
-    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
-
-    # If repl exists and it is displayed in a window
-    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
+    if !bufexists(bufnr('^' .. repl_name .. '$'))
+        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    elseif !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
         var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
         for win in windows_to_close
             win_execute(win, "close")
@@ -56,7 +55,9 @@ enddef
 
 export def! g:SendLines(firstline: number, lastline: number, kernel_name: string, repl_name: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    if !bufexists(bufnr('^' .. repl_name .. '$'))
+        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    endif
 
     # Actual implementation
     silent exe ":" .. firstline .. "," .. lastline .. "y"
@@ -68,7 +69,9 @@ enddef
 # Actually sending code-cell
 export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    if !bufexists(bufnr('^' .. repl_name .. '$'))
+        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    endif
 
     # Get beginning and end of the cell
     var extremes = scirepl#GetExtremes(cell_delimiter)

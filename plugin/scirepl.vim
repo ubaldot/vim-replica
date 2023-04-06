@@ -78,7 +78,7 @@ g:sci_run_commands = sci_run_command_default
 
 
 # Commands definition
-command! SciReplToggle silent :call scirepl#ReplToggle(
+command! SciReplToggle :call scirepl#ReplToggle(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
             \ g:sci_repl_direction,
@@ -109,6 +109,14 @@ command! SciSendFile silent :call scirepl#SendFile(
 
 command! SciReplShutoff silent :call scirepl#ReplShutoff(get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]))
 command! SciRemoveCells silent :call scirepl#RemoveCells(get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]))
+command! SciReplRestart silent :call scirepl#ReplShutoff(get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]))
+            \  | scirepl#ReplToggle(
+            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
+            \ g:sci_repl_direction,
+            \ g:sci_repl_size)
+
+
 
 
 # Default mappings
