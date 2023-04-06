@@ -5,10 +5,11 @@ vim9script
 # Functions for sending stuff to the REPL
 # =======================================
 
-export def! g:ReplOpen(direction: string)
+export def! g:ReplOpen()
     var kernel_name = get(b:, 'sci_kernel_name', g:sci_kernels["default"])
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
     var size = get(b:, 'sci_repl_size', g:sci_repl_size)
+    var direction = g:sci_repl_direction
     # var size = g:sci_repl_size
 
 
@@ -27,16 +28,25 @@ export def! g:ReplOpen(direction: string)
         # Resize window as per user preference
         exe "wincmd " .. direction
         if size > 0
-            exe "resize " .. size
+            if index(["J", "K"], direction ) >= 0
+                exe "resize " .. size
+            else
+                exe "vertical resize " .. size
+            endif
         endif
         wincmd p # p = previous
 enddef
 
 export def! g:ReplClose()
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    var direction = g:sci_repl_direction
     # If you are on a terminal buffer use bd
     if getbufvar(bufnr("%"), '&buftype') == "terminal"
-        b:sci_repl_size = winheight(0)
+        if index(["J", "K"], direction) >= 0
+            b:sci_repl_size = winheight(0)
+        else
+            b:sci_repl_size = winwidth(0)
+        endif
         exe "close"
     else
         # TODO
@@ -44,7 +54,11 @@ export def! g:ReplClose()
         # The user may mistakenly open more REPL windows in the same tab.
         # We close all of them.
         for win in windows_to_close
-            b:sci_repl_size = winheight(win)
+            if index(["J", "K"], direction) >= 0
+                b:sci_repl_size = winheight(win)
+            else
+                b:sci_repl_size = winwidth(win)
+            endif
             win_execute(win, "close")
         endfor
     endif
@@ -52,34 +66,38 @@ enddef
 
 
 
-export def! g:ReplToggle(direction: string, size: number)
+export def! g:ReplToggle()
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
 
     if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
         scirepl#ReplClose()
     else
-        scirepl#ReplOpen(direction)
+        scirepl#ReplOpen()
     endif
 enddef
 
-export def! g:ReplShutoff()
+export def! g:ReplShutoff(...repl_name_passed: list<string>)
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    if !empty(repl_name_passed)
+        repl_name = repl_name_passed[0]
+    endif
+
     if bufexists(bufnr('^' .. repl_name .. '$'))
         exe "bw! " .. bufnr('^' .. repl_name .. '$')
     endif
 enddef
 
-export def! g:RemoveCells(cell_delimiter: string)
+export def! g:RemoveCells()
     var cell_delimiter = get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
 
-export def! g:SendLines(firstline: number, lastline: number, direction: string, size: number)
+export def! g:SendLines(firstline: number, lastline: number)
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(direction)
+        scirepl#ReplOpen()
     endif
 
     # Actual implementation
@@ -90,14 +108,14 @@ enddef
 
 
 # Actually sending code-cell
-export def! g:SendCell(tmp_filename: string, direction: string, size: number)
+export def! g:SendCell()
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
     # var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
     var run_command = get(b:, 'sci_run_command', g:sci_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(direction)
+        scirepl#ReplOpen()
     endif
 
     # Get beginning and end of the cell
@@ -109,24 +127,30 @@ export def! g:SendCell(tmp_filename: string, direction: string, size: number)
     cursor(line_out, getcurpos()[2])
 
     # Write tmp file
-    delete(fnameescape(tmp_filename)) # Delete tmp file if any
-    writefile(getline(line_in, line_out), tmp_filename, "a")
+    delete(fnameescape(g:sci_tmp_filename)) # Delete tmp file if any
+    writefile(getline(line_in, line_out), g:sci_tmp_filename, "a")
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 #
-export def! g:SendFile(tmp_filename: string, direction: string, size: number)
+export def! g:SendFile(...filename: list<string>)
+    var file_to_send = expand("%")
+    if !empty(filename)
+        file_to_send = filename[0]
+    endif
+
+    # var tmp_filename = g:sci_tmp_filename
     # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
     var run_command = get(b:, 'sci_run_command', g:sci_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(direction)
+        scirepl#ReplOpen()
     endif
 
     # Write tmp file
-    delete(fnameescape(tmp_filename)) # Delete tmp file if any
-    writefile(getline(1, line("$")), tmp_filename, "a")
+    delete(fnameescape(g:sci_tmp_filename)) # Delete tmp file if any
+    writefile(readfile(fnameescape(file_to_send)), g:sci_tmp_filename, "a")
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 
@@ -165,13 +189,14 @@ var list_sign_id = []
 
 
 # When adding a sign keep in mind that we set sign_id = line number
-export def! g:HighlightCell(fast: bool, display_range: bool = false)
+export def! g:HighlightCell(display_range: bool = false)
 
     var cell_delimiter = get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"])
     var extremes = scirepl#GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
+    var fast = g:sci_fast
 
     if fast == false
         hlgroup = "SciReplHl"

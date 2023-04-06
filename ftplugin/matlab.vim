@@ -7,8 +7,8 @@ b:sci_run_command = g:sci_run_commands[&filetype]
 
 augroup highlight_cells_matlab
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m scirepl#HighlightCell(g:sci_fast)
-    autocmd CursorMoved,CursorMovedI *.m scirepl#HighlightCell(g:sci_fast, true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m scirepl#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.m scirepl#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.

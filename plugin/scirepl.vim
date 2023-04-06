@@ -15,11 +15,13 @@ endif
 
 g:scivimrepl_loaded = 1
 
-if has("gui_win32")
-    g:sci_tmp_filename = $TMP .. "\\my_cell.tmp"
-elseif has("mac")
-    g:sci_tmp_filename = expand($TMPDIR .. "/my_cell.tmp")
-endif
+
+g:sci_tmp_filename = tempname()
+# if has("gui_win32")
+#     g:sci_tmp_filename = $TMP .. "\\my_cell.tmp"
+# else
+#     g:sci_tmp_filename = expand($TMPDIR .. "/my_cell.tmp")
+# endif
 
 
 if !exists('g:sci_fast')
@@ -60,6 +62,8 @@ var sci_run_commands_default = {
             \ "matlab": 'run("' .. g:sci_tmp_filename .. '")',
             \ "default": "sh " .. g:sci_tmp_filename}
 
+
+
 # User is allowed to change only sci_kernels and sci_cells_delimiters
 if exists('g:sci_kernels')
     extend(sci_kernels_default, g:sci_kernels, "force")
@@ -76,30 +80,13 @@ g:sci_run_commands = sci_run_commands_default
 
 
 # Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
-command! SciReplToggle :call scirepl#ReplToggle(
-            \ g:sci_repl_direction,
-            \ g:sci_repl_size)
-
-command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
-            \ g:sci_repl_direction,
-            \ g:sci_repl_size)
-
-command! SciSendCell silent :call scirepl#SendCell(
-            \ g:sci_tmp_filename,
-            \ g:sci_repl_direction,
-            \ g:sci_repl_size)
-
-command! SciSendFile silent :call scirepl#SendFile(
-            \ g:sci_tmp_filename,
-            \ g:sci_repl_direction,
-            \ g:sci_repl_size)
-
-command! SciReplShutoff silent :call scirepl#ReplShutoff()
-
+command! SciReplToggle silent :call scirepl#ReplToggle()
+command! -range SciSendLines silent :call scirepl#SendLines(<line1>, <line2>)
+command! SciSendCell silent :call scirepl#SendCell()
+command! -nargs=? -complete=file SciSendFile silent :call scirepl#SendFile(<f-args>)
+command! -nargs=? -complete=buffer SciReplShutoff silent :call scirepl#ReplShutoff(<f-args>)
 command! SciRemoveCells silent :call scirepl#RemoveCells()
-
-command! SciReplRestart silent :call scirepl#ReplShutoff()
-            \  | scirepl#ReplOpen(g:sci_repl_direction)
+command! SciReplRestart silent :call scirepl#ReplShutoff() | scirepl#ReplOpen()
 
 
 # Default mappings

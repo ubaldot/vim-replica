@@ -7,13 +7,13 @@ b:sci_run_command = g:sci_run_commands[&filetype]
 
 augroup highlight_cells_julia
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.jl scirepl#HighlightCell(g:sci_fast)
-    autocmd CursorMoved,CursorMovedI *.jl scirepl#HighlightCell(g:sci_fast, true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.jl scirepl#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.jl scirepl#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_julia
     autocmd!
     autocmd BufWinLeave *.jl scirepl#ReplClose()
-    autocmd BufWinEnter *.jl scirepl#ReplOpen(g:sci_repl_direction)
+    autocmd BufWinEnter *.jl scirepl#ReplOpen()
 augroup END

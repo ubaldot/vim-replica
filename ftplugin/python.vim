@@ -7,8 +7,8 @@ b:sci_run_command = g:sci_run_commands[&filetype]
 
 augroup highlight_cells_python
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.py scirepl#HighlightCell(g:sci_fast)
-    autocmd CursorMoved,CursorMovedI *.py scirepl#HighlightCell(g:sci_fast, true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.py scirepl#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.py scirepl#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
