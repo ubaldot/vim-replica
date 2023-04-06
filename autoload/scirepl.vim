@@ -1,10 +1,14 @@
 vim9script
 
+
 # =======================================
 # Functions for sending stuff to the REPL
 # =======================================
 
-export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string, size: number)
+export def! g:ReplOpen(direction: string, size: number)
+    var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
+
     # If does not exist => create
     if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
         if kernel_name == "terminal"
@@ -25,43 +29,51 @@ export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string
         wincmd p # p = previous
 enddef
 
-export def! g:ReplClose(repl_name: string)
-    # If you are on a terminal buffer move first and then close.
-    # if getbufvar(bufnr("%"), '&buftype') == "terminal"
-    #     echo "pippo"
-    #     wincmd p
-    # endif
-    var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
-    for win in windows_to_close
-        win_execute(win, "close")
-    endfor
-enddef
-
-
-
-export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
-    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
-        scirepl#ReplClose(repl_name)
+export def! g:ReplClose()
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
+    # If you are on a terminal buffer use bd
+    if getbufvar(bufnr("%"), '&buftype') == "terminal"
+        exe "close"
     else
-        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+        var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
+        for win in windows_to_close
+            win_execute(win, "close")
+        endfor
     endif
 enddef
 
-export def! g:ReplShutoff(repl_name: string)
+
+
+export def! g:ReplToggle(direction: string, size: number)
+    # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
+
+    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
+        scirepl#ReplClose()
+    else
+        scirepl#ReplOpen(direction, size)
+    endif
+enddef
+
+export def! g:ReplShutoff()
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
     if bufexists(bufnr('^' .. repl_name .. '$'))
         exe "bw! " .. bufnr('^' .. repl_name .. '$')
     endif
 enddef
 
 export def! g:RemoveCells(cell_delimiter: string)
+    var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
 
-export def! g:SendLines(firstline: number, lastline: number, kernel_name: string, repl_name: string, direction: string, size: number)
+export def! g:SendLines(firstline: number, lastline: number, direction: string, size: number)
+    # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+        scirepl#ReplOpen(direction, size)
     endif
 
     # Actual implementation
@@ -72,14 +84,19 @@ enddef
 
 
 # Actually sending code-cell
-export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, direction: string, size: number)
+export def! g:SendCell(tmp_filename: string, direction: string, size: number)
+    # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
+    # var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
+    var run_command = get(g:sci_run_commands, &filetype, g:sci_run_commands["default"])
+
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+        scirepl#ReplOpen(direction, size)
     endif
 
     # Get beginning and end of the cell
-    var extremes = scirepl#GetExtremes(cell_delimiter)
+    var extremes = scirepl#GetExtremes()
     var line_in = extremes[0]
     var line_out = extremes[1]
 
@@ -92,9 +109,13 @@ export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: s
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 #
-export def! g:SendFile(kernel_name: string, repl_name: string, run_command: string, tmp_filename: string, direction: string, size: number)
+export def! g:SendFile(tmp_filename: string, direction: string, size: number)
+    # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
+    var repl_name = get(g:sci_repl_names, &filetype, g:sci_repl_names["default"])
+    var run_command = get(g:sci_run_commands, &filetype, g:sci_run_commands["default"])
+
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+    scirepl#ReplOpen(direction, size)
 
     # Write tmp file
     delete(fnameescape(tmp_filename)) # Delete tmp file if any
@@ -104,7 +125,8 @@ enddef
 
 
 # Find lines range based on cell_delimiter
-export def! g:GetExtremes(cell_delimiter: string, display_range: bool = false): list<number>
+export def! g:GetExtremes(display_range: bool = false): list<number>
+    var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
     # If search returns 0 it means that the pattern has not been found
@@ -136,8 +158,10 @@ var list_sign_id = []
 
 
 # When adding a sign keep in mind that we set sign_id = line number
-export def! g:HighlightCell(cell_delimiter: string, fast: bool, display_range: bool = false)
-    var extremes = scirepl#GetExtremes(cell_delimiter, display_range)
+export def! g:HighlightCell(fast: bool, display_range: bool = false)
+
+    var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
+    var extremes = scirepl#GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""

@@ -77,47 +77,29 @@ g:sci_run_commands = sci_run_commands_default
 
 # Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
 command! SciReplToggle :call scirepl#ReplToggle(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! -range SciSendLines :call scirepl#SendLines(<line1>, <line2>,
-            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! SciSendCell silent :call scirepl#SendCell(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
-            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"]),
-            \ get(b:, 'sci_run_command', g:sci_run_commands["default"]),
             \ g:sci_tmp_filename,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
 command! SciSendFile silent :call scirepl#SendFile(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
-            \ get(b:, 'sci_run_command',  g:sci_run_commands["default"]),
             \ g:sci_tmp_filename,
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
-command! SciReplShutoff silent :call scirepl#ReplShutoff(
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]))
+command! SciReplShutoff silent :call scirepl#ReplShutoff()
 
-command! SciRemoveCells silent :call scirepl#RemoveCells(
-            \ get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"]))
+command! SciRemoveCells silent :call scirepl#RemoveCells()
 
-command! SciReplRestart silent :call scirepl#ReplShutoff(
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]))
-            \  | scirepl#ReplToggle(
-            \ get(b:, 'sci_kernel_name', g:sci_kernels["default"]),
-            \ get(b:, 'sci_repl_name', g:sci_repl_names["default"]),
-            \ g:sci_repl_direction,
-            \ g:sci_repl_size)
+command! SciReplRestart silent :call scirepl#ReplShutoff()
+            \  | scirepl#ReplOpen(g:sci_repl_direction, g:sci_repl_size)
 
 
 # Default mappings
