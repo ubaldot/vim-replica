@@ -12,13 +12,13 @@ export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string
         else
             term_start("jupyter-console --kernel=" .. kernel_name, {'term_name': repl_name} )
         endif
+    endif
         setbufvar('^' .. repl_name .. '$', "&buflisted", false)
         exe "wincmd " .. direction
         if size > 0
             exe "resize " .. size
         endif
         wincmd p # p = previous
-    endif
 enddef
 
 
