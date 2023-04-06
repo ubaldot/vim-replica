@@ -4,31 +4,15 @@ vim9script
 # Functions for sending stuff to the REPL
 # =======================================
 
-export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
-    # If repl (terminal) buffer does not exists create one
-    if !bufexists(repl_name)
+export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string, size: number)
+    # If not already opened
+    if !bufexists(bufnr('^' .. repl_name .. '$'))
         if kernel_name == "terminal"
             term_start(&shell, {'term_name': repl_name} )
         else
             term_start("jupyter-console --kernel=" .. kernel_name, {'term_name': repl_name} )
         endif
-        # setbufvar(repl_name, "buflisted", 0)
-        # setbufvar(repl_name, "&buflisted", false)
-        exe "wincmd " .. direction
-        if size > 0
-            exe "resize " .. size
-        endif
-        wincmd p # p = previous
-    # Otherwise, if repl exists and it is displayed on a window
-    elseif !empty(win_findbuf(bufnr(repl_name)))
-        var windows_to_close = win_findbuf(bufnr(repl_name))
-        for win in windows_to_close
-            win_execute(win, "close")
-        endfor
-    # Otherwise, if repl exists but it is not displayed in any window
-    else
-        # exe bufnr(repl_name) .. ":sbuffer | wincmd " .. direction
-        exe "sbuffer " .. repl_name
+        setbufvar('^' .. repl_name .. '$', "&buflisted", false)
         exe "wincmd " .. direction
         if size > 0
             exe "resize " .. size
@@ -38,16 +22,45 @@ export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: stri
 enddef
 
 
+export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
+    # If repl (terminal) buffer does not exists create one
+    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+
+    # If repl exists and it is displayed in a window
+    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
+        var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
+        for win in windows_to_close
+            win_execute(win, "close")
+        endfor
+    # Otherwise, if repl exists but it is not displayed in any window
+    else
+        exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
+        exe "wincmd " .. direction
+        if size > 0
+            exe "resize " .. size
+        endif
+        wincmd p # p = previous
+    endif
+enddef
+
+export def! g:ReplShutoff(repl_name: string)
+    if bufexists(bufnr('^' .. repl_name .. '$'))
+        exe "bw! " .. bufnr('^' .. repl_name .. '$')
+    endif
+enddef
+
+export def! g:RemoveCells(cell_delimiter: string)
+    exe ":%g/^" .. cell_delimiter .. "/d"
+enddef
+
 
 export def! g:SendLines(firstline: number, lastline: number, kernel_name: string, repl_name: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(repl_name)
-         scirepl#ReplToggle(kernel_name, repl_name, direction, size)
-        wincmd p # p = previous
-    endif
+    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
+
     # Actual implementation
     silent exe ":" .. firstline .. "," .. lastline .. "y"
-    term_sendkeys(repl_name, @")
+    term_sendkeys(bufnr('^' .. repl_name .. '$'), @")
     norm! j^
 enddef
 
@@ -55,10 +68,7 @@ enddef
 # Actually sending code-cell
 export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: string, run_command: string, tmp_filename: string, direction: string, size: number)
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(repl_name)
-         scirepl#ReplToggle(kernel_name, repl_name,  direction, size)
-        wincmd p # p = previous
-    endif
+    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
 
     # Get beginning and end of the cell
     var extremes = scirepl#GetExtremes(cell_delimiter)
@@ -71,10 +81,18 @@ export def! g:SendCell(kernel_name: string, repl_name: string, cell_delimiter: s
     # Write tmp file
     delete(fnameescape(tmp_filename)) # Delete tmp file if any
     writefile(getline(line_in, line_out), tmp_filename, "a")
-    call term_sendkeys(repl_name, run_command .. "\n")
+    term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 #
+export def! g:SendFile(kernel_name: string, repl_name: string, run_command: string, tmp_filename: string, direction: string, size: number)
+    # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
+    scirepl#ReplOpen(kernel_name, repl_name, direction, size)
 
+    # Write tmp file
+    delete(fnameescape(tmp_filename)) # Delete tmp file if any
+    writefile(getline(1, line("$")), tmp_filename, "a")
+    term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
+enddef
 
 
 # Find lines range based on cell_delimiter

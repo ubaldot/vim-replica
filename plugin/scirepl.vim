@@ -35,7 +35,7 @@ if !exists('g:sci_repl_size')
 endif
 
 # This leads the defaults
-g:sci_kernel_default = 'terminal' # Must be a vim filetype
+g:sci_kernel_default = 'terminal' # DONT CHANGE!
 
 # Dicts. Keys must be Vim filetypes
 var sci_kernels_default = {
@@ -78,8 +78,7 @@ g:sci_run_commands = sci_run_command_default
 
 
 # Commands definition
-# # TODO Replace silent
-command! SciReplToggle :call scirepl#ReplToggle(
+command! SciReplToggle silent :call scirepl#ReplToggle(
             \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
             \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
             \ g:sci_repl_direction,
@@ -100,6 +99,17 @@ command! SciSendCell silent :call scirepl#SendCell(
             \ g:sci_repl_direction,
             \ g:sci_repl_size)
 
+command! SciSendFile silent :call scirepl#SendFile(
+            \ get(b:, 'sci_kernel_name', g:sci_kernels[g:sci_kernel_default]),
+            \ get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]),
+            \ get(b:, 'sci_run_command', g:sci_run_commands[g:sci_kernel_default]),
+            \ g:sci_tmp_filename,
+            \ g:sci_repl_direction,
+            \ g:sci_repl_size)
+
+command! SciReplShutoff silent :call scirepl#ReplShutoff(get(b:, 'sci_repl_name', g:sci_repl_names[g:sci_kernel_default]))
+command! SciRemoveCells silent :call scirepl#RemoveCells(get(b:, 'sci_cells_delimiter', g:sci_cells_delimiter[g:sci_kernel_default]))
+
 
 # Default mappings
 if !hasmapto('<Plug>SciSendLines')
@@ -107,6 +117,10 @@ if !hasmapto('<Plug>SciSendLines')
     xnoremap <silent> <F9> :SciSendLines<cr>
 endif
 
+if !hasmapto('<Plug>SciReplToggle')
+    nnoremap <silent> <F2> <Cmd>SciReplToggle<cr>
+    inoremap <silent> <F2> <Cmd>SciReplToggle<cr>
+endif
 
 if !hasmapto('<Plug>SciSendCell')
     nnoremap <silent> <c-enter> <Cmd>SciSendCell<cr>
