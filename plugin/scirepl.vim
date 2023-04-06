@@ -77,12 +77,14 @@ g:sci_run_commands = sci_run_commands_default
 command! SciReplOpen silent :call scirepl#ReplOpen()
 command! -nargs=? SciReplClose silent :call scirepl#ReplClose(<f-args>)
 command! SciReplToggle silent :call scirepl#ReplToggle()
+command! SciReplRestart silent :call scirepl#ReplShutoff() | scirepl#ReplOpen()
+command! -nargs=? SciReplShutoff silent :call scirepl#ReplShutoff(<f-args>)
+
 command! -range SciSendLines silent :call scirepl#SendLines(<line1>, <line2>)
 command! SciSendCell silent :call scirepl#SendCell()
 command! -nargs=? -complete=file SciSendFile silent :call scirepl#SendFile(<f-args>)
-command! -nargs=? SciReplShutoff silent :call scirepl#ReplShutoff(<f-args>)
+
 command! SciRemoveCells silent :call scirepl#RemoveCells()
-command! SciReplRestart silent :call scirepl#ReplShutoff() | scirepl#ReplOpen()
 
 
 # Default mappings
