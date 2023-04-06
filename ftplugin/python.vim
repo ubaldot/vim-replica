@@ -7,13 +7,13 @@ b:ubi_run_command = g:ubi_run_commands[&filetype]
 
 augroup highlight_cells_python
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.py ubiquiotous#HighlightCell()
-    autocmd CursorMoved,CursorMovedI *.py ubiquiotous#HighlightCell(true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.py ubiquitous#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.py ubiquitous#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_python
     autocmd!
-    autocmd BufWinLeave *.py ubiquiotous#ReplClose()
-    autocmd BufWinEnter *.py ubiquiotous#ReplOpen() | ubiquiotous#ReplClose('TERMINAL')
+    autocmd BufWinLeave *.py ubiquitous#ReplClose()
+    autocmd BufWinEnter *.py ubiquitous#ReplOpen() | ubiquitous#ReplClose('TERMINAL')
 augroup END

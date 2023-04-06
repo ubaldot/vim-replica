@@ -7,13 +7,13 @@ b:ubi_run_command = g:ubi_run_commands[&filetype]
 
 augroup highlight_cells_matlab
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m ubiquiotous#HighlightCell()
-    autocmd CursorMoved,CursorMovedI *.m ubiquiotous#HighlightCell(true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m ubiquitous#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.m ubiquitous#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_matlab
     autocmd!
-    autocmd BufWinLeave *.m ubiquiotous#ReplClose()
-    autocmd BufWinEnter *.m ubiquiotous#ReplOpen() | ubiquiotous#ReplClose('TERMINAL')
+    autocmd BufWinLeave *.m ubiquitous#ReplClose()
+    autocmd BufWinEnter *.m ubiquitous#ReplOpen() | ubiquitous#ReplClose('TERMINAL')
 augroup END

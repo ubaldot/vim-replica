@@ -7,13 +7,13 @@ b:ubi_run_command = g:ubi_run_commands[&filetype]
 
 augroup highlight_cells_julia
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.jl ubiquiotous#HighlightCell()
-    autocmd CursorMoved,CursorMovedI *.jl ubiquiotous#HighlightCell(true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.jl ubiquitous#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.jl ubiquitous#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_julia
     autocmd!
-    autocmd BufWinLeave *.jl ubiquiotous#ReplClose()
-    autocmd BufWinEnter *.jl ubiquiotous#ReplOpen() | ubiquiotous#ReplClose('TERMINAL')
+    autocmd BufWinLeave *.jl ubiquitous#ReplClose()
+    autocmd BufWinEnter *.jl ubiquitous#ReplOpen() | ubiquitous#ReplClose('TERMINAL')
 augroup END
