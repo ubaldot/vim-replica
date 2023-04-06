@@ -26,6 +26,11 @@ export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string
 enddef
 
 export def! g:ReplClose(repl_name: string)
+    # If you are on a terminal buffer move first and then close.
+    # if getbufvar(bufnr("%"), '&buftype') == "terminal"
+    #     echo "pippo"
+    #     wincmd p
+    # endif
     var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
     for win in windows_to_close
         win_execute(win, "close")

@@ -14,5 +14,5 @@ augroup END
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_julia
     autocmd!
-    autocmd BufLeave,BufWinLeave *.jl scirepl#ReplClose(b:sci_repl_name)
+    autocmd BufWinLeave *.jl scirepl#ReplClose(b:sci_repl_name)
 augroup END

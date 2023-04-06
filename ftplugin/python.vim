@@ -14,5 +14,5 @@ augroup END
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl
     autocmd!
-    autocmd BufLeave,BufWinLeave *.py scirepl#ReplClose(b:sci_repl_name)
+    autocmd BufWinLeave *.py scirepl#ReplClose(b:sci_repl_name)
 augroup END

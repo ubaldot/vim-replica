@@ -129,6 +129,7 @@ endif
 if !hasmapto('<Plug>SciReplToggle')
     nnoremap <silent> <F2> <Cmd>SciReplToggle<cr>
     inoremap <silent> <F2> <Cmd>SciReplToggle<cr>
+    tnoremap <silent> <F2> <Cmd>SciReplToggle<cr>
 endif
 
 if !hasmapto('<Plug>SciSendCell')
