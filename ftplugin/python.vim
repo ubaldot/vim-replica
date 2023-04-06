@@ -15,4 +15,5 @@ augroup END
 augroup leave_repl_python
     autocmd!
     autocmd BufWinLeave *.py scirepl#ReplClose()
+    autocmd BufWinEnter *.py scirepl#ReplOpen() | scirepl#ReplClose('TERMINAL')
 augroup END

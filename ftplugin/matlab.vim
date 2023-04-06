@@ -15,4 +15,5 @@ augroup END
 augroup leave_repl_matlab
     autocmd!
     autocmd BufWinLeave *.m scirepl#ReplClose()
+    autocmd BufWinEnter *.m scirepl#ReplOpen() | scirepl#ReplClose('TERMINAL')
 augroup END
