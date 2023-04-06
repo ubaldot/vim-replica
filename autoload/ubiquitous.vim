@@ -193,6 +193,7 @@ var list_sign_id_old = []
 var list_sign_id = []
 
 
+var counter_dbg = 0
 # When adding a sign keep in mind that we set sign_id = line number
 export def! g:HighlightCell(display_range: bool = false)
 
@@ -201,9 +202,9 @@ export def! g:HighlightCell(display_range: bool = false)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
-    var alt_highlight = g:alt_highlight
+    # var alt_highlight = g:ubi_alt_highlight
 
-    if alt_highlight == false
+    if g:ubi_alt_highlight == false
         hlgroup = "UbiReplHl"
     else
         hlgroup = "UbiReplHlFast"
@@ -214,6 +215,8 @@ export def! g:HighlightCell(display_range: bool = false)
         # ...and if the cursor moved into another cell,
         # then update the highlight recompute the match
         if line_in != line_in_old || line_out != line_out_old
+            counter_dbg = counter_dbg + 1
+            echo counter_dbg
 
             # Remove existing signs related to UbiReplHl
             if !empty(list_sign_id_old)
@@ -226,7 +229,7 @@ export def! g:HighlightCell(display_range: bool = false)
             list_sign_id_old = []
 
             # Find lines
-            if alt_highlight == false
+            if g:ubi_alt_highlight == false
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else
@@ -239,6 +242,10 @@ export def! g:HighlightCell(display_range: bool = false)
                 sign_place(line, "", hlgroup, expand("%:p"), {"lnum": line})
                 add(list_sign_id_old, line)
             endfor
+
+            # Update old values
+            line_in_old = line_in
+            line_out_old = line_out
         endif
     else
         # If there are no cells left remove all the signs

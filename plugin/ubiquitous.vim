@@ -18,8 +18,8 @@ g:scivimrepl_loaded = 1
 # Used for sending cells or files
 g:ubi_tmp_filename = tempname()
 
-if !exists('g:alt_highlight')
-     g:alt_highlight = false
+if !exists('g:ubi_alt_highlight')
+     g:ubi_alt_highlight = false
 endif
 
 if !exists('g:ubi_repl_direction')
