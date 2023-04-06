@@ -15,5 +15,5 @@ augroup END
 augroup leave_repl_julia
     autocmd!
     autocmd BufWinLeave *.jl scirepl#ReplClose()
-    autocmd BufWinEnter *.jl scirepl#ReplOpen()
+    autocmd BufWinEnter *.jl scirepl#ReplOpen() | scirepl#ReplClose('TERMINAL')
 augroup END

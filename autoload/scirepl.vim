@@ -10,10 +10,9 @@ export def! g:ReplOpen()
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
     var size = get(b:, 'sci_repl_size', g:sci_repl_size)
     var direction = g:sci_repl_direction
-    # var size = g:sci_repl_size
 
 
-    # If does not exist => create
+    # If repl does not exist => create
     if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
         if kernel_name == "terminal"
             term_start(&shell, {'term_name': repl_name} )
@@ -25,7 +24,7 @@ export def! g:ReplOpen()
         # Otherwise display it in a window
         exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
     endif
-        # Resize window as per user preference
+        # Resize window as per user preference (or last user-setting)
         exe "wincmd " .. direction
         if size > 0
             if index(["J", "K"], direction ) >= 0
@@ -37,8 +36,11 @@ export def! g:ReplOpen()
         wincmd p # p = previous
 enddef
 
-export def! g:ReplClose()
+export def! g:ReplClose(...repl_name_passed: list<string>)
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    if !empty(repl_name_passed)
+        repl_name = repl_name_passed[0]
+    endif
     var direction = g:sci_repl_direction
     # If you are on a terminal buffer use bd
     if getbufvar(bufnr("%"), '&buftype') == "terminal"
@@ -95,6 +97,8 @@ enddef
 
 export def! g:SendLines(firstline: number, lastline: number)
     var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+
+
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
         scirepl#ReplOpen()
@@ -132,6 +136,7 @@ export def! g:SendCell()
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 #
+## TODO: argument list could be improved
 export def! g:SendFile(...filename: list<string>)
     var file_to_send = expand("%")
     if !empty(filename)
@@ -196,9 +201,9 @@ export def! g:HighlightCell(display_range: bool = false)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
-    var fast = g:sci_fast
+    var alt_highlight = g:alt_highlight
 
-    if fast == false
+    if alt_highlight == false
         hlgroup = "SciReplHl"
     else
         hlgroup = "SciReplHlFast"
@@ -221,7 +226,7 @@ export def! g:HighlightCell(display_range: bool = false)
             list_sign_id_old = []
 
             # Find lines
-            if fast == false
+            if alt_highlight == false
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else

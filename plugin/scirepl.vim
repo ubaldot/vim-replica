@@ -18,8 +18,8 @@ g:scivimrepl_loaded = 1
 # Used for sending cells or files
 g:sci_tmp_filename = tempname()
 
-if !exists('g:sci_fast')
-     g:sci_fast = false
+if !exists('g:alt_highlight')
+     g:alt_highlight = false
 endif
 
 if !exists('g:sci_repl_direction')
@@ -74,11 +74,13 @@ g:sci_run_commands = sci_run_commands_default
 
 
 # Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
+command! SciReplOpen silent :call scirepl#ReplOpen()
+command! -nargs=? SciReplClose silent :call scirepl#ReplClose(<f-args>)
 command! SciReplToggle silent :call scirepl#ReplToggle()
 command! -range SciSendLines silent :call scirepl#SendLines(<line1>, <line2>)
 command! SciSendCell silent :call scirepl#SendCell()
 command! -nargs=? -complete=file SciSendFile silent :call scirepl#SendFile(<f-args>)
-command! -nargs=? -complete=buffer SciReplShutoff silent :call scirepl#ReplShutoff(<f-args>)
+command! -nargs=? SciReplShutoff silent :call scirepl#ReplShutoff(<f-args>)
 command! SciRemoveCells silent :call scirepl#RemoveCells()
 command! SciReplRestart silent :call scirepl#ReplShutoff() | scirepl#ReplOpen()
 
