@@ -1,19 +1,19 @@
 vim9script
 
-b:sci_kernel_name = g:sci_kernels[&filetype]
-b:sci_repl_name = g:sci_repl_names[&filetype]
-b:sci_cells_delimiter = g:sci_cells_delimiters[&filetype]
-b:sci_run_command = g:sci_run_commands[&filetype]
+b:ubi_kernel_name = g:ubi_kernels[&filetype]
+b:ubi_repl_name = g:ubi_repl_names[&filetype]
+b:ubi_cells_delimiter = g:ubi_cells_delimiters[&filetype]
+b:ubi_run_command = g:ubi_run_commands[&filetype]
 
 augroup highlight_cells_matlab
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m scirepl#HighlightCell()
-    autocmd CursorMoved,CursorMovedI *.m scirepl#HighlightCell(true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m ubiquiotous#HighlightCell()
+    autocmd CursorMoved,CursorMovedI *.m ubiquiotous#HighlightCell(true)
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
 augroup leave_repl_matlab
     autocmd!
-    autocmd BufWinLeave *.m scirepl#ReplClose()
-    autocmd BufWinEnter *.m scirepl#ReplOpen() | scirepl#ReplClose('TERMINAL')
+    autocmd BufWinLeave *.m ubiquiotous#ReplClose()
+    autocmd BufWinEnter *.m ubiquiotous#ReplOpen() | ubiquiotous#ReplClose('TERMINAL')
 augroup END

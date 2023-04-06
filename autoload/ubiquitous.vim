@@ -6,10 +6,10 @@ vim9script
 # =======================================
 
 export def! g:ReplOpen()
-    var kernel_name = get(b:, 'sci_kernel_name', g:sci_kernels["default"])
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
-    var size = get(b:, 'sci_repl_size', g:sci_repl_size)
-    var direction = g:sci_repl_direction
+    var kernel_name = get(b:, 'ubi_kernel_name', g:ubi_kernels["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
+    var size = get(b:, 'ubi_repl_size', g:ubi_repl_size)
+    var direction = g:ubi_repl_direction
 
 
     # If repl does not exist => create
@@ -37,17 +37,17 @@ export def! g:ReplOpen()
 enddef
 
 export def! g:ReplClose(...repl_name_passed: list<string>)
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
     if !empty(repl_name_passed)
         repl_name = repl_name_passed[0]
     endif
-    var direction = g:sci_repl_direction
+    var direction = g:ubi_repl_direction
     # If you are on a terminal buffer use bd
     if getbufvar(bufnr("%"), '&buftype') == "terminal"
         if index(["J", "K"], direction) >= 0
-            b:sci_repl_size = winheight(0)
+            b:ubi_repl_size = winheight(0)
         else
-            b:sci_repl_size = winwidth(0)
+            b:ubi_repl_size = winwidth(0)
         endif
         exe "close"
     else
@@ -57,9 +57,9 @@ export def! g:ReplClose(...repl_name_passed: list<string>)
         # We close all of them.
         for win in windows_to_close
             if index(["J", "K"], direction) >= 0
-                b:sci_repl_size = winheight(win)
+                b:ubi_repl_size = winheight(win)
             else
-                b:sci_repl_size = winwidth(win)
+                b:ubi_repl_size = winwidth(win)
             endif
             win_execute(win, "close")
         endfor
@@ -69,17 +69,17 @@ enddef
 
 
 export def! g:ReplToggle()
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
 
     if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
-        scirepl#ReplClose()
+        ubiquitous#ReplClose()
     else
-        scirepl#ReplOpen()
+        ubiquitous#ReplOpen()
     endif
 enddef
 
 export def! g:ReplShutoff(...repl_name_passed: list<string>)
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
     if !empty(repl_name_passed)
         repl_name = repl_name_passed[0]
     endif
@@ -90,18 +90,18 @@ export def! g:ReplShutoff(...repl_name_passed: list<string>)
 enddef
 
 export def! g:RemoveCells()
-    var cell_delimiter = get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'ubi_cells_delimiter', g:ubi_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
 
 export def! g:SendLines(firstline: number, lastline: number)
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
 
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen()
+        ubiquitous#ReplOpen()
     endif
 
     # Actual implementation
@@ -113,17 +113,17 @@ enddef
 
 # Actually sending code-cell
 export def! g:SendCell()
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
-    # var cell_delimiter = get(g:sci_cells_delimiters, &filetype, g:sci_cells_delimiters["default"])
-    var run_command = get(b:, 'sci_run_command', g:sci_run_commands["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
+    # var cell_delimiter = get(g:ubi_cells_delimiters, &filetype, g:ubi_cells_delimiters["default"])
+    var run_command = get(b:, 'ubi_run_command', g:ubi_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen()
+        ubiquitous#ReplOpen()
     endif
 
     # Get beginning and end of the cell
-    var extremes = scirepl#GetExtremes()
+    var extremes = ubiquitous#GetExtremes()
     var line_in = extremes[0]
     var line_out = extremes[1]
 
@@ -131,8 +131,8 @@ export def! g:SendCell()
     cursor(line_out, getcurpos()[2])
 
     # Write tmp file
-    delete(fnameescape(g:sci_tmp_filename)) # Delete tmp file if any
-    writefile(getline(line_in, line_out), g:sci_tmp_filename, "a")
+    delete(fnameescape(g:ubi_tmp_filename)) # Delete tmp file if any
+    writefile(getline(line_in, line_out), g:ubi_tmp_filename, "a")
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 #
@@ -143,26 +143,26 @@ export def! g:SendFile(...filename: list<string>)
         file_to_send = filename[0]
     endif
 
-    # var tmp_filename = g:sci_tmp_filename
-    # var kernel_name = get(g:sci_kernels, &filetype, g:sci_kernels["default"])
-    var repl_name = get(b:, 'sci_repl_name', g:sci_repl_names["default"])
-    var run_command = get(b:, 'sci_run_command', g:sci_run_commands["default"])
+    # var tmp_filename = g:ubi_tmp_filename
+    # var kernel_name = get(g:ubi_kernels, &filetype, g:ubi_kernels["default"])
+    var repl_name = get(b:, 'ubi_repl_name', g:ubi_repl_names["default"])
+    var run_command = get(b:, 'ubi_run_command', g:ubi_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen()
+        ubiquitous#ReplOpen()
     endif
 
     # Write tmp file
-    delete(fnameescape(g:sci_tmp_filename)) # Delete tmp file if any
-    writefile(readfile(fnameescape(file_to_send)), g:sci_tmp_filename, "a")
+    delete(fnameescape(g:ubi_tmp_filename)) # Delete tmp file if any
+    writefile(readfile(fnameescape(file_to_send)), g:ubi_tmp_filename, "a")
     term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
 enddef
 
 
 # Find lines range based on cell_delimiter
 export def! g:GetExtremes(display_range: bool = false): list<number>
-    var cell_delimiter = get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'ubi_cells_delimiter', g:ubi_cells_delimiters["default"])
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
     # If search returns 0 it means that the pattern has not been found
@@ -184,8 +184,8 @@ enddef
 # ======================================
 
 # for highlightning cells
-sign define SciReplHl text=- linehl=CursorLine
-sign define SciReplHlFast text=- linehl=UnderLined
+sign define UbiReplHl text=- linehl=CursorLine
+sign define UbiReplHlFast text=- linehl=UnderLined
 
 var line_in_old = 1
 var line_out_old = line("$")
@@ -196,17 +196,17 @@ var list_sign_id = []
 # When adding a sign keep in mind that we set sign_id = line number
 export def! g:HighlightCell(display_range: bool = false)
 
-    var cell_delimiter = get(b:, 'sci_cells_delimiter', g:sci_cells_delimiters["default"])
-    var extremes = scirepl#GetExtremes(display_range)
+    var cell_delimiter = get(b:, 'ubi_cells_delimiter', g:ubi_cells_delimiters["default"])
+    var extremes = ubiquitous#GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
     var alt_highlight = g:alt_highlight
 
     if alt_highlight == false
-        hlgroup = "SciReplHl"
+        hlgroup = "UbiReplHl"
     else
-        hlgroup = "SciReplHlFast"
+        hlgroup = "UbiReplHlFast"
     endif
 
     # There is at least one cell
@@ -215,7 +215,7 @@ export def! g:HighlightCell(display_range: bool = false)
         # then update the highlight recompute the match
         if line_in != line_in_old || line_out != line_out_old
 
-            # Remove existing signs related to SciReplHl
+            # Remove existing signs related to UbiReplHl
             if !empty(list_sign_id_old)
                 for line in list_sign_id_old
                     sign_unplace("", {"buffer": expand("%:p"), "id": line})
@@ -230,7 +230,7 @@ export def! g:HighlightCell(display_range: bool = false)
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else
-                # exe ":g/" .. b:sci_cell_delimiter .. "/add(list_sign_id, line('.')"
+                # exe ":g/" .. b:ubi_cell_delimiter .. "/add(list_sign_id, line('.')"
                 list_sign_id = [line_in, line_out]
             endif
 
