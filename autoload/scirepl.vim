@@ -5,15 +5,19 @@ vim9script
 # =======================================
 
 export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string, size: number)
-    # If not already opened
+    # If does not exist => create
     if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
         if kernel_name == "terminal"
             term_start(&shell, {'term_name': repl_name} )
         else
             term_start("jupyter-console --kernel=" .. kernel_name, {'term_name': repl_name} )
         endif
-    endif
         setbufvar('^' .. repl_name .. '$', "&buflisted", false)
+    else
+        # Otherwise display it in a window
+        exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
+    endif
+        # Resize window as per user preference
         exe "wincmd " .. direction
         if size > 0
             exe "resize " .. size
@@ -21,25 +25,20 @@ export def! g:ReplOpen(kernel_name: string, repl_name: string, direction: string
         wincmd p # p = previous
 enddef
 
+export def! g:ReplClose(repl_name: string)
+    var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
+    for win in windows_to_close
+        win_execute(win, "close")
+    endfor
+enddef
+
+
 
 export def! g:ReplToggle(kernel_name: string, repl_name: string, direction: string, size: number)
-    # If repl (terminal) buffer does not exists create one
-    if !bufexists(bufnr('^' .. repl_name .. '$'))
-        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
-    elseif !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
-        var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
-        for win in windows_to_close
-            win_execute(win, "close")
-        endfor
-    # Otherwise, if repl exists but it is not displayed in any window
+    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$'))) # match-case repl_name
+        scirepl#ReplClose(repl_name)
     else
-        # Same as in ReplOpen
-        exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
-        exe "wincmd " .. direction
-        if size > 0
-            exe "resize " .. size
-        endif
-        wincmd p # p = previous
+        scirepl#ReplOpen(kernel_name, repl_name, direction, size)
     endif
 enddef
 
