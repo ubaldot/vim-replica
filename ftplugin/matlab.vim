@@ -5,13 +5,14 @@ b:sci_repl_name = g:sci_repl_names[&filetype]
 b:sci_cells_delimiter = g:sci_cells_delimiters[&filetype]
 b:sci_run_command = g:sci_run_commands[&filetype]
 
-augroup highlight_cells
+augroup highlight_cells_matlab
     autocmd!
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m scirepl#HighlightCell(b:sci_cells_delimiter, g:sci_fast)
-    autocmd CursorMoved,CursorMovedI *.m scirepl#HighlightCell(b:sci_cells_delimiter, g:sci_fast, true)
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave *.m scirepl#HighlightCell(g:sci_fast)
+    autocmd CursorMoved,CursorMovedI *.m scirepl#HighlightCell(g:sci_fast, true)
 augroup END
+
 # When leaving a buffer of this filetype, then leave the associated repl.
-augroup leave_repl
+augroup leave_repl_matlab
     autocmd!
-    autocmd BufLeave *.m scirepl#ReplClose(b:sci_repl_name)
+    autocmd BufWinLeave *.m scirepl#ReplClose()
 augroup END

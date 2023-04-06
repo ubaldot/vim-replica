@@ -11,8 +11,9 @@ augroup highlight_cells_julia
     autocmd CursorMoved,CursorMovedI *.jl scirepl#HighlightCell(g:sci_fast, true)
 augroup END
 
-# # When leaving a buffer of this filetype, then leave the associated repl.
-# augroup leave_repl_julia
-#     autocmd!
-#     autocmd BufWinLeave *.jl scirepl#ReplClose(b:sci_repl_name)
-# augroup END
+# When leaving a buffer of this filetype, then leave the associated repl.
+augroup leave_repl_julia
+    autocmd!
+    autocmd BufWinLeave *.jl scirepl#ReplClose()
+    autocmd BufWinEnter *.jl scirepl#ReplOpen(g:sci_repl_direction)
+augroup END

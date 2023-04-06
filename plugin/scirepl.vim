@@ -99,7 +99,7 @@ command! SciReplShutoff silent :call scirepl#ReplShutoff()
 command! SciRemoveCells silent :call scirepl#RemoveCells()
 
 command! SciReplRestart silent :call scirepl#ReplShutoff()
-            \  | scirepl#ReplOpen(g:sci_repl_direction, g:sci_repl_size)
+            \  | scirepl#ReplOpen(g:sci_repl_direction)
 
 
 # Default mappings
