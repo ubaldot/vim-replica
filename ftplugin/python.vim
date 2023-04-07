@@ -1,7 +1,7 @@
 vim9script
 
 b:repl_kernel_name = g:repl_kernels[&filetype]
-b:repl_repl_name = g:repl_repl_names[&filetype]
+b:repl_name = g:repl_names[&filetype]
 b:repl_cells_delimiter = g:repl_cells_delimiters[&filetype]
 b:repl_run_command = g:repl_run_commands[&filetype]
 
