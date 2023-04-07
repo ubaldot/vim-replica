@@ -27,7 +27,7 @@ if !exists('g:repl_direction')
      g:repl_direction = "L"
 endif
 
-if !exists('g:repl_repl_size')
+if !exists('g:repl_size')
      g:repl_size = 0 # Use 0 to take the half of the whole space
 endif
 
@@ -39,7 +39,7 @@ var repl_kernels_default = {
             \ "matlab": "jupyter_matlab_kernel",
             \ "default": "terminal"}
 
-var repl_repl_names_default = {
+var repl_names_default = {
             \ "python": "IPYTHON",
             \ "julia": "JULIA",
             \ "matlab": "MATLAB",
@@ -70,7 +70,7 @@ endif
 
 g:repl_kernels = repl_kernels_default
 g:repl_cells_delimiters = repl_cells_delimiters_default
-g:repl_repl_names = repl_repl_names_default
+g:repl_names = repl_names_default
 g:repl_run_commands = repl_run_commands_default
 
 

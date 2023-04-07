@@ -17,19 +17,16 @@ CONTENTS                                                     *ReplicaContents*
     3. Usage ................ |ReplicaUsage|
     4. Configuration ........ |ReplicaConfiguration|
     5. Add new languages .... |ReplicaAddLanguages|
-    6. Contributing ......... |ReplicaContributing|
+    6. Troubleshooting ...... |ReplicaTroubleshooting|
+    7. Contributing ......... |ReplicaContributing|
+    8. License .............. |ReplicaLicense|
 
 
 ===============================================================================
-1. Introduction                                         *ReplicaIntroduction*
+INTRODUCTION                                         *ReplicaIntroduction*
 
 Replica allows the usage any REPL programs (Python, Julia, etc.) inside
 Vim in a seamless way.
-You can send lines, code-cells and files and you can toggle REPL:s for different
-languages all in one place.
-
-Replica is easily extendable since it relies on jupyter kernels: if a jupyter
-kernel for a specific language exists, then you can easily use it with replica.
 
 Replica supports the following key features:
 
@@ -49,15 +46,12 @@ developer documentation. See |ReplicaContributing|.
 
 
 ===============================================================================
-2. Requirements                                         *ReplicaRequirements*
+REQUIREMENTS                                         *ReplicaRequirements*
 
 You must install jupyter console to make replica to work.
 
-Once you have it installed, you need to install the jupyter kernels of the
-languages that you want to use.
-That is, if you want to use a specific language, then you must install its
-relative jupyter kernel first.
-
+Once you have it installed, you need to install the jupyter kernels for all
+the languages that you want to use.
 To see a list of the installed kernels on your machine,
 run jupyter kernelspec list from the command line of your terminal.
 
@@ -65,7 +59,7 @@ See jupyter console docs for more information.
 
 
 ===============================================================================
-3. Usage                                                     *ReplicaUsage*
+USAGE                                                     *ReplicaUsage*
 
 
                                                                *:ReplOpen*
@@ -145,7 +139,7 @@ See jupyter console docs for more information.
 
 
 ===============================================================================
-4. Configuration                                        *ReplicaConfiguration*
+CONFIGURATION                                        *ReplicaConfiguration*
 
                                                         *g:repl_tmp_filename*
   Type: 'string'
@@ -243,7 +237,7 @@ Note: this dictionary shall not be changed by the user!
 
 
 ===============================================================================
-5. Add new languages                           *ReplicaAddLanguages*
+ADD NEW LANGUAGES                                     *ReplicaAddLanguages*
 
 Replica is nicely extendable and to add new languages is fairly easy.
 
@@ -261,10 +255,28 @@ TODO: You may use the global ftplugin folder but it has been not tested yet.
 
 
 ===============================================================================
-6. Contributing                                  *ReplicaContributing*
+TROUBLESHOOTING                                      *ReplicaTroubleshooting*
+
+Q. My Vim became very slow!
+A. You can try to set |g:repl_alt_highlight| = 1 in your .vimrc.
+
+Q. Is it possible to copy from the REPL to a buffer?
+A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
+There you can yank everything you want.
+To re-enable the REPL just press i with the cursor located on the REPL window.
+
+
+===============================================================================
+CONTRIBUTING                                            *ReplicaContributing*
 
 Contributions are most than welcome!
 Feel free to add a PR on GitHub. :)
 
 
-vim:tw=80:et:ft=help:norl:
+===============================================================================
+LICENSE                                                    *ReplicaLicense*
+
+BSD-3Clause License.
+Copyright ©2023 Ubaldo Tiberi.
+
+vim:tw=78:et:ft=help:norl:

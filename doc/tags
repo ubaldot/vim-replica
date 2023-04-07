@@ -16,7 +16,9 @@ ReplicaConfiguration	replica.txt	/*ReplicaConfiguration*
 ReplicaContents	replica.txt	/*ReplicaContents*
 ReplicaContributing	replica.txt	/*ReplicaContributing*
 ReplicaIntroduction	replica.txt	/*ReplicaIntroduction*
+ReplicaLicense	replica.txt	/*ReplicaLicense*
 ReplicaRequirements	replica.txt	/*ReplicaRequirements*
+ReplicaTroubleshooting	replica.txt	/*ReplicaTroubleshooting*
 ReplicaUsage	replica.txt	/*ReplicaUsage*
 g:repl_alt_highlight	replica.txt	/*g:repl_alt_highlight*
 g:repl_cells_delimiters	replica.txt	/*g:repl_cells_delimiters*
