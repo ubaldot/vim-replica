@@ -1,0 +1,158 @@
+*Replica.txt*                                   REPL for Scientific applications.
+
+                      ______           _ _           ~
+                      | ___ \         | (_)          ~
+                      | |_/ /___ _ __ | |_  ___ __ _ ~
+                      |    // _ | '_ \| | |/ __/ _` |~
+                      | |\ |  __| |_) | | | (_| (_| |~
+                      \_| \_\___| .__/|_|_|\___\__,_|~
+                                | |                  ~
+                                |_|                  ~
+
+===============================================================================
+CONTENTS                                                     *replica-contents*
+
+    1. Introduction ......... |replica-introduction|
+    2. Requirements ......... |replica-requirements|
+    3. Usage ................ |replica-usage|
+    4. Configuration ........ |replica-configuration|
+    4. License .............. |ReplicaLicense|
+    5. Bugs ................. |ReplicaBugs|
+    6. Contributing ......... |ReplicaContributing|
+    7. Changelog ............ |ReplicaChangelog|
+    8. Credits .............. |ReplicaCredits|
+
+
+===============================================================================
+1. Introduction                                         *replica-introduction*
+
+Replica allows the usage any REPL programs (Python, Julia, etc.) inside
+Vim in a seamless way.
+You can send lines, code-cells and files and you can toggle REPL:s for different
+languages as you want.
+
+Replica is easily extendible since it relies on jupyter kernels: if a jupyter
+kernel for a specific language exists, then you can use replica with such a
+language.
+
+Replica supports the following key features:
+
+1. Sending lines, files and code-cells to a REPL,
+2. Code-cells highlighting.
+
+Each REPL is a jupyter-console started with a certain kernel running in a
+'terminal' buffer.
+
+For each 'filetype' you have one available REPL to send text in.
+If you work with "m" buffers that encompass "n" 'filetype', then you can
+have at most "n" available REPL:s open at the same time, one for each
+'filetype'.
+Based on the current buffer 'filetype' replica will send text in the
+appropriate REPL automatically.
+
+If you are interested in contributing to the development of replica, read the
+developer documentation. See |replica-contributing|.
+
+
+===============================================================================
+2. Requirements                                         *replica-requirements*
+
+You must install jupyter console (which is an external tool) to make replica
+to work.
+Once you have it installed, you need jupyter kernels of the languages that you
+wish to use.
+Once done, then you are ready to use replica.
+
+To see a list of the installed kernels, run jupyter kernelspec list from the
+command line of your terminal.
+
+See jupyter console docs for more information.
+
+
+===============================================================================
+3. Usage                                                     *replica-usage*
+
+
+                                                               *:ReplOpen*
+:ReplOpen()                     Open the REPL associated to the current buffer
+                                'filetype'.
+                                The association 'filetype' - REPL type is
+                                stored in the |g:repl_kernels| dictionary.
+
+                                Example:
+                                If
+
+                                1. g:repl_kernels['python'] = python3 and
+                                2. g:repl_names['python'] = IPYTHON and
+                                3. the current buffer 'filetype' is |python| and
+                                4. there is no replica python REPL running,
+
+                                then this command start a jupyter-console with
+                                python3 kernel in a 'terminal' buffer named
+                                IPYTHON and it place it in a window in position
+                                |g:repl_direction|.
+
+                                If the REPL already exists, then it open it in
+                                a window in position |g:repl_direction|.
+
+
+                                                                   *:ReplClose*
+:ReplClose([{REPL}])            Close {REPL}. The value of {REPL} must be one
+                                value specified in the |g:repl_names| dict.
+                                If no argument is passed, then it close
+                                the REPL associated to the 'filetype'
+                                of the current buffer.
+
+                                For example, if g:repl_names['python'] is
+                                IPYTHON and the current buffer 'filetype'
+                                is |python|, then this command with no
+                                arguments close the REPL named IPYTHON.
+
+
+                                                                    *<F2>*
+                                                               *:ReplToggle*
+:ReplToggle()                   Un-hide and hide a REPL by alternating
+                                |:ReplOpen()| and |:ReplClose()| calls.
+
+
+                                                               *:ReplRestart*
+:ReplRestart()                  Restart the REPL associated to the 'filetype'
+                                of the current buffer.
+
+
+                                                               *:ReplShutoff*
+:ReplShutoff([{REPL}])          Same as |:ReplClose| but it wipe away the
+                                REPL.
+
+
+                                                                    *<F9>*
+                                                               *:ReplSendLines*
+:[range]ReplSendLines()         Send the lines specified in range. If no range
+                                is specified, then it sends the current line.
+
+
+                                                                  *<c-enter>*
+                                                               *:ReplSendCell*
+:ReplSendCell()                 Send the current code-cell.
+                                Cell delimiters are specified in the
+                                |g:repl_cells_delimiters| dictionary.
+
+                                                                    *<F5>*
+                                                               *:ReplSendFile*
+:ReplSendFile([{file}])         Send {file} to the REPL. The target REPL
+                                depends on the {file} 'filetype'.
+                                If no argument is passed, then it send the file
+                                opened in the current buffer.
+
+                                                               *:ReplRemoveCells*
+:ReplRemoveCells()              Remove all the cells delimiters from the current
+                                buffer.
+
+
+
+===============================================================================
+4. Configuration                                        *replica-configuration*
+
+
+
+vim:tw=78:et:ft=help:norl:
