@@ -31,7 +31,7 @@ Vim in a seamless way.
 You can send lines, code-cells and files and you can toggle REPL:s for different
 languages as you want.
 
-Replica is easily extendible since it relies on jupyter kernels: if a jupyter
+Replica is easily extendable since it relies on jupyter kernels: if a jupyter
 kernel for a specific language exists, then you can use replica with such a
 language.
 
@@ -59,12 +59,13 @@ developer documentation. See |replica-contributing|.
 
 You must install jupyter console (which is an external tool) to make replica
 to work.
-Once you have it installed, you need jupyter kernels of the languages that you
-wish to use.
-Once done, then you are ready to use replica.
+Once you have it installed, you need to install the jupyter kernels of the
+languages that you want to use.
+That is, if you want to use a specific language, then you must install its
+relative jupyter kernel first.
 
-To see a list of the installed kernels, run jupyter kernelspec list from the
-command line of your terminal.
+To see a list of the installed kernels on your machine,
+run jupyter kernelspec list from the command line of your terminal.
 
 See jupyter console docs for more information.
 
@@ -80,12 +81,13 @@ See jupyter console docs for more information.
                                 stored in the |g:repl_kernels| dictionary.
 
                                 Example:
+
                                 If
 
                                 1. g:repl_kernels['python'] = python3 and
                                 2. g:repl_names['python'] = IPYTHON and
                                 3. the current buffer 'filetype' is |python| and
-                                4. there is no replica python REPL running,
+                                4. no replica python REPL is running,
 
                                 then this command start a jupyter-console with
                                 python3 kernel in a 'terminal' buffer named
@@ -152,6 +154,69 @@ See jupyter console docs for more information.
 
 ===============================================================================
 4. Configuration                                        *replica-configuration*
+
+
+                                                        *g:repl_alt_highlight*
+  Type: 0 or 1.
+  Default: 0.
+
+Alternative way of highlighting code-cells.
+If you are experiencing sluggish behavior with the normal settings, you could
+try to set it to 1.
+
+
+                                                        *g:repl_direction*
+  Type: HJKL.
+  Default: L.
+
+The location of the REPL window.
+
+
+                                                        *g:repl_size*
+  Type: non-negative number.
+  Default: 0.
+
+Size of the REPL window in lines or columns number.
+If |g:repl_direction| = "J" or "K" then it sets the number of lines,
+otherwise it sets the number of columns.
+If the value is 0, then the window will take as much space as possible.
+
+
+                                                        *g:repl_kernels*
+  Type: 'dict'<'filetype', jupyter kernel>
+  Default: {
+            \ "python": "python3",
+            \ "julia": "julia-1.8",
+            \ "default": "terminal"}
+
+Associates |filetype| to jupyter kernels.
+To see the list of installed jupyter kernels run jupyter kernelspec list
+from your terminal.
+
+You can override existing key-values.
+For example, to use the kernel julia-2.0 when working with julia
+|filetype| you can use:    >
+
+    g:repl_kernels['julia': "julia-2.0"]
+<
+Note that for adding a new language in replica you need to do a bit more work.
+See |replica-add-language| for more information.
+
+
+                                                        *g:repl_names*
+  Type: 'dict'<'filetype', 'string'>
+  Default:{
+            \ "python": "IPYTHON",
+            \ "julia": "JULIA",
+            \ "default": "TERMINAL"}
+
+Associate
+
+
+
+
+
+
 
 
 
