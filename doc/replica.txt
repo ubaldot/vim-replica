@@ -94,7 +94,7 @@ See jupyter console docs for more information.
                                 IPYTHON and it place it in a window in position
                                 |g:repl_direction|.
 
-                                If the REPL already exists, then it open it in
+                                If the REPL already exists, then it open in
                                 a window in position |g:repl_direction|.
 
 
@@ -133,11 +133,13 @@ See jupyter console docs for more information.
                                 is specified, then it sends the current line.
 
 
+
                                                                   *<c-enter>*
                                                                *:ReplSendCell*
 :ReplSendCell()                 Send the current code-cell.
                                 Cell delimiters are specified in the
                                 |g:repl_cells_delimiters| dictionary.
+
 
                                                                     *<F5>*
                                                                *:ReplSendFile*
@@ -146,7 +148,7 @@ See jupyter console docs for more information.
                                 If no argument is passed, then it send the file
                                 opened in the current buffer.
 
-                                                               *:ReplRemoveCells*
+                                                          *:ReplRemoveCells*
 :ReplRemoveCells()              Remove all the cells delimiters from the current
                                 buffer.
 
@@ -190,8 +192,7 @@ If the value is 0, then the window will take as much space as possible.
             \ "default": "terminal"}
 
 Associates |filetype| to jupyter kernels.
-To see the list of installed jupyter kernels run jupyter kernelspec list
-from your terminal.
+
 
 You can override existing key-values.
 For example, to use the kernel julia-2.0 when working with julia
@@ -199,18 +200,29 @@ For example, to use the kernel julia-2.0 when working with julia
 
     g:repl_kernels['julia': "julia-2.0"]
 <
-Note that for adding a new language in replica you need to do a bit more work.
+To see the list of installed jupyter kernels run jupyter kernelspec list
+from your terminal.
+
+Note: to add a new language in replica you need to do a bit more work than
+just editing this dictionary.
 See |replica-add-language| for more information.
 
-
-                                                        *g:repl_names*
+                                                     *g:repl_cells_delimiters*
   Type: 'dict'<'filetype', 'string'>
-  Default:{
-            \ "python": "IPYTHON",
-            \ "julia": "JULIA",
-            \ "default": "TERMINAL"}
+  Default: {{
+            \ "python": "# %%",
+            \ "julia": "# %%",
+            \ "default": "#--"}
 
-Associate
+Associates |filetype| to cell delimiters.
+
+You can change the cell delimiter associated to a 'filetype' simply by
+changing the value associated to such a 'filetype' key.
+For example:
+>
+    g:repl_cells_delimiters['python': "#%%"]
+<
+
 
 
 
