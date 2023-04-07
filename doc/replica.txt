@@ -29,8 +29,7 @@ You can send lines, code-cells and files and you can toggle REPL:s for different
 languages as you want.
 
 Replica is easily extendable since it relies on jupyter kernels: if a jupyter
-kernel for a specific language exists, then you can use replica with such a
-language.
+kernel for a specific language exists, then you can use it within replica.
 
 Replica supports the following key features:
 
@@ -40,7 +39,10 @@ Replica supports the following key features:
 Each REPL is a jupyter-console started with a certain kernel running in a
 'terminal' buffer.
 
-For each 'filetype' you have one available REPL to send text in.
+For each 'filetype' replica provides you with one available REPL
+to send text in.
+
+You can work with many REPL:s for different languages at the same time.
 If you work with "m" buffers that encompass "n" 'filetype', then you can
 have at most "n" available REPL:s open at the same time, one for each
 'filetype'.
