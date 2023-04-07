@@ -16,11 +16,8 @@ CONTENTS                                                     *replica-contents*
     2. Requirements ......... |replica-requirements|
     3. Usage ................ |replica-usage|
     4. Configuration ........ |replica-configuration|
-    4. License .............. |ReplicaLicense|
-    5. Bugs ................. |ReplicaBugs|
-    6. Contributing ......... |ReplicaContributing|
-    7. Changelog ............ |ReplicaChangelog|
-    8. Credits .............. |ReplicaCredits|
+    5. Add new languages .... |replica-add-languages|
+    6. Contributing ......... |replica-contributing|
 
 
 ===============================================================================
@@ -157,6 +154,15 @@ See jupyter console docs for more information.
 ===============================================================================
 4. Configuration                                        *replica-configuration*
 
+                                                        *g:repl_tmp_filename*
+  Type: 'string'
+  Default: tempname()
+
+The temp file that is used when using the command |:SendCell| and |:SendFile|.
+
+Note: this dictionary shall not be changed by the user!
+
+
 
                                                         *g:repl_alt_highlight*
   Type: 0 or 1.
@@ -184,6 +190,7 @@ otherwise it sets the number of columns.
 If the value is 0, then the window will take as much space as possible.
 
 
+
                                                         *g:repl_kernels*
   Type: 'dict'<'filetype', jupyter kernel>
   Default: {
@@ -191,12 +198,11 @@ If the value is 0, then the window will take as much space as possible.
             \ "julia": "julia-1.8",
             \ "default": "terminal"}
 
-Associates |filetype| to jupyter kernels.
-
+Associates 'filetype' to jupyter kernels.
 
 You can override existing key-values.
 For example, to use the kernel julia-2.0 when working with julia
-|filetype| you can use:    >
+'filetype' you can use:    >
 
     g:repl_kernels['julia': "julia-2.0"]
 <
@@ -207,14 +213,16 @@ Note: to add a new language in replica you need to do a bit more work than
 just editing this dictionary.
 See |replica-add-language| for more information.
 
+
+
                                                      *g:repl_cells_delimiters*
   Type: 'dict'<'filetype', 'string'>
-  Default: {{
+  Default: {
             \ "python": "# %%",
             \ "julia": "# %%",
             \ "default": "#--"}
 
-Associates |filetype| to cell delimiters.
+Associates 'filetype' to cell delimiters.
 
 You can change the cell delimiter associated to a 'filetype' simply by
 changing the value associated to such a 'filetype' key.
@@ -224,12 +232,59 @@ For example:
 <
 
 
+                                                     *g:repl_names*
+  Type: 'dict'<'filetype', 'string'>
+  Default:{
+            \ "python": "IPYTHON",
+            \ "julia": "JULIA",
+            \ "default": "TERMINAL"}
+
+
+Associates 'filetype' to 'terminal' buffer names.
+
+Note: this dictionary shall not be changed by the user!
 
 
 
 
+                                                     *g:repl_run_commands*
+  Type: 'dict'<'filetype', 'string'>
+  Default:{
+            \ "python": "run -i " .. |g:repl_tmp_filename|,
+            \ "julia": 'include("' .. |g:repl_tmp_filename| .. '")',
+            \ "default": "sh " .. |g:repl_tmp_filename|}
+
+Associates 'filetype' to commands that are run in the REPL when using
+|:SendCell| or |:SendFile| commands.
+
+Note: this dictionary shall not be changed by the user!
+
+
+
+===============================================================================
+5. Add new languages                           *replica-add-languages*
+
+Replica is nicely extendable and to add new languages is fairly easy.
+
+Say that a new language to is associated to a certain 'filetype'.
+Then, this is added to replica in two steps:
+
+    1. Add a key-value pair to the |g:repl_kernels|, |g:repl_names|,
+    |g:repl_cells_delimiters| and |g:repl_run_commands| dictionaries.
+    2. Create a new 'filetype'.vim file in vim-replica/ftplugin and copy/paste
+    the content of an existing 'filetype'.vim in the same folder in the newly
+    created file. Adjust the file content accordingly.
+
+Done!
 
 
 
 
-vim:tw=78:et:ft=help:norl:
+===============================================================================
+6. Contributing                                  *replica-contributing*
+
+Contributions are most than welcome!
+Feel free to add a PR on GitHub. :)
+
+
+vim:tw=80:et:ft=help:norl:
