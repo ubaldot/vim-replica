@@ -1,12 +1,12 @@
-:ReplClose	replica.txt	/*:ReplClose*
-:ReplOpen	replica.txt	/*:ReplOpen*
+:ReplConsoleClose	replica.txt	/*:ReplConsoleClose*
+:ReplConsoleOpen	replica.txt	/*:ReplConsoleOpen*
+:ReplConsoleRestart	replica.txt	/*:ReplConsoleRestart*
+:ReplConsoleShutoff	replica.txt	/*:ReplConsoleShutoff*
+:ReplConsoleToggle	replica.txt	/*:ReplConsoleToggle*
 :ReplRemoveCells	replica.txt	/*:ReplRemoveCells*
-:ReplRestart	replica.txt	/*:ReplRestart*
 :ReplSendCell	replica.txt	/*:ReplSendCell*
 :ReplSendFile	replica.txt	/*:ReplSendFile*
 :ReplSendLines	replica.txt	/*:ReplSendLines*
-:ReplShutoff	replica.txt	/*:ReplShutoff*
-:ReplToggle	replica.txt	/*:ReplToggle*
 <F2>	replica.txt	/*<F2>*
 <F5>	replica.txt	/*<F5>*
 <F9>	replica.txt	/*<F9>*
@@ -21,6 +21,7 @@ ReplicaRequirements	replica.txt	/*ReplicaRequirements*
 ReplicaTroubleshooting	replica.txt	/*ReplicaTroubleshooting*
 ReplicaUsage	replica.txt	/*ReplicaUsage*
 g:repl_alt_highlight	replica.txt	/*g:repl_alt_highlight*
+g:repl_autostart	replica.txt	/*g:repl_autostart*
 g:repl_cells_delimiters	replica.txt	/*g:repl_cells_delimiters*
 g:repl_direction	replica.txt	/*g:repl_direction*
 g:repl_kernels	replica.txt	/*g:repl_kernels*

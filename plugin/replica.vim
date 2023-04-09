@@ -19,6 +19,10 @@ g:scivimrepl_loaded = 1
 # Used for sending cells or files
 g:repl_tmp_filename = tempname()
 
+if !exists('g:repl_autostart')
+     g:repl_autostart = false
+endif
+
 if !exists('g:repl_alt_highlight')
      g:repl_alt_highlight = false
 endif
@@ -75,11 +79,11 @@ g:repl_run_commands = repl_run_commands_default
 
 
 # Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
-command! ReplOpen silent :call replica#ReplOpen()
-command! -nargs=? ReplClose silent :call replica#ReplClose(<f-args>)
-command! ReplToggle silent :call replica#ReplToggle()
-command! ReplRestart silent :call replica#ReplShutoff() | replica#ReplOpen()
-command! -nargs=? ReplShutoff silent :call replica#ReplShutoff(<f-args>)
+command! ReplConsoleOpen silent :call replica#ReplOpen()
+command! -nargs=? ReplConsoleClose silent :call replica#ReplClose(<f-args>)
+command! ReplConsoleToggle silent :call replica#ReplToggle()
+command! ReplConsoleRestart silent :call replica#ReplShutoff() | replica#ReplOpen()
+command! -nargs=? ReplConsoleShutoff silent :call replica#ReplShutoff(<f-args>)
 
 command! -range ReplSendLines silent :call replica#SendLines(<line1>, <line2>)
 command! ReplSendCell silent :call replica#SendCell()
@@ -101,9 +105,9 @@ if !hasmapto('<Plug>ReplSendFile') || empty(mapcheck("<F5>", "ni"))
 endif
 
 if !hasmapto('<Plug>ReplToggle') || empty(mapcheck("<F2>", "nit"))
-    nnoremap <silent> <F2> <Cmd>ReplToggle<cr>
-    inoremap <silent> <F2> <Cmd>ReplToggle<cr>
-    tnoremap <silent> <F2> <Cmd>ReplToggle<cr>
+    nnoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
+    inoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
+    tnoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
 endif
 
 if !hasmapto('<Plug>ReplSendCell') || empty(mapcheck("<c-enter>", "ni"))

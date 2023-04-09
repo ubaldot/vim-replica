@@ -48,12 +48,15 @@ developer documentation. See |ReplicaContributing|.
 ===============================================================================
 REQUIREMENTS                                         *ReplicaRequirements*
 
-You must install jupyter console to make replica to work.
+Replica is written in Vim9script, therefore you need at least Vim 9.0.
+
+Furthermore, you must install jupyter console to make replica to work.
 
 Once you have it installed, you need to install the jupyter kernels for all
 the languages that you want to use.
-To see a list of the installed kernels on your machine,
-run jupyter kernelspec list from the command line of your terminal.
+You can google to discover what are the available jupyter kernels out there
+whereas you can run jupyter kernelspec list from the command line of your
+terminal to see the list of kernels installed on your machine.
 
 See jupyter console docs for more information.
 
@@ -62,8 +65,8 @@ See jupyter console docs for more information.
 USAGE                                                     *ReplicaUsage*
 
 
-                                                               *:ReplOpen*
-:ReplOpen()                     Open the REPL associated to the current buffer
+                                                               *:ReplConsoleOpen*
+:ReplConsoleOpen()              Open the REPL associated to the current buffer
                                 'filetype'.
                                 The association 'filetype' - REPL type is
                                 stored in the |g:repl_kernels| dictionary.
@@ -83,8 +86,8 @@ USAGE                                                     *ReplicaUsage*
                                 a window in position |g:repl_direction|.
 
 
-                                                                   *:ReplClose*
-:ReplClose([{REPL}])            Close {REPL}. The value of {REPL} must be one
+                                                                   *:ReplConsoleClose*
+:ReplConsoleClose([{REPL}])     Close {REPL}. The value of {REPL} must be one
                                 value specified in the |g:repl_names| dict.
                                 If no argument is passed, then it close
                                 the REPL associated to the 'filetype'
@@ -97,18 +100,18 @@ USAGE                                                     *ReplicaUsage*
 
 
                                                                     *<F2>*
-                                                               *:ReplToggle*
-:ReplToggle()                   Un-hide and hide a REPL by alternating
-                                |:ReplOpen()| and |:ReplClose()| calls.
+                                                               *:ReplConsoleToggle*
+:ReplConsoleToggle()            Un-hide and hide a REPL by alternating
+                                |:ReplConsoleOpen()| and |:ReplConsoleClose()| calls.
 
 
-                                                               *:ReplRestart*
-:ReplRestart()                  Restart the REPL associated to the 'filetype'
+                                                               *:ReplConsoleRestart*
+:ReplConsoleRestart()           Restart the REPL associated to the 'filetype'
                                 of the current buffer as specified in
                                 |g:repl_names|.
 
-                                                               *:ReplShutoff*
-:ReplShutoff([{REPL}])          Same as |:ReplClose| but it wipe away the
+                                                               *:ReplConsoleShutoff*
+:ReplConsoleShutoff([{REPL}])   Same as |:ReplConsoleClose| but it wipe away the
                                 REPL.
 
                                                                     *<F9>*
@@ -140,6 +143,12 @@ USAGE                                                     *ReplicaUsage*
 
 ===============================================================================
 CONFIGURATION                                        *ReplicaConfiguration*
+
+                                                        *g:repl_autostart*
+  Type: bool
+  Default: false
+
+If true, automatically open the REPL at 'BufWinEnter'.
 
                                                         *g:repl_tmp_filename*
   Type: 'string'
@@ -260,10 +269,35 @@ TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 Q. My Vim became very slow!
 A. You can try to set |g:repl_alt_highlight| = 1 in your .vimrc.
 
-Q. Is it possible to copy from the REPL to a buffer?
+Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
 There you can yank everything you want.
 To re-enable the REPL just press i with the cursor located on the REPL window.
+
+Q. Is it possible to automatically change the REPL folder when I change
+Vim folder?
+A. Yes, but you need to define your own function, something like
+>
+    def ChangeTerminalDir()
+        for ii in term_list()
+            if bufname(ii) == "JULIA"
+               term_sendkeys(ii, 'cd("' .. getcwd() .. '")' .. "\n")
+            else
+               term_sendkeys(ii, "cd " .. getcwd() .. "\n")
+            endif
+        endfor
+    enddef
+
+    augroup DIRCHANGE
+        au!
+        autocmd DirChanged global ChangeTerminalDir()
+    augroup END
+<
+This will automatically change folder to all the open 'terminal' buffers.
+Note: depending on the REPL, you may need a different command to
+change folder.
+Note: It does not work the other way around, i.e. if you change folder from a
+'terminal' buffer the Vim current folder won't be changed.
 
 
 ===============================================================================

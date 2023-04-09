@@ -15,23 +15,25 @@ export def! g:ReplOpen()
         if kernel_name == "terminal"
             term_start(&shell, {'term_name': repl_name} )
         else
-            term_start("jupyter-console --kernel=" .. kernel_name, {'term_name': repl_name} )
+            term_start("jupyter console --kernel=" .. kernel_name, {'term_name': repl_name} )
         endif
         setbufvar('^' .. repl_name .. '$', "&buflisted", false)
     else
         # Otherwise display it in a window
         exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
     endif
-        # Move and resize window as per user preference (or last user-setting)
-        exe "wincmd " .. g:repl_direction
-        if size > 0
-            if index(["J", "K"], g:repl_direction ) >= 0
-                exe "resize " .. size
-            else
-                exe "vertical resize " .. size
-            endif
+
+    # Move and resize window as per user preference (or last user-setting)
+    exe "wincmd " .. g:repl_direction
+    if size > 0
+        if index(["J", "K"], g:repl_direction ) >= 0
+            exe "resize " .. size
+        else
+            exe "vertical resize " .. size
         endif
-        wincmd p # p = previous, return the focus to the previous window.
+    endif
+    wincmd p # p = previous, return the focus to the previous window.
+    b:repl_was_open = true
 enddef
 
 export def! g:ReplClose(...repl_name_passed: list<string>)
@@ -62,6 +64,12 @@ export def! g:ReplClose(...repl_name_passed: list<string>)
             endif
             win_execute(win, "close")
         endfor
+    endif
+    # If user has both e.g. PYTHON and TERMINAL windows, and he want to close
+    # the TERMINAL window, then does not mean that
+    # your e.g. PYTHON repl shall be marked as closed
+    if empty(repl_name_passed) || repl_name_passed != g:repl_names['default']
+        b:repl_was_open = false
     endif
 enddef
 
