@@ -41,7 +41,8 @@ def Startup(): bool
     var do_open = false
     # If the previous buffer exists and its filetype was Python
     # just copy its repl status (open or close)
-    if len(g:repl_open_buffers[&filetype]) > 1
+    # if len(g:repl_open_buffers[&filetype]) > 1
+    if !empty(g:repl_open_buffers[&filetype])
         # Obs! g:repl_open_buffers[&filetype][-1] is the current buffer!
         var prev_buf_nr = g:repl_open_buffers[&filetype][-1]
         echo "prev_buf: " .. bufname(prev_buf_nr) ..  ", prev_repl_ is open: " .. getbufvar(prev_buf_nr, 'repl_is_open')
@@ -57,8 +58,8 @@ enddef
 var tmp = 0
 augroup leave_repl_python
     autocmd! * <buffer>
-    autocmd BufLeave <buffer> tmp = b:repl_is_open | replica#ReplClose() | b:repl_is_open = tmp # Hop to keep the buffer status because replica#Close() set repl_is_open = 0
-    autocmd BufEnter <buffer> if Startup() | replica#ReplOpen() | else | replica#ReplClose() | endif | BufferListAdd()
+    autocmd BufWinLeave <buffer> tmp = b:repl_is_open | replica#ReplClose() | b:repl_is_open = tmp # Hop to keep the buffer status because replica#Close() set repl_is_open = 0
+    autocmd BufWinEnter <buffer> if Startup() | replica#ReplOpen() | else | replica#ReplClose() | endif | BufferListAdd()
     autocmd BufDelete,BufWipeout <buffer> BufferListRemove()
 augroup END
 
