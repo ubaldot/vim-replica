@@ -19,12 +19,16 @@ g:scivimrepl_loaded = 1
 # Used for sending cells or files
 g:repl_tmp_filename = tempname()
 
+# if !exists('g:repl_is_open')
+#      g:repl_is_open = false
+# endif
+
 if !exists('g:repl_autostart')
-     g:repl_autostart = false
+     g:repl_autostart = 1
 endif
 
 if !exists('g:repl_alt_highlight')
-     g:repl_alt_highlight = false
+     g:repl_alt_highlight = 0
 endif
 
 if !exists('g:repl_direction')
@@ -76,6 +80,13 @@ g:repl_kernels = repl_kernels_default
 g:repl_cells_delimiters = repl_cells_delimiters_default
 g:repl_names = repl_names_default
 g:repl_run_commands = repl_run_commands_default
+
+g:repl_open_buffers = {
+            \ "python": [],
+            \ "julia": [],
+            \ "matlab": [],
+            \ "default": []}
+
 
 
 # Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").

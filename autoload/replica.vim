@@ -5,46 +5,56 @@ vim9script
 # =======================================
 
 export def! g:ReplOpen()
-    # It opens a new console. If it already exists, then it places in a window
+    # It opens a new console. If the terminal buffer already exists,
+    # then it places in a window
     var kernel_name = get(b:, 'repl_kernel_name', g:repl_kernels["default"])
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
     var size = get(b:, 'repl_size', g:repl_size)
+    # var repl_is_open = get(b:, 'repl_is_open', g:repl_autostart)
 
-    # If console is not instantiated => create
-    if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
-        if kernel_name == "terminal"
-            term_start(&shell, {'term_name': repl_name} )
+    # The repl does not exist or it is hidden, then show it
+    if !bufexists(bufnr('^' .. repl_name .. '$')) || empty(win_findbuf(bufnr('^' .. repl_name .. '$')))
+        # If repl does not exist => create
+        if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
+            if kernel_name == g:repl_names["default"]
+                term_start(&shell, {'term_name': repl_name} )
+            else
+                term_start("jupyter console --kernel=" .. kernel_name, {'term_name': repl_name} )
+            endif
+            setbufvar('^' .. repl_name .. '$', "&buflisted", false)
+        # Otherwise, it is hidden. Hence, display it in a window
         else
-            term_start("jupyter console --kernel=" .. kernel_name, {'term_name': repl_name} )
+            exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
         endif
-        setbufvar('^' .. repl_name .. '$', "&buflisted", false)
-    else
-        # Otherwise display it in a window
-        exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
-    endif
 
-    # Move and resize window as per user preference (or last user-setting)
-    exe "wincmd " .. g:repl_direction
-    if size > 0
-        if index(["J", "K"], g:repl_direction ) >= 0
-            exe "resize " .. size
-        else
-            exe "vertical resize " .. size
+        # The following is executed either if the buffer is newly created
+        # or if it is just displayed in a new window.
+        # Move and resize window as per user preference (or last user-setting)
+        exe "wincmd " .. g:repl_direction
+        if size > 0
+            if index(["J", "K"], g:repl_direction ) >= 0
+                exe "resize " .. size
+            else
+                exe "vertical resize " .. size
+            endif
         endif
+        wincmd p # p = previous, return to the window that open the repl
     endif
-    wincmd p # p = previous, return the focus to the previous window.
-    b:repl_was_open = true
+    b:repl_is_open = 1
 enddef
 
 export def! g:ReplClose(...repl_name_passed: list<string>)
-    # Close the console and store last size.
+    # Close the repl, store last size and mark it as closed.
+    #
     # If the cursor in on the terminal window, use :bdelete
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
     if !empty(repl_name_passed)
+        # repl_name_passed is a list or arguments
         repl_name = repl_name_passed[0]
     endif
-    # If you are on a terminal buffer use bd
-    if getbufvar(bufnr("%"), '&buftype') == "terminal"
+
+    # If user wants to close and he is on the repl
+    if getbufvar(bufnr("%"), '&buftype') == 'terminal'
         if index(["J", "K"], g:repl_direction) >= 0
             b:repl_size = winheight(0)
         else
@@ -55,6 +65,8 @@ export def! g:ReplClose(...repl_name_passed: list<string>)
         # The user may mistakenly open more repl windows in the same tab.
         # We close all of them.
         var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
+        # Note that if the buffer does not exist, the for loop is skipped
+        # so we don't need to check if the window exist.
         for win in windows_to_close
             # Store the last user-setting
             if index(["J", "K"], g:repl_direction) >= 0
@@ -65,12 +77,7 @@ export def! g:ReplClose(...repl_name_passed: list<string>)
             win_execute(win, "close")
         endfor
     endif
-    # If user has both e.g. PYTHON and TERMINAL windows, and he want to close
-    # the TERMINAL window, then does not mean that
-    # your e.g. PYTHON repl shall be marked as closed
-    if empty(repl_name_passed) || repl_name_passed != g:repl_names['default']
-        b:repl_was_open = false
-    endif
+    b:repl_is_open = 0
 enddef
 
 
@@ -78,7 +85,7 @@ enddef
 export def! g:ReplToggle()
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
 
-    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
+    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  # || getbufvar(bufnr("%"), '&buftype') == "terminal"
         replica#ReplClose()
     else
         replica#ReplOpen()
@@ -209,7 +216,7 @@ export def! g:HighlightCell(display_range: bool = false)
     var line_out = extremes[1]
     var hlgroup = ""
 
-    if g:repl_alt_highlight == false
+    if g:repl_alt_highlight == 0
         hlgroup = "UbiReplHl"
     else
         hlgroup = "UbiReplHlFast"
@@ -231,7 +238,7 @@ export def! g:HighlightCell(display_range: bool = false)
 
 
             # Find lines
-            if g:repl_alt_highlight == false
+            if g:repl_alt_highlight == 0
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else
