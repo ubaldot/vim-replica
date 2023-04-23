@@ -4,13 +4,12 @@ vim9script
 # Functions for sending stuff to the REPL
 # =======================================
 
-export def! g:ReplOpen()
+export def ConsoleOpen()
     # It opens a new console. If the terminal buffer already exists,
     # then it places in a window
     var kernel_name = get(b:, 'repl_kernel_name', g:repl_kernels["default"])
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
     var size = get(b:, 'repl_size', g:repl_size)
-    # var repl_is_open = get(b:, 'repl_is_open', g:repl_autostart)
 
     # The repl does not exist or it is hidden, then show it
     if !bufexists(bufnr('^' .. repl_name .. '$')) || empty(win_findbuf(bufnr('^' .. repl_name .. '$')))
@@ -30,6 +29,7 @@ export def! g:ReplOpen()
         # The following is executed either if the buffer is newly created
         # or if it is just displayed in a new window.
         # Move and resize window as per user preference (or last user-setting)
+        # TODO: refactor based on the g:repl_open_buffers list
         exe "wincmd " .. g:repl_direction
         if size > 0
             if index(["J", "K"], g:repl_direction ) >= 0
@@ -43,7 +43,7 @@ export def! g:ReplOpen()
     b:repl_is_open = 1
 enddef
 
-export def! g:ReplClose(...repl_name_passed: list<string>)
+export def ConsoleClose(...repl_name_passed: list<string>)
     # Close the repl, store last size and mark it as closed.
     #
     # If the cursor in on the terminal window, use :bdelete
@@ -77,23 +77,24 @@ export def! g:ReplClose(...repl_name_passed: list<string>)
             win_execute(win, "close")
         endfor
     endif
-    b:repl_is_open = 0
+    b:repl_is_open = false
 enddef
 
 
 
-export def! g:ReplToggle()
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
+export def ConsoleToggle()
 
-    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  # || getbufvar(bufnr("%"), '&buftype') == "terminal"
-        replica#ReplClose()
+    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
+    # TODO: to be improved. repl buffer don't have a variable b:repl_name so we need an OR condition
+    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
+        ConsoleClose()
     else
-        replica#ReplOpen()
+        ConsoleOpen()
     endif
 enddef
 
 
-export def! g:ReplShutoff(...repl_name_passed: list<string>)
+export def ConsoleShutoff(...repl_name_passed: list<string>)
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
     if !empty(repl_name_passed)
         repl_name = repl_name_passed[0]
@@ -104,20 +105,20 @@ export def! g:ReplShutoff(...repl_name_passed: list<string>)
     endif
 enddef
 
-export def! g:RemoveCells()
+export def RemoveCells()
     var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
 
-export def! g:SendLines(firstline: number, lastline: number)
+export def SendLines(firstline: number, lastline: number)
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
 
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     # with a name IPYTHON, JULIA, etc.
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        replica#ReplOpen()
+        ConsoleOpen()
     endif
 
     # Actual implementation
@@ -128,17 +129,17 @@ enddef
 
 
 # Actually sending code-cell
-export def! g:SendCell()
+export def SendCell()
     var repl_name = get(b:, 'repl_name', g:repl_names["default"])
     var run_command = get(b:, 'repl_run_command', g:repl_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        replica#ReplOpen()
+        ConsoleOpen()
     endif
 
     # Get beginning and end of the cell
-    var extremes = replica#GetExtremes()
+    var extremes = GetExtremes()
     var line_in = extremes[0]
     var line_out = extremes[1]
 
@@ -152,7 +153,7 @@ export def! g:SendCell()
 enddef
 
 
-export def! g:SendFile(...filename: list<string>)
+export def SendFile(...filename: list<string>)
     var file_to_send = expand("%")
     if !empty(filename)
         file_to_send = filename[0]
@@ -162,7 +163,7 @@ export def! g:SendFile(...filename: list<string>)
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. repl_name .. '$'))
-        replica#ReplOpen()
+        ConsoleOpen()
     endif
 
     # Write tmp file
@@ -173,7 +174,7 @@ enddef
 
 
 # Find lines range based on cell_delimiter
-export def! g:GetExtremes(display_range: bool = false): list<number>
+export def GetExtremes(display_range: bool = false): list<number>
     var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
@@ -197,8 +198,8 @@ enddef
 # ======================================
 
 # for highlightning cells
-sign define UbiReplHl text=- linehl=CursorLine
-sign define UbiReplHlFast text=- linehl=UnderLined
+sign define UbiConsoleHl text=- linehl=CursorLine
+sign define UbiConsoleHlFast text=- linehl=UnderLined
 
 var line_in_old = 1
 var line_out_old = line("$")
@@ -208,18 +209,18 @@ var list_sign_id = []
 
 # var counter_dbg = 0
 # When adding a sign keep in mind that we set sign_id = line number
-export def! g:HighlightCell(display_range: bool = false)
+export def HighlightCell(display_range: bool = false)
 
     var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
-    var extremes = replica#GetExtremes(display_range)
+    var extremes = GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
 
-    if g:repl_alt_highlight == 0
-        hlgroup = "UbiReplHl"
+    if g:repl_alt_highlight == false
+        hlgroup = "UbiConsoleHl"
     else
-        hlgroup = "UbiReplHlFast"
+        hlgroup = "UbiConsoleHlFast"
     endif
 
     # There is at least one cell
@@ -229,7 +230,7 @@ export def! g:HighlightCell(display_range: bool = false)
             # counter_dbg = counter_dbg + 1
             # echo counter_dbg
 
-            # Remove existing signs related to UbiReplHl
+            # Remove existing signs related to UbiConsoleHl
             if !empty(list_sign_id_old)
                 for line in list_sign_id_old
                     sign_unplace("", {"buffer": expand("%:p"), "id": line})
@@ -238,7 +239,7 @@ export def! g:HighlightCell(display_range: bool = false)
 
 
             # Find lines
-            if g:repl_alt_highlight == 0
+            if g:repl_alt_highlight == false
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else

@@ -1,20 +1,19 @@
-if !has('vim9script') ||  v:version < 900
-  " Needs Vim version 9.0 and above
-  echo "You need at least Vim 9.0"
-  finish
-endif
-
 vim9script
 
-# replica.vim
-# github.com/ubaldot/vim-replica
+# Vim plugin to get an outline for your scripts.
+# Maintainer:	Ubaldo Tiberi
+# License: Vim license
 
-if exists('g:scivimrepl_loaded')
+if !has('vim9script') ||  v:version < 900
+    # Needs Vim version 9.0 and above
+    echo "You need at least Vim 9.0"
     finish
 endif
 
-g:scivimrepl_loaded = 1
-
+if exists('g:replica_loaded')
+    finish
+endif
+g:replica_loaded = true
 
 # Used for sending cells or files
 g:repl_tmp_filename = tempname()
@@ -24,19 +23,19 @@ g:repl_tmp_filename = tempname()
 # endif
 
 if !exists('g:repl_autostart')
-     g:repl_autostart = 1
+    g:repl_autostart = true
 endif
 
 if !exists('g:repl_alt_highlight')
-     g:repl_alt_highlight = 0
+    g:repl_alt_highlight = false
 endif
 
 if !exists('g:repl_direction')
-     g:repl_direction = "L"
+    g:repl_direction = "L"
 endif
 
 if !exists('g:repl_size')
-     g:repl_size = 0 # Use 0 to take the half of the whole space
+    g:repl_size = 0 # Use 0 to take the half of the whole space
 endif
 
 
@@ -66,7 +65,6 @@ var repl_run_commands_default = {
             \ "default": "sh " .. g:repl_tmp_filename}
 
 
-
 # User is allowed to change only repl_kernels and repl_cells_delimiters
 if exists('g:repl_kernels')
     extend(repl_kernels_default, g:repl_kernels, "force")
@@ -88,40 +86,83 @@ g:repl_open_buffers = {
             \ "default": []}
 
 
-
-# Commands definition: if a key (&filetype) don't exist in the defined dicts, use a default (= "default").
-command! ReplConsoleOpen silent :call replica#ReplOpen()
-command! -nargs=? ReplConsoleClose silent :call replica#ReplClose(<f-args>)
-command! ReplConsoleToggle silent :call replica#ReplToggle()
-command! ReplConsoleRestart silent :call replica#ReplShutoff() | replica#ReplOpen()
-command! -nargs=? ReplConsoleShutoff silent :call replica#ReplShutoff(<f-args>)
-
-command! -range ReplSendLines silent :call replica#SendLines(<line1>, <line2>)
-command! ReplSendCell silent :call replica#SendCell()
-command! -nargs=? -complete=file ReplSendFile silent :call replica#SendFile(<f-args>)
-
-command! ReplRemoveCells silent :call replica#RemoveCells()
-
-
+# -----------------------------
 # Default mappings
-if !hasmapto('<Plug>ReplSendLines') || empty(mapcheck("<F9>", "nix"))
-    nnoremap <silent> <F9> <Cmd>ReplSendLines<cr>
-    inoremap <silent> <F9> <Cmd>ReplSendLines<cr>
-    xnoremap <silent> <F9> :ReplSendLines<cr>
+# -----------------------------
+#
+import autoload "../lib/replica.vim"
+
+noremap <unique> <script> <Plug>ReplicaConsoleToggle
+            \ :call <SID>replica.ConsoleToggle()<cr>
+if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
+    nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+    inoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+    tnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
 endif
 
-if !hasmapto('<Plug>ReplSendFile') || empty(mapcheck("<F5>", "ni"))
-    nnoremap <silent> <F5> <Cmd>ReplSendFile<cr>
-    inoremap <silent> <F5> <Cmd>ReplSendFile<cr>
+noremap <unique> <script> <Plug>ReplicaSendLines
+            \ :call <SID>replica.SendLines(<line1>, <line2>)<cr>
+if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
+    nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
+    inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
+    xnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
 endif
 
-if !hasmapto('<Plug>ReplToggle') || empty(mapcheck("<F2>", "nit"))
-    nnoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
-    inoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
-    tnoremap <silent> <F2> <Cmd>ReplConsoleToggle<cr>
+noremap <unique> <script> <Plug>ReplicaSendFile
+            \ :call <SID>replica.SendFile(<f-args>)<cr>
+if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "ni"))
+    nnoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
+    inoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
 endif
 
-if !hasmapto('<Plug>ReplSendCell') || empty(mapcheck("<c-enter>", "ni"))
-    nnoremap <silent> <c-enter> <Cmd>ReplSendCell<cr>
-    inoremap <silent> <c-enter> <Cmd>ReplSendCell<cr>
+noremap <unique> <script> <Plug>ReplicaSendCell
+            \ :call <SID>replica.SendCell()<cr>
+if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "ni"))
+    nnoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
+    inoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
+endif
+
+
+# -----------------------------
+#  Commands
+# -----------------------------
+if !exists(":ReplicaConsoleOpen")
+    command ReplicaConsoleOpen silent call replica.ConsoleOpen()
+endif
+
+if !exists(":ReplicaConsoleClose")
+    command -nargs=? ReplicaConsoleClose
+                \ silent :call replica.ConsoleClose(<f-args>)
+endif
+
+if !exists(":ReplicaConsoleToggle")
+    command ReplicaConsoleToggle silent :call replica.ConsoleToggle()
+endif
+
+if !exists(":ReplicaConsoleRestart" )
+    command ReplicaConsoleRestart silent :call replica.ConsoleShutoff() |
+            \ replica.ConsoleOpen()
+endif
+
+if !exists(":ReplicaConsoleShutoff")
+    command -nargs=? ReplicaConsoleShutoff
+                \ silent :call replica.ConsoleShutoff(<f-args>)
+endif
+
+if !exists(":ReplicaSendLines")
+    command -range ReplicaSendLines
+            \ silent :call replica.SendLines(<line1>, <line2>)
+endif
+
+if !exists(":ReplicaSendCell")
+    command ReplicaSendCell silent :call replica.SendCell()
+endif
+
+if !exists(":ReplicaSendFile")
+    command -nargs=? -complete=file ReplicaSendFile
+                \ silent :call replica.SendFile(<f-args>)
+endif
+
+if !exists(":ReplicaRemoveCells")
+    command ReplicaRemoveCells silent :call replica.RemoveCells()
 endif
