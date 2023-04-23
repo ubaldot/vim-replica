@@ -2,10 +2,10 @@ vim9script
 
 import autoload "../lib/replica.vim"
 
-b:repl_kernel_name = g:repl_kernels[&filetype]
-b:repl_name = g:repl_names[&filetype]
-b:repl_cells_delimiter = g:repl_cells_delimiters[&filetype]
-b:repl_run_command = g:repl_run_commands[&filetype]
+b:replica_kernel_name = g:replica_kernels[&filetype]
+b:replica_name = g:replica_names[&filetype]
+b:replica_cells_delimiter = g:replica_cells_delimiters[&filetype]
+b:replica_run_command = g:replica_run_commands[&filetype]
 
 
 augroup highlight_cells_python
@@ -18,13 +18,13 @@ augroup END
 def BufferListAdd()
     if buflisted(bufnr())
       # If buffer exists, move it to the end, otherwise append it.
-      var idx = index(g:repl_open_buffers[&filetype], bufnr())
+      var idx = index(g:replica_open_buffers[&filetype], bufnr())
 
       if idx != -1
-        var item = remove(g:repl_open_buffers[&filetype], idx)
-        add(g:repl_open_buffers[&filetype], item)
+        var item = remove(g:replica_open_buffers[&filetype], idx)
+        add(g:replica_open_buffers[&filetype], item)
       else
-        add(g:repl_open_buffers[&filetype], bufnr())
+        add(g:replica_open_buffers[&filetype], bufnr())
       endif
     endif
 enddef
@@ -32,9 +32,9 @@ enddef
 def BufferListRemove()
   # If the buffer is in the buffer list, then remove it.
   var buf_nr = str2nr(expand('<abuf>'))
-  var idx = index(g:repl_open_buffers[&filetype], buf_nr)
+  var idx = index(g:replica_open_buffers[&filetype], buf_nr)
   if idx != -1
-    remove(g:repl_open_buffers[&filetype], idx)
+    remove(g:replica_open_buffers[&filetype], idx)
   endif
 enddef
 
@@ -44,27 +44,27 @@ def Startup(): bool
     echo "I triggered Startup() function!"
     # If the previous buffer exists and its filetype was Python
     # just copy its repl status (open or close)
-    # if len(g:repl_open_buffers[&filetype]) > 1
-    if !empty(g:repl_open_buffers[&filetype])
-        # Obs! g:repl_open_buffers[&filetype][-1] is the current buffer!
-        var prev_buf_nr = g:repl_open_buffers[&filetype][-1]
-        # echo "prev_buf: " .. bufname(prev_buf_nr) ..  ", prev_repl_ is open: " .. getbufvar(prev_buf_nr, 'repl_is_open')
-        do_open = getbufvar(prev_buf_nr, 'repl_is_open')
+    # if len(g:replica_open_buffers[&filetype]) > 1
+    if !empty(g:replica_open_buffers[&filetype])
+        # Obs! g:replica_open_buffers[&filetype][-1] is the current buffer!
+        var prev_buf_nr = g:replica_open_buffers[&filetype][-1]
+        # echo "prev_buf: " .. bufname(prev_buf_nr) ..  ", prev_replica_ is open: " .. getbufvar(prev_buf_nr, 'replica_is_open')
+        do_open = getbufvar(prev_buf_nr, 'replica_is_open')
     else
         echo "pluto"
-        do_open = g:repl_autostart
+        do_open = g:replica_autostart
     endif
     return do_open
 enddef
 
 
 var tmp = 0
-augroup leave_repl_python
+augroup leave_replica_python
     autocmd! * <buffer>
-    # TODO: problem b:repl_is_open not defined
+    # TODO: problem b:replica_is_open not defined
     # When you have two windows (one python and one non-python) and then you make full screen the non-python window.
     # i.e. leaving a *py window from a non-py window.
-    autocmd BufWinLeave <buffer> tmp = b:repl_is_open | replica.ConsoleClose() | b:repl_is_open = tmp # Hop to keep the buffer status because replica.Close() set repl_is_open = 0
+    autocmd BufWinLeave <buffer> tmp = b:replica_is_open | replica.ConsoleClose() | b:replica_is_open = tmp # Hop to keep the buffer status because replica.Close() set replica_is_open = false
     # If Startup() say it is OK to open, then open, otherwise close.
     autocmd BufWinEnter <buffer> if Startup() | replica.ConsoleOpen() | else | replica.ConsoleClose() | endif | BufferListAdd()
     autocmd BufDelete,BufWipeout <buffer> BufferListRemove()

@@ -7,32 +7,32 @@ vim9script
 export def ConsoleOpen()
     # It opens a new console. If the terminal buffer already exists,
     # then it places in a window
-    var kernel_name = get(b:, 'repl_kernel_name', g:repl_kernels["default"])
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    var size = get(b:, 'repl_size', g:repl_size)
+    var kernel_name = get(b:, 'replica_kernel_name', g:replica_kernels["default"])
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var size = get(b:, 'replica_size', g:replica_size)
 
     # The repl does not exist or it is hidden, then show it
-    if !bufexists(bufnr('^' .. repl_name .. '$')) || empty(win_findbuf(bufnr('^' .. repl_name .. '$')))
+    if !bufexists(bufnr('^' .. replica_name .. '$')) || empty(win_findbuf(bufnr('^' .. replica_name .. '$')))
         # If repl does not exist => create
-        if !bufexists(bufnr('^' .. repl_name .. '$')) # To prevent opening too many buffers with the same name
-            if kernel_name == g:repl_names["default"]
-                term_start(&shell, {'term_name': repl_name} )
+        if !bufexists(bufnr('^' .. replica_name .. '$')) # To prevent opening too many buffers with the same name
+            if kernel_name == g:replica_names["default"]
+                term_start(&shell, {'term_name': replica_name} )
             else
-                term_start("jupyter console --kernel=" .. kernel_name, {'term_name': repl_name} )
+                term_start("jupyter console --kernel=" .. kernel_name, {'term_name': replica_name} )
             endif
-            setbufvar('^' .. repl_name .. '$', "&buflisted", false)
+            setbufvar('^' .. replica_name .. '$', "&buflisted", false)
         # Otherwise, it is hidden. Hence, display it in a window
         else
-            exe "sbuffer " .. bufnr('^' .. repl_name .. '$')
+            exe "sbuffer " .. bufnr('^' .. replica_name .. '$')
         endif
 
         # The following is executed either if the buffer is newly created
         # or if it is just displayed in a new window.
         # Move and resize window as per user preference (or last user-setting)
-        # TODO: refactor based on the g:repl_open_buffers list
-        exe "wincmd " .. g:repl_direction
+        # TODO: refactor based on the g:replica_open_buffers list
+        exe "wincmd " .. g:replica_direction
         if size > 0
-            if index(["J", "K"], g:repl_direction ) >= 0
+            if index(["J", "K"], g:replica_direction ) >= 0
                 exe "resize " .. size
             else
                 exe "vertical resize " .. size
@@ -40,53 +40,53 @@ export def ConsoleOpen()
         endif
         wincmd p # p = previous, return to the window that open the repl
     endif
-    b:repl_is_open = 1
+    b:replica_is_open = 1
 enddef
 
-export def ConsoleClose(...repl_name_passed: list<string>)
+export def ConsoleClose(...replica_name_passed: list<string>)
     # Close the repl, store last size and mark it as closed.
     #
     # If the cursor in on the terminal window, use :bdelete
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    if !empty(repl_name_passed)
-        # repl_name_passed is a list or arguments
-        repl_name = repl_name_passed[0]
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    if !empty(replica_name_passed)
+        # replica_name_passed is a list or arguments
+        replica_name = replica_name_passed[0]
     endif
 
     # If user wants to close and he is on the repl
     if getbufvar(bufnr("%"), '&buftype') == 'terminal'
-        if index(["J", "K"], g:repl_direction) >= 0
-            b:repl_size = winheight(0)
+        if index(["J", "K"], g:replica_direction) >= 0
+            b:replica_size = winheight(0)
         else
-            b:repl_size = winwidth(0)
+            b:replica_size = winwidth(0)
         endif
         exe "close"
     else
         # The user may mistakenly open more repl windows in the same tab.
         # We close all of them.
-        var windows_to_close = win_findbuf(bufnr('^' .. repl_name .. '$'))
+        var windows_to_close = win_findbuf(bufnr('^' .. replica_name .. '$'))
         # Note that if the buffer does not exist, the for loop is skipped
         # so we don't need to check if the window exist.
         for win in windows_to_close
             # Store the last user-setting
-            if index(["J", "K"], g:repl_direction) >= 0
-                b:repl_size = winheight(win)
+            if index(["J", "K"], g:replica_direction) >= 0
+                b:replica_size = winheight(win)
             else
-                b:repl_size = winwidth(win)
+                b:replica_size = winwidth(win)
             endif
             win_execute(win, "close")
         endfor
     endif
-    b:repl_is_open = false
+    b:replica_is_open = false
 enddef
 
 
 
 export def ConsoleToggle()
 
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    # TODO: to be improved. repl buffer don't have a variable b:repl_name so we need an OR condition
-    if !empty(win_findbuf(bufnr('^' .. repl_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    # TODO: to be improved. repl buffer don't have a variable b:replica_name so we need an OR condition
+    if !empty(win_findbuf(bufnr('^' .. replica_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
         ConsoleClose()
     else
         ConsoleOpen()
@@ -94,47 +94,47 @@ export def ConsoleToggle()
 enddef
 
 
-export def ConsoleShutoff(...repl_name_passed: list<string>)
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    if !empty(repl_name_passed)
-        repl_name = repl_name_passed[0]
+export def ConsoleShutoff(...replica_name_passed: list<string>)
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    if !empty(replica_name_passed)
+        replica_name = replica_name_passed[0]
     endif
 
-    if bufexists(bufnr('^' .. repl_name .. '$'))
-        exe "bw! " .. bufnr('^' .. repl_name .. '$')
+    if bufexists(bufnr('^' .. replica_name .. '$'))
+        exe "bw! " .. bufnr('^' .. replica_name .. '$')
     endif
 enddef
 
 export def RemoveCells()
-    var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
 
 export def SendLines(firstline: number, lastline: number)
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
 
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     # with a name IPYTHON, JULIA, etc.
-    if !bufexists(bufnr('^' .. repl_name .. '$'))
+    if !bufexists(bufnr('^' .. replica_name .. '$'))
         ConsoleOpen()
     endif
 
     # Actual implementation
     silent exe ":" .. firstline .. "," .. lastline .. "y"
-    term_sendkeys(bufnr('^' .. repl_name .. '$'), @")
+    term_sendkeys(bufnr('^' .. replica_name .. '$'), @")
     norm! j^
 enddef
 
 
 # Actually sending code-cell
 export def SendCell()
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    var run_command = get(b:, 'repl_run_command', g:repl_run_commands["default"])
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. repl_name .. '$'))
+    if !bufexists(bufnr('^' .. replica_name .. '$'))
         ConsoleOpen()
     endif
 
@@ -147,9 +147,9 @@ export def SendCell()
     cursor(line_out, getcurpos()[2])
 
     # Write tmp file
-    delete(fnameescape(g:repl_tmp_filename)) # Delete tmp file if any
-    writefile(getline(line_in, line_out), g:repl_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
+    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
+    writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
+    term_sendkeys(bufnr('^' .. replica_name .. '$'), run_command .. "\n")
 enddef
 
 
@@ -158,24 +158,24 @@ export def SendFile(...filename: list<string>)
     if !empty(filename)
         file_to_send = filename[0]
     endif
-    var repl_name = get(b:, 'repl_name', g:repl_names["default"])
-    var run_command = get(b:, 'repl_run_command', g:repl_run_commands["default"])
+    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. repl_name .. '$'))
+    if !bufexists(bufnr('^' .. replica_name .. '$'))
         ConsoleOpen()
     endif
 
     # Write tmp file
-    delete(fnameescape(g:repl_tmp_filename)) # Delete tmp file if any
-    writefile(readfile(fnameescape(file_to_send)), g:repl_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. repl_name .. '$'), run_command .. "\n")
+    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
+    writefile(readfile(fnameescape(file_to_send)), g:replica_tmp_filename, "a")
+    term_sendkeys(bufnr('^' .. replica_name .. '$'), run_command .. "\n")
 enddef
 
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-    var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
     # If search() returns 0 it means that the pattern has not been found
@@ -211,13 +211,13 @@ var list_sign_id = []
 # When adding a sign keep in mind that we set sign_id = line number
 export def HighlightCell(display_range: bool = false)
 
-    var cell_delimiter = get(b:, 'repl_cells_delimiter', g:repl_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
     var extremes = GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
     var hlgroup = ""
 
-    if g:repl_alt_highlight == false
+    if g:replica_alt_highlight == false
         hlgroup = "UbiConsoleHl"
     else
         hlgroup = "UbiConsoleHlFast"
@@ -239,11 +239,11 @@ export def HighlightCell(display_range: bool = false)
 
 
             # Find lines
-            if g:repl_alt_highlight == false
+            if g:replica_alt_highlight == false
                 # Case Slow
                 list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
             else
-                # exe ":g/" .. b:repl_cell_delimiter .. "/add(list_sign_id, line('.')"
+                # exe ":g/" .. b:replica_cell_delimiter .. "/add(list_sign_id, line('.')"
                 list_sign_id = [line_in, line_out]
             endif
 

@@ -1,15 +1,15 @@
-*replica.txt*                                   REPL for Scientific applications.
+*replica.txt*                               REPL for Scientific applications.
 
-                      ______           _ _           ~
-                      | ___ \         | (_)          ~
-                      | |_/ /___ _ __ | |_  ___ __ _ ~
-                      |    // _ | '_ \| | |/ __/ _` |~
-                      | |\ |  __| |_) | | | (_| (_| |~
-                      \_| \_\___| .__/|_|_|\___\__,_|~
-                                | |                  ~
-                                |_|                  ~
+                   _                                _ _           ~
+                  (_)                              | (_)          ~
+            __   ___ _ __ ___ ______ _ __ ___ _ __ | |_  ___ __ _ ~
+            \ \ / / | '_ ` _ \______| '__/ _ \ '_ \| | |/ __/ _` |~
+             \ V /| | | | | | |     | | |  __/ |_) | | | (_| (_| |~
+              \_/ |_|_| |_| |_|     |_|  \___| .__/|_|_|\___\__,_|~
+                                             | |                  ~
+                                             |_|                  ~
 
-===============================================================================
+==============================================================================
 CONTENTS                                                     *ReplicaContents*
 
     1. Introduction ......... |ReplicaIntroduction|
@@ -22,7 +22,7 @@ CONTENTS                                                     *ReplicaContents*
     8. License .............. |ReplicaLicense|
 
 
-===============================================================================
+==============================================================================
 INTRODUCTION                                         *ReplicaIntroduction*
 
 Replica allows the usage any REPL programs (Python, Julia, etc.) inside
@@ -30,8 +30,8 @@ Vim in a seamless way.
 
 Replica supports the following key features:
 
-1. Sending lines, files and code-cells to a REPL,
-2. Code-cells highlighting.
+    1. Sending lines, files and code-cells to a REPL,
+    2. Code-cells highlighting.
 
 Each REPL is a jupyter-console started with a certain kernel running in a
 'terminal' buffer.  For each 'filetype' replica provides you with one
@@ -45,7 +45,7 @@ If you are interested in contributing to the development of replica, read the
 developer documentation. See |ReplicaContributing|.
 
 
-===============================================================================
+==============================================================================
 REQUIREMENTS                                         *ReplicaRequirements*
 
 Replica is written in Vim9script, therefore you need at least Vim 9.0.
@@ -61,132 +61,140 @@ terminal to see the list of kernels installed on your machine.
 See jupyter console docs for more information.
 
 
-===============================================================================
+==============================================================================
 USAGE                                                     *ReplicaUsage*
 
 
-                                                               *:ReplConsoleOpen*
-:ReplConsoleOpen()              Open the REPL associated to the current buffer
-                                'filetype'.
+                                                       *:ReplicaConsoleOpen*
+:ReplicaConsoleOpen()              Open the REPL associated to the current
+                                buffer 'filetype'.
                                 The association 'filetype' - REPL type is
-                                stored in the |g:repl_kernels| dictionary.
+                                stored in the |g:replica_kernels| dictionary.
 
                                 Example: If
-                                    1. |g:repl_kernels|['python'] = python3 and
-                                    2. |g:repl_names|['python'] = IPYTHON and
-                                    3. current buffer 'filetype' is |python| and
+                                    1. |g:replica_kernels|['python'] = python3
+                                       and
+                                    2. |g:replica_names|['python'] = IPYTHON
+                                       and
+                                    3. current buffer 'filetype' is |python|
+                                       and
                                     4. no replica python REPL is running,
 
                                 then this command start a jupyter-console with
                                 python3 kernel in a 'terminal' buffer named
-                                IPYTHON and it place it in a window in position
-                                |g:repl_direction|.
+                                IPYTHON and it place it in a window in
+                                position
+                                |g:replica_direction|.
 
                                 If the REPL already exists, then it open in
-                                a window in position |g:repl_direction|.
+                                a window in position |g:replica_direction|.
 
 
-                                                                   *:ReplConsoleClose*
-:ReplConsoleClose([{REPL}])     Close {REPL}. The value of {REPL} must be one
-                                value specified in the |g:repl_names| dict.
+                                                    *:ReplicaConsoleClose*
+:ReplicaConsoleClose([{REPL}])     Close {REPL}. The value of {REPL} must be
+                                one value specified in the |g:replica_names|
+                                dict.
                                 If no argument is passed, then it close
                                 the REPL associated to the 'filetype'
                                 of the current buffer.
 
-                                For example, if |g:repl_names|['python'] is
+                                For example, if |g:replica_names|['python'] is
                                 IPYTHON and the current buffer 'filetype'
                                 is |python|, then this command with no
                                 arguments close the REPL named IPYTHON.
 
 
                                                                     *<F2>*
-                                                               *:ReplConsoleToggle*
-:ReplConsoleToggle()            Un-hide and hide a REPL by alternating
-                                |:ReplConsoleOpen()| and |:ReplConsoleClose()| calls.
+                                                  *:ReplicaConsoleToggle*
+:ReplicaConsoleToggle()            Un-hide and hide a REPL by alternating
+                                |:ReplicaConsoleOpen()| and
+                                |:ReplicaConsoleClose()| calls.
 
 
-                                                               *:ReplConsoleRestart*
-:ReplConsoleRestart()           Restart the REPL associated to the 'filetype'
-                                of the current buffer as specified in
-                                |g:repl_names|.
+                                               *:ReplicaConsoleRestart*
+:ReplicaConsoleRestart()           Restart the REPL associated to the
+                                'filetype' of the current buffer as specified
+                                in |g:replica_names|.
 
-                                                               *:ReplConsoleShutoff*
-:ReplConsoleShutoff([{REPL}])   Same as |:ReplConsoleClose| but it wipe away the
-                                REPL.
+                                               *:ReplicaConsoleShutoff*
+:ReplicaConsoleShutoff([{REPL}])   Same as |:ReplicaConsoleClose| but it wipe
+                                    away the REPL.
 
-                                                                    *<F9>*
-                                                               *:ReplSendLines*
-:[range]ReplSendLines()         Send the lines in [range] to the REPL specified
-                                in |g:repl_names|. If no range is given,
-                                then it sends the current line.
+                                                                *<F9>*
+                                                  *:ReplicaSendLines*
+:[range]ReplSendLines()         Send the lines in [range] to the REPL
+                                specified in |g:replica_names|.  If no range
+                                is given, then it sends the current line.
 
 
-                                                                  *<c-enter>*
-                                                               *:ReplSendCell*
-:ReplSendCell()                 Send the current code-cell.
+                                                          *<c-enter>*
+                                                       *:ReplicaSendCell*
+:ReplicaSendCell()                 Send the current code-cell.
                                 Cell delimiters are specified in the
-                                |g:repl_cells_delimiters| dictionary.
+                                |g:replica_cells_delimiters| dictionary.
 
 
-                                                                    *<F5>*
-                                                               *:ReplSendFile*
-:ReplSendFile([{file}])         Send {file} to the REPL specified in
-                                |g:repl_names|.
-                                If no argument is passed, then it send the file
+                                                                *<F5>*
+                                                      *:ReplicaSendFile*
+:ReplicaSendFile([{file}])         Send {file} to the REPL specified in
+                                |g:replica_names|.
+                                If no argument is passed, then it send the
+                                file
                                 opened in the current buffer.
 
 
-                                                          *:ReplRemoveCells*
-:ReplRemoveCells()              Remove all the cells delimiters from the current
-                                buffer.
+                                                   *:ReplicaRemoveCells*
+:ReplicaRemoveCells()           Remove all the cells delimiters from the
+                                current buffer.
 
 
-===============================================================================
+==============================================================================
 CONFIGURATION                                        *ReplicaConfiguration*
 
-                                                        *g:repl_autostart*
+                                                    *g:replica_autostart*
   Type: bool
   Default: false
 
 If true, automatically open the REPL at 'BufWinEnter'.
 
-                                                        *g:repl_tmp_filename*
+                                                   *g:replica_tmp_filename*
   Type: 'string'
   Default: `tempname()`
 
-The temp file that is used when using the command |:ReplSendCell| and |:ReplSendFile|.
+The temp file that is used when using the command |:ReplicaSendCell| and
+|:ReplicaSendFile|.
 Note: this dictionary shall not be changed by the user!
 
 
 
-                                                        *g:repl_alt_highlight*
-  Type: 0 or 1.
-  Default: 0.
+                                                  *g:replica_alt_highlight*
+  Type: bool
+  Default: false
 
 Alternative way of highlighting code-cells.
 Note: If you are experiencing sluggish behavior with the normal settings,
 you could try to set it to 1.
 
 
-                                                        *g:repl_direction*
+                                                *g:replica_direction*
   Type: HJKL.
   Default: L.
 
 The location of the REPL window.
 
 
-                                                        *g:repl_size*
+                                                   *g:replica_size*
   Type: non-negative number.
   Default: 0.
 
 Size of the REPL window in lines or columns number.
-If |g:repl_direction| = "J" or "K" then it sets the number of lines,
+If |g:replica_direction| = "J" or "K" then it sets the number of lines,
 otherwise it sets the number of columns.
 If the value is 0, then the window will take as much space as possible.
 
 
 
-                                                        *g:repl_kernels*
+                                                     *g:replica_kernels*
   Type: 'dict'<'filetype', jupyter kernel>
   Default: {
             \ "python": "python3",
@@ -198,7 +206,7 @@ You can override existing key-values.
 For example, to use the kernel julia-2.0 when working with julia
 'filetype' you can use:    >
 
-    g:repl_kernels['julia': "julia-2.0"]
+    g:replica_kernels['julia': "julia-2.0"]
 <
 To see the list of installed jupyter kernels run jupyter kernelspec list
 from your terminal.
@@ -206,7 +214,7 @@ Note: to add a new language in replica you need to do a bit more work than
 just editing this dictionary. See |replica-add-language| for more information.
 
 
-                                                     *g:repl_cells_delimiters*
+                                           *g:replica_cells_delimiters*
   Type: 'dict'<'filetype', 'string'>
   Default: {
             \ "python": "# %%",
@@ -218,10 +226,10 @@ You can change the cell delimiter associated to a 'filetype' simply by
 changing the value associated to such a 'filetype' key.
 For example:
 >
-    g:repl_cells_delimiters['python': "#%%"]
+    g:replica_cells_delimiters['python': "#%%"]
 <
 
-                                                     *g:repl_names*
+                                                     *g:replica_names*
   Type: 'dict'<'filetype', 'string'>
   Default:{
             \ "python": "IPYTHON",
@@ -233,19 +241,19 @@ Associates 'filetype' to 'terminal' buffer names.
 Note: this dictionary shall not be changed by the user!
 
 
-                                                     *g:repl_run_commands*
+                                                     *g:replica_run_commands*
   Type: 'dict'<'filetype', 'string'>
   Default:{
-            \ "python": "run -i " .. |g:repl_tmp_filename|,
-            \ "julia": 'include("' .. |g:repl_tmp_filename| .. '")',
-            \ "default": "sh " .. |g:repl_tmp_filename|}
+            \ "python": "run -i " .. |g:replica_tmp_filename|,
+            \ "julia": 'include("' .. |g:replica_tmp_filename| .. '")',
+            \ "default": "sh " .. |g:replica_tmp_filename|}
 
 Associates 'filetype' to commands that are run in the REPL when using
-|:ReplSendCell| or |:ReplSendFile| commands.
+|:ReplicaSendCell| or |:ReplicaSendFile| commands.
 Note: this dictionary shall not be changed by the user!
 
 
-===============================================================================
+==============================================================================
 ADD NEW LANGUAGES                                     *ReplicaAddLanguages*
 
 Replica is nicely extendable and to add new languages is fairly easy.
@@ -253,8 +261,8 @@ Replica is nicely extendable and to add new languages is fairly easy.
 Say that a new language is associated to a certain 'filetype'.
 Then, you can add it to replica in two steps:
 
-    1. Add a new key-value pair to the |g:repl_kernels|, |g:repl_names|,
-    |g:repl_cells_delimiters| and |g:repl_run_commands| dictionaries.
+    1. Add a new key-value pair to the |g:replica_kernels|, |g:replica_names|,
+    |g:replica_cells_delimiters| and |g:replica_run_commands| dictionaries.
     2. Create a new 'filetype'.vim file in vim-replica/ftplugin and copy/paste
     the content of an existing 'filetype'.vim in the same folder in the newly
     created file. Adjust the file content accordingly.
@@ -263,11 +271,11 @@ Done!
 TODO: You may use the global ftplugin folder but it has been not tested yet.
 
 
-===============================================================================
+==============================================================================
 TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
 Q. My Vim became very slow!
-A. You can try to set |g:repl_alt_highlight| = 1 in your .vimrc.
+A. You can try to set |g:replica_alt_highlight| = true in your .vimrc.
 
 Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
@@ -289,7 +297,7 @@ A. Yes, but you need to define your own function, something like
     enddef
 
     augroup DIRCHANGE
-        au!
+        a!
         autocmd DirChanged global ChangeTerminalDir()
     augroup END
 <
@@ -300,14 +308,14 @@ Note: It does not work the other way around, i.e. if you change folder from a
 'terminal' buffer the Vim current folder won't be changed.
 
 
-===============================================================================
+==============================================================================
 CONTRIBUTING                                            *ReplicaContributing*
 
 Contributions are most than welcome!
 Feel free to add a PR on GitHub. :)
 
 
-===============================================================================
+==============================================================================
 LICENSE                                                    *ReplicaLicense*
 
 BSD-3Clause License.

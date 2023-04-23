@@ -16,70 +16,70 @@ endif
 g:replica_loaded = true
 
 # Used for sending cells or files
-g:repl_tmp_filename = tempname()
+g:replica_tmp_filename = tempname()
 
-# if !exists('g:repl_is_open')
-#      g:repl_is_open = false
+# if !exists('g:replica_is_open')
+#      g:replica_is_open = false
 # endif
 
-if !exists('g:repl_autostart')
-    g:repl_autostart = true
+if !exists('g:replica_autostart')
+    g:replica_autostart = true
 endif
 
-if !exists('g:repl_alt_highlight')
-    g:repl_alt_highlight = false
+if !exists('g:replica_alt_highlight')
+    g:replica_alt_highlight = false
 endif
 
-if !exists('g:repl_direction')
-    g:repl_direction = "L"
+if !exists('g:replica_direction')
+    g:replica_direction = "L"
 endif
 
-if !exists('g:repl_size')
-    g:repl_size = 0 # Use 0 to take the half of the whole space
+if !exists('g:replica_size')
+    g:replica_size = 0 # Use 0 to take the half of the whole space
 endif
 
 
 # Dicts. Keys must be Vim filetypes
-var repl_kernels_default = {
+var replica_kernels_default = {
             \ "python": "python3",
             \ "julia": "julia-1.8",
             \ "matlab": "jupyter_matlab_kernel",
             \ "default": "terminal"}
 
-var repl_names_default = {
+var replica_names_default = {
             \ "python": "IPYTHON",
             \ "julia": "JULIA",
             \ "matlab": "MATLAB",
             \ "default": "TERMINAL"}
 
-var repl_cells_delimiters_default = {
+var replica_cells_delimiters_default = {
             \ "python": "# %%",
             \ "julia": "# %%",
             \ "matlab": "%%",
             \ "default": "#--"}
 
-var repl_run_commands_default = {
-            \ "python": "run -i " .. g:repl_tmp_filename,
-            \ "julia": 'include("' .. g:repl_tmp_filename .. '")',
-            \ "matlab": 'run("' .. g:repl_tmp_filename .. '")',
-            \ "default": "sh " .. g:repl_tmp_filename}
+var replica_run_commands_default = {
+            \ "python": "run -i " .. g:replica_tmp_filename,
+            \ "julia": 'include("' .. g:replica_tmp_filename .. '")',
+            \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
+            \ "default": "sh " .. g:replica_tmp_filename}
 
 
-# User is allowed to change only repl_kernels and repl_cells_delimiters
-if exists('g:repl_kernels')
-    extend(repl_kernels_default, g:repl_kernels, "force")
+# User is allowed to change only replica_kernels and replica_cells_delimiters
+if exists('g:replica_kernels')
+    extend(replica_kernels_default, g:replica_kernels, "force")
 endif
 
-if exists('g:repl_cells_delimiters')
-    extend(repl_delimiters_default, g:repl_cells_delimiters, "force")
+if exists('g:replica_cells_delimiters')
+    extend(replica_delimiters_default, g:replica_cells_delimiters, "force")
 endif
 
-g:repl_kernels = repl_kernels_default
-g:repl_cells_delimiters = repl_cells_delimiters_default
-g:repl_names = repl_names_default
-g:repl_run_commands = repl_run_commands_default
+g:replica_kernels = replica_kernels_default
+g:replica_cells_delimiters = replica_cells_delimiters_default
+g:replica_names = replica_names_default
+g:replica_run_commands = replica_run_commands_default
 
-g:repl_open_buffers = {
+g:replica_open_buffers = {
             \ "python": [],
             \ "julia": [],
             \ "matlab": [],

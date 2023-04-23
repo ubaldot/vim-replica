@@ -2,10 +2,10 @@ vim9script
 
 import autoload "../lib/replica.vim"
 
-b:repl_kernel_name = g:repl_kernels[&filetype]
-b:repl_name = g:repl_names[&filetype]
-b:repl_cells_delimiter = g:repl_cells_delimiters[&filetype]
-b:repl_run_command = g:repl_run_commands[&filetype]
+b:replica_kernel_name = g:replica_kernels[&filetype]
+b:replica_name = g:replica_names[&filetype]
+b:replica_cells_delimiter = g:replica_cells_delimiters[&filetype]
+b:replica_run_command = g:replica_run_commands[&filetype]
 
 augroup highlight_cells_julia
     autocmd!
@@ -14,7 +14,7 @@ augroup highlight_cells_julia
 augroup END
 
 # When leaving a buffer of this filetype, then leave the associated repl.
-augroup leave_repl_julia
+augroup leave_replica_julia
     autocmd!
     autocmd BufWinLeave *.jl replica.ReplClose()
     autocmd BufWinEnter *.jl replica.ReplOpen() | replica.ReplClose('TERMINAL')
