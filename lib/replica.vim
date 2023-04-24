@@ -4,42 +4,50 @@ vim9script
 # Functions for sending stuff to the REPL
 # =======================================
 
+var console_state = {"python":
+            \ {"size": g:replica_console_size,
+            \ "position": g:replica_console_direction },
+            \ "julia":
+            \ {"size": g:replica_console_size,
+            \ "position": g:replica_console_direction }
+            \  }
+
 export def ConsoleOpen()
-    # It opens a new console. If the terminal buffer already exists,
-    # then it places in a window
+    # It opens a new console.
+    # If the terminal buffer already exists, then it places in a window
     var kernel_name = get(b:, 'replica_kernel_name', g:replica_kernels["default"])
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
-    var size = get(b:, 'replica_size', g:replica_size)
+    var console_name = get(b:, 'replica_console_names', g:replica_console_names["default"])
+    var size = get(b:, 'replica_console_size', g:replica_console_size)
 
-    # The repl does not exist or it is hidden, then show it
-    if !bufexists(bufnr('^' .. replica_name .. '$')) || empty(win_findbuf(bufnr('^' .. replica_name .. '$')))
-        # If repl does not exist => create
-        if !bufexists(bufnr('^' .. replica_name .. '$')) # To prevent opening too many buffers with the same name
-            if kernel_name == g:replica_names["default"]
-                term_start(&shell, {'term_name': replica_name} )
-            else
-                term_start("jupyter console --kernel=" .. kernel_name, {'term_name': replica_name} )
-            endif
-            setbufvar('^' .. replica_name .. '$', "&buflisted", false)
-        # Otherwise, it is hidden. Hence, display it in a window
+    # If repl does not exist => create
+    if !bufexists(bufnr('^' .. console_name .. '$')) # To prevent opening too many buffers with the same name
+        if kernel_name == g:replica_console_names["default"]
+            term_start(&shell, {'term_name': console_name} )
         else
-            exe "sbuffer " .. bufnr('^' .. replica_name .. '$')
+            term_start("jupyter console --kernel=" .. kernel_name, {'term_name': console_name} )
         endif
-
-        # The following is executed either if the buffer is newly created
-        # or if it is just displayed in a new window.
-        # Move and resize window as per user preference (or last user-setting)
-        # TODO: refactor based on the g:replica_open_buffers list
-        exe "wincmd " .. g:replica_direction
-        if size > 0
-            if index(["J", "K"], g:replica_direction ) >= 0
-                exe "resize " .. size
-            else
-                exe "vertical resize " .. size
-            endif
-        endif
-        wincmd p # p = previous, return to the window that open the repl
+        setlocal nolisted
+        # setbufvar('^' .. console_name .. '$', "&buflisted", false)
+    # Otherwise, it exists but if it is hidden.
+    # Hence, display it in a window
+    elseif !empty(win_findbuf(bufnr('^' .. console_name .. '$')))
+        exe "sbuffer " .. bufnr('^' .. console_name .. '$')
     endif
+
+    # The following is executed either if the buffer is newly created
+    # or if it is just displayed in a new window.
+    # Move and resize window as per user preference (or last user-setting)
+    # TODO: refactor based on the g:replica_open_buffers list
+    # TODO create a resize console function
+    exe "wincmd " .. g:replica_console_direction
+    if size > 0
+        if index(["J", "K"], g:replica_console_direction ) >= 0
+            exe "resize " .. size
+        else
+            exe "vertical resize " .. size
+        endif
+    endif
+    wincmd p # p = previous, return to the window that open the repl
     b:replica_is_open = 1
 enddef
 
@@ -47,32 +55,32 @@ export def ConsoleClose(...replica_name_passed: list<string>)
     # Close the repl, store last size and mark it as closed.
     #
     # If the cursor in on the terminal window, use :bdelete
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
     if !empty(replica_name_passed)
         # replica_name_passed is a list or arguments
-        replica_name = replica_name_passed[0]
+        console_name = replica_name_passed[0]
     endif
 
     # If user wants to close and he is on the repl
     if getbufvar(bufnr("%"), '&buftype') == 'terminal'
-        if index(["J", "K"], g:replica_direction) >= 0
-            b:replica_size = winheight(0)
+        if index(["J", "K"], g:replica_console_direction) >= 0
+            b:replica_console_size = winheight(0)
         else
-            b:replica_size = winwidth(0)
+            b:replica_console_size = winwidth(0)
         endif
         exe "close"
     else
         # The user may mistakenly open more repl windows in the same tab.
         # We close all of them.
-        var windows_to_close = win_findbuf(bufnr('^' .. replica_name .. '$'))
+        var windows_to_close = win_findbuf(bufnr('^' .. console_name .. '$'))
         # Note that if the buffer does not exist, the for loop is skipped
         # so we don't need to check if the window exist.
         for win in windows_to_close
             # Store the last user-setting
-            if index(["J", "K"], g:replica_direction) >= 0
-                b:replica_size = winheight(win)
+            if index(["J", "K"], g:replica_console_direction) >= 0
+                b:replica_console_size = winheight(win)
             else
-                b:replica_size = winwidth(win)
+                b:replica_console_size = winwidth(win)
             endif
             win_execute(win, "close")
         endfor
@@ -84,9 +92,9 @@ enddef
 
 export def ConsoleToggle()
 
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
-    # TODO: to be improved. repl buffer don't have a variable b:replica_name so we need an OR condition
-    if !empty(win_findbuf(bufnr('^' .. replica_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
+    # TODO: to be improved. repl buffer don't have a variable b:console_name so we need an OR condition
+    if !empty(win_findbuf(bufnr('^' .. console_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
         ConsoleClose()
     else
         ConsoleOpen()
@@ -95,13 +103,13 @@ enddef
 
 
 export def ConsoleShutoff(...replica_name_passed: list<string>)
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
     if !empty(replica_name_passed)
-        replica_name = replica_name_passed[0]
+        console_name = replica_name_passed[0]
     endif
 
-    if bufexists(bufnr('^' .. replica_name .. '$'))
-        exe "bw! " .. bufnr('^' .. replica_name .. '$')
+    if bufexists(bufnr('^' .. console_name .. '$'))
+        exe "bw! " .. bufnr('^' .. console_name .. '$')
     endif
 enddef
 
@@ -112,29 +120,28 @@ enddef
 
 
 export def SendLines(firstline: number, lastline: number)
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
-
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     # with a name IPYTHON, JULIA, etc.
-    if !bufexists(bufnr('^' .. replica_name .. '$'))
+    if !bufexists(bufnr('^' .. console_name .. '$'))
         ConsoleOpen()
     endif
 
     # Actual implementation
     silent exe ":" .. firstline .. "," .. lastline .. "y"
-    term_sendkeys(bufnr('^' .. replica_name .. '$'), @")
+    term_sendkeys(bufnr('^' .. console_name .. '$'), @")
     norm! j^
 enddef
 
 
 # Actually sending code-cell
 export def SendCell()
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
     var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. replica_name .. '$'))
+    if !bufexists(bufnr('^' .. console_name .. '$'))
         ConsoleOpen()
     endif
 
@@ -149,7 +156,7 @@ export def SendCell()
     # Write tmp file
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. replica_name .. '$'), run_command .. "\n")
+    term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
 enddef
 
 
@@ -158,18 +165,18 @@ export def SendFile(...filename: list<string>)
     if !empty(filename)
         file_to_send = filename[0]
     endif
-    var replica_name = get(b:, 'replica_name', g:replica_names["default"])
+    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
     var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. replica_name .. '$'))
+    if !bufexists(bufnr('^' .. console_name .. '$'))
         ConsoleOpen()
     endif
 
     # Write tmp file
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(readfile(fnameescape(file_to_send)), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. replica_name .. '$'), run_command .. "\n")
+    term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
 enddef
 
 
@@ -198,8 +205,8 @@ enddef
 # ======================================
 
 # for highlightning cells
-sign define UbiConsoleHl text=- linehl=CursorLine
-sign define UbiConsoleHlFast text=- linehl=UnderLined
+sign define ReplicaConsoleHl text=- linehl=CursorLine
+sign define ReplicaConsoleHlFast text=- linehl=UnderLined
 
 var line_in_old = 1
 var line_out_old = line("$")
@@ -230,7 +237,7 @@ export def HighlightCell(display_range: bool = false)
             # counter_dbg = counter_dbg + 1
             # echo counter_dbg
 
-            # Remove existing signs related to UbiConsoleHl
+            # Remove existing signs related to ReplicaConsoleHl
             if !empty(list_sign_id_old)
                 for line in list_sign_id_old
                     sign_unplace("", {"buffer": expand("%:p"), "id": line})

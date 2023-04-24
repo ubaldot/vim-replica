@@ -22,20 +22,20 @@ g:replica_tmp_filename = tempname()
 #      g:replica_is_open = false
 # endif
 
-if !exists('g:replica_autostart')
-    g:replica_autostart = true
+if !exists('g:replica_console_autostart')
+    g:replica_console_autostart = true
 endif
 
 if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
 
-if !exists('g:replica_direction')
-    g:replica_direction = "L"
+if !exists('g:replica_console_direction')
+    g:replica_console_direction = "L"
 endif
 
-if !exists('g:replica_size')
-    g:replica_size = 0 # Use 0 to take the half of the whole space
+if !exists('g:replica_console_size')
+    g:replica_console_size = 0 # Use 0 to take the half of the whole space
 endif
 
 
@@ -46,7 +46,7 @@ var replica_kernels_default = {
             \ "matlab": "jupyter_matlab_kernel",
             \ "default": "terminal"}
 
-var replica_names_default = {
+var replica_console_names_default = {
             \ "python": "IPYTHON",
             \ "julia": "JULIA",
             \ "matlab": "MATLAB",
@@ -76,7 +76,7 @@ endif
 
 g:replica_kernels = replica_kernels_default
 g:replica_cells_delimiters = replica_cells_delimiters_default
-g:replica_names = replica_names_default
+g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 
 g:replica_open_buffers = {
