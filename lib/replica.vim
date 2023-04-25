@@ -54,8 +54,9 @@ export def BufferListRemove(ft: string, bufnr: number)
   echom "open buffers:" ..  string(open_buffers[&filetype])
 enddef
 
+# TODO: OK until here.
 
-export def ReadConsoleGeometry(ft: string)
+export def ResizeConsoleWindow(ft: string)
     # TODO: refactor based on the g:replica_open_buffers list
     # TODO create a resize console function
     exe "wincmd " .. console_geometry[ft]["direction"]
