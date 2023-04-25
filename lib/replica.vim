@@ -54,6 +54,23 @@ export def BufferListRemove(ft: string, bufnr: number)
   echom "open buffers:" ..  string(open_buffers[&filetype])
 enddef
 
+
+export def ReadConsoleGeometry(ft: string)
+    # TODO: refactor based on the g:replica_open_buffers list
+    # TODO create a resize console function
+    exe "wincmd " .. console_geometry[ft]["direction"]
+    if size > 0
+        if index(["J", "K"], console_geometry[ft]["direction"]) >= 0
+            exe "resize " .. console_geometry[ft]["size"]
+        else
+            exe "vertical resize " .. console_geometry[ft]["size"]
+        endif
+    endif
+    # TODO CHECK
+    wincmd p # p = previous, return to the window that open the repl
+enddef
+
+
 # TODO: add WriteConsoleGeometry(), ReadConsoleGeometry()
 export def ConsoleOpen()
     # It opens a new console.
@@ -80,18 +97,6 @@ export def ConsoleOpen()
     # The following is executed either if the buffer is newly created
     # or if it is just displayed in a new window.
     # Move and resize window as per user preference (or last user-setting)
-    # TODO: refactor based on the g:replica_open_buffers list
-    # TODO create a resize console function
-    exe "wincmd " .. g:replica_console_direction
-    if size > 0
-        if index(["J", "K"], g:replica_console_direction ) >= 0
-            exe "resize " .. size
-        else
-            exe "vertical resize " .. size
-        endif
-    endif
-    wincmd p # p = previous, return to the window that open the repl
-    b:replica_is_open = 1
 enddef
 
 export def ConsoleClose(...replica_name_passed: list<string>)
