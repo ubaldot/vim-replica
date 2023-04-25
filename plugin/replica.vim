@@ -1,6 +1,6 @@
 vim9script
 
-# Vim plugin to get an outline for your scripts.
+# Vim plugin to get an outline of your scripts.
 # Maintainer:	Ubaldo Tiberi
 # License: Vim license
 
@@ -15,12 +15,10 @@ if exists('g:replica_loaded')
 endif
 g:replica_loaded = true
 
-# Used for sending cells or files
-g:replica_tmp_filename = tempname()
 
-# if !exists('g:replica_is_open')
-#      g:replica_is_open = false
-# endif
+
+# Temp file used for sending cells or files
+g:replica_tmp_filename = tempname()
 
 if !exists('g:replica_console_autostart')
     g:replica_console_autostart = true
@@ -78,13 +76,6 @@ g:replica_kernels = replica_kernels_default
 g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
-
-g:replica_open_buffers = {
-            \ "python": [],
-            \ "julia": [],
-            \ "matlab": [],
-            \ "default": []}
-
 
 # -----------------------------
 # Default mappings

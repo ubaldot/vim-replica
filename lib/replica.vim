@@ -1,10 +1,10 @@
 vim9script
 
-# =======================================
-# Functions for sending stuff to the REPL
-# =======================================
-
-var console_state = {"python":
+# ====================================
+# State
+# ====================================
+# Init
+var console_geometry = {"python":
             \ {"size": g:replica_console_size,
             \ "position": g:replica_console_direction },
             \ "julia":
@@ -12,21 +12,64 @@ var console_state = {"python":
             \ "position": g:replica_console_direction }
             \  }
 
+var open_buffers = {
+            \ "python": [],
+            \ "julia": [],
+            \ "matlab": [],
+            \ "default": []}
+
+
+# ====================================
+# Functions
+# ====================================
+# ---------------------------------------
+# Functions for sending stuff to the REPL
+# ---------------------------------------
+export def BufferListAdd(ft: string, bufnr: number)
+    # if buflisted(bufnr)
+  var idx = index(open_buffers[ft], bufnr)
+
+  # If buffer exists, move it to the end, otherwise append it.
+  if idx != -1
+    # Move buffer to the end
+    var item = remove(open_buffers[ft], idx)
+    add(open_buffers[ft], item)
+  else
+    # Append new buffer
+    add(open_buffers[ft], bufnr)
+  endif
+    # endif
+    echom "open buffers:" ..  string(open_buffers[&filetype])
+enddef
+
+export def BufferListRemove(ft: string, bufnr: number)
+  # If the buffer is in the buffer list, then remove it.
+  # # TODO Move to the function call in ftplugin
+  # var buf_nr = str2nr(expand('<abuf>'))
+  var idx = index(open_buffers[ft], bufnr)
+  if idx != -1
+    remove(open_buffers[ft], idx)
+  endif
+  echom "removed buffer: " .. string(bufnr)
+  echom "open buffers:" ..  string(open_buffers[&filetype])
+enddef
+
+# TODO: add WriteConsoleGeometry(), ReadConsoleGeometry()
 export def ConsoleOpen()
     # It opens a new console.
     # If the terminal buffer already exists, then it places in a window
-    var kernel_name = get(b:, 'replica_kernel_name', g:replica_kernels["default"])
-    var console_name = get(b:, 'replica_console_names', g:replica_console_names["default"])
-    var size = get(b:, 'replica_console_size', g:replica_console_size)
+    var kernel_name = get(b:, 'kernel_name', g:replica_kernels["default"])
+    var console_name = get(b:, 'console_names', g:replica_console_names["default"])
+    var size = get(b:, 'console_size', g:replica_console_size)
 
     # If repl does not exist => create
-    if !bufexists(bufnr('^' .. console_name .. '$')) # To prevent opening too many buffers with the same name
+    if !bufexists(bufnr('^' .. console_name .. '$')) # To prevent opening too many open_buffers with the same name
         if kernel_name == g:replica_console_names["default"]
             term_start(&shell, {'term_name': console_name} )
         else
             term_start("jupyter console --kernel=" .. kernel_name, {'term_name': console_name} )
         endif
-        setlocal nolisted
+        setlocal nobuflisted
         # setbufvar('^' .. console_name .. '$', "&buflisted", false)
     # Otherwise, it exists but if it is hidden.
     # Hence, display it in a window
@@ -114,7 +157,7 @@ export def ConsoleShutoff(...replica_name_passed: list<string>)
 enddef
 
 export def RemoveCells()
-    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
     exe ":%g/^" .. cell_delimiter .. "/d"
 enddef
 
@@ -138,7 +181,7 @@ enddef
 # Actually sending code-cell
 export def SendCell()
     var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
+    var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. console_name .. '$'))
@@ -166,7 +209,7 @@ export def SendFile(...filename: list<string>)
         file_to_send = filename[0]
     endif
     var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    var run_command = get(b:, 'replica_run_command', g:replica_run_commands["default"])
+    var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     if !bufexists(bufnr('^' .. console_name .. '$'))
@@ -182,7 +225,7 @@ enddef
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
     var line_in = search("\^"  .. cell_delimiter, 'cnbW')
     var line_out = search("\^" .. cell_delimiter, 'nW')
     # If search() returns 0 it means that the pattern has not been found
@@ -200,11 +243,9 @@ export def GetExtremes(display_range: bool = false): list<number>
 enddef
 
 
-# ======================================
+# ---------------------------------------
 # Functions for highlighing cells
-# ======================================
-
-# for highlightning cells
+# ---------------------------------------
 sign define ReplicaConsoleHl text=- linehl=CursorLine
 sign define ReplicaConsoleHlFast text=- linehl=UnderLined
 
@@ -218,7 +259,7 @@ var list_sign_id = []
 # When adding a sign keep in mind that we set sign_id = line number
 export def HighlightCell(display_range: bool = false)
 
-    var cell_delimiter = get(b:, 'replica_cells_delimiter', g:replica_cells_delimiters["default"])
+    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
     var extremes = GetExtremes(display_range)
     var line_in = extremes[0]
     var line_out = extremes[1]
