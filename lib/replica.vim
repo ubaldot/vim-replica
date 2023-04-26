@@ -5,12 +5,15 @@ vim9script
 # ====================================
 # Init
 var console_geometry = {"python":
-            \ {"size": g:replica_console_size,
-            \ "position": g:replica_console_direction },
-            \ "julia":
-            \ {"size": g:replica_console_size,
-            \ "position": g:replica_console_direction }
-            \  }
+            \ {"is_open": false,
+            \ "size": g:replica_console_size,
+            \ "position": g:replica_console_direction},
+            \  "julia":
+            \ {"is_open": false,
+            \ "size": g:replica_console_size,
+            \ "position": g:replica_console_direction}}
+
+
 
 var open_buffers = {
             \ "python": [],
@@ -18,6 +21,10 @@ var open_buffers = {
             \ "matlab": [],
             \ "default": []}
 
+export def g:OpenBuffers()
+    var open_buffers_ft = get(open_buffers, &filetype, [])
+    echo "open buffers:" .. string(open_buffers_ft)
+enddef
 
 # ====================================
 # Functions
@@ -25,33 +32,35 @@ var open_buffers = {
 # ---------------------------------------
 # Functions for sending stuff to the REPL
 # ---------------------------------------
-export def BufferListAdd(ft: string, bufnr: number)
+export def BufferListAdd(bufnr: number)
     # if buflisted(bufnr)
-  var idx = index(open_buffers[ft], bufnr)
+  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
+  var idx = index(open_buffers_ft, bufnr)
 
   # If buffer exists, move it to the end, otherwise append it.
   if idx != -1
     # Move buffer to the end
-    var item = remove(open_buffers[ft], idx)
-    add(open_buffers[ft], item)
+    var item = remove(open_buffers_ft, idx)
+    add(open_buffers_ft, item)
   else
     # Append new buffer
-    add(open_buffers[ft], bufnr)
+    add(open_buffers_ft, bufnr)
   endif
     # endif
-    echom "open buffers:" ..  string(open_buffers[&filetype])
+    echom "open buffers:" ..  string(open_buffers_ft)
 enddef
 
-export def BufferListRemove(ft: string, bufnr: number)
+export def BufferListRemove(bufnr: number)
   # If the buffer is in the buffer list, then remove it.
-  # # TODO Move to the function call in ftplugin
-  # var buf_nr = str2nr(expand('<abuf>'))
-  var idx = index(open_buffers[ft], bufnr)
+  # # TODO Move to the function call in &filetypeplugin
+  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
+  echo open_buffers_ft
+  var idx = index(open_buffers_ft, bufnr)
   if idx != -1
-    remove(open_buffers[ft], idx)
+    remove(open_buffers_ft, idx)
   endif
   echom "removed buffer: " .. string(bufnr)
-  echom "open buffers:" ..  string(open_buffers[&filetype])
+  echom "open buffers:" ..  string(open_buffers_ft)
 enddef
 
 # TODO: OK until here.
@@ -272,9 +281,9 @@ export def HighlightCell(display_range: bool = false)
     var hlgroup = ""
 
     if g:replica_alt_highlight == false
-        hlgroup = "UbiConsoleHl"
+        hlgroup = "ReplicaConsoleHl"
     else
-        hlgroup = "UbiConsoleHlFast"
+        hlgroup = "ReplicaConsoleHlFast"
     endif
 
     # There is at least one cell
