@@ -8,11 +8,11 @@ b:console_name = g:replica_console_names[&filetype]
 b:cells_delimiter = g:replica_cells_delimiters[&filetype]
 b:run_command = g:replica_run_commands[&filetype]
 
-augroup highlight_cells
-    autocmd! * <buffer>
-    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> replica.HighlightCell()
-    autocmd CursorMoved,CursorMovedI <buffer> replica.HighlightCell(true)
-augroup END
+# augroup highlight_cells
+#     autocmd! * <buffer>
+#     autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> replica.HighlightCell()
+#     autocmd CursorMoved,CursorMovedI <buffer> replica.HighlightCell(true)
+# augroup END
 
 
 # def Startup(): bool

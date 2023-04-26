@@ -4,13 +4,11 @@ vim9script
 # State
 # ====================================
 # Init
-var console_geometry = {"python":
-            \ {"is_open": false,
-            \ "size": g:replica_console_size,
+var console_geometry = {"IPYTHON":
+            \ {"size": g:replica_console_size,
             \ "position": g:replica_console_direction},
-            \  "julia":
-            \ {"is_open": false,
-            \ "size": g:replica_console_size,
+            \  "JULIA":
+            \ {"size": g:replica_console_size,
             \ "position": g:replica_console_direction}}
 
 
@@ -25,6 +23,7 @@ export def g:OpenBuffers()
     var open_buffers_ft = get(open_buffers, &filetype, [])
     echo "open buffers:" .. string(open_buffers_ft)
 enddef
+
 
 # ====================================
 # Functions
@@ -65,48 +64,60 @@ enddef
 
 # TODO: OK until here.
 
-export def ResizeConsoleWindow(ft: string)
-    # TODO: refactor based on the g:replica_open_buffers list
-    # TODO create a resize console function
-    exe "wincmd " .. console_geometry[ft]["direction"]
-    if size > 0
-        if index(["J", "K"], console_geometry[ft]["direction"]) >= 0
-            exe "resize " .. console_geometry[ft]["size"]
-        else
-            exe "vertical resize " .. console_geometry[ft]["size"]
-        endif
+export def ResizeConsoleWindow()
+    var console_name = console_geometry[b:console_name]
+
+    # Set direction
+    exe "wincmd " .. console_name["direction"]
+
+    # Resize
+    if index(["J", "K"], console_name["direction"]) >= 0
+        exe "resize " .. console_name["size"]
+    else
+        exe "vertical resize " .. console_name["size"]
     endif
     # TODO CHECK
     wincmd p # p = previous, return to the window that open the repl
 enddef
 
+export def g:ConsoleExists(): bool
+    if exists("b:kernel_name")
+        return bufexists(bufnr('^' .. b:console_name .. '$'))
+    else
+        return false
+    endif
+enddef
+
+export def g:IsConsoleDisplayed(): bool
+    if exists("b:kernel_name")
+        return !empty(win_findbuf(bufnr('^' .. b:console_name .. '$')))
+    else
+        return false
+    endif
+enddef
+
+
+export def g:IsFiletypeSupported(): bool
+    return exists("b:kernel_name")
+enddef
+
 
 # TODO: add WriteConsoleGeometry(), ReadConsoleGeometry()
-export def ConsoleOpen()
-    # It opens a new console.
-    # If the terminal buffer already exists, then it places in a window
-    var kernel_name = get(b:, 'kernel_name', g:replica_kernels["default"])
-    var console_name = get(b:, 'console_names', g:replica_console_names["default"])
-    var size = get(b:, 'console_size', g:replica_console_size)
-
-    # If repl does not exist => create
-    if !bufexists(bufnr('^' .. console_name .. '$')) # To prevent opening too many open_buffers with the same name
-        if kernel_name == g:replica_console_names["default"]
-            term_start(&shell, {'term_name': console_name} )
-        else
-            term_start("jupyter console --kernel=" .. kernel_name, {'term_name': console_name} )
+export def g:ConsoleOpen()
+    if g:IsFiletypeSupported()
+        if !g:ConsoleExists()
+            # win_execute(win_getid(), 'split ' .. b:console_name)
+            # var console_win_id = win_findbuf(bufnr('$'))[0]
+            echom "Trying to open the terminalllll"
+            # term_start("jupyter console --kernel=" .. b:kernel_name, {'term_name': b:console_name} )
+            win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
+            # setlocal nobuflisted
+        elseif !g:IsConsoleDisplayed()
+            exe "sbuffer " .. bufnr('^' .. b:console_name .. '$')
         endif
-        setlocal nobuflisted
-        # setbufvar('^' .. console_name .. '$', "&buflisted", false)
-    # Otherwise, it exists but if it is hidden.
-    # Hence, display it in a window
-    elseif !empty(win_findbuf(bufnr('^' .. console_name .. '$')))
-        exe "sbuffer " .. bufnr('^' .. console_name .. '$')
+        # Set geometry
+        # ResizeConsoleWindow()
     endif
-
-    # The following is executed either if the buffer is newly created
-    # or if it is just displayed in a new window.
-    # Move and resize window as per user preference (or last user-setting)
 enddef
 
 export def ConsoleClose(...replica_name_passed: list<string>)
