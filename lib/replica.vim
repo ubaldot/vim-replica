@@ -5,12 +5,11 @@ vim9script
 # ====================================
 # Init
 var console_geometry = {"IPYTHON":
-            \ {"size": g:replica_console_size,
-            \ "position": g:replica_console_direction},
+            \ {"width": g:replica_console_width,
+            \ "height": g:replica_console_height},
             \  "JULIA":
-            \ {"size": g:replica_console_size,
-            \ "position": g:replica_console_direction}}
-
+            \ {"width": g:replica_console_width,
+            \ "height": g:replica_console_height}}
 
 
 var open_buffers = {
@@ -23,7 +22,6 @@ export def g:OpenBuffers()
     var open_buffers_ft = get(open_buffers, &filetype, [])
     echo "open buffers:" .. string(open_buffers_ft)
 enddef
-
 
 # ====================================
 # Functions
@@ -62,129 +60,90 @@ export def BufferListRemove(bufnr: number)
   echom "open buffers:" ..  string(open_buffers_ft)
 enddef
 
-# TODO: OK until here.
-
-export def ResizeConsoleWindow()
-    var console_name = console_geometry[b:console_name]
-
-    # Set direction
-    exe "wincmd " .. console_name["direction"]
-
-    # Resize
-    if index(["J", "K"], console_name["direction"]) >= 0
-        exe "resize " .. console_name["size"]
-    else
-        exe "vertical resize " .. console_name["size"]
-    endif
-    # TODO CHECK
-    wincmd p # p = previous, return to the window that open the repl
+export def ResizeConsoleWindow(console_win_id: number)
+    win_execute(console_win_id, 'resize ' .. console_geometry[b:console_name]["height"])
+    win_execute(console_win_id, 'vertical resize ' .. console_geometry[b:console_name]["width"])
 enddef
 
-export def g:ConsoleExists(): bool
-    if exists("b:kernel_name")
+export def SaveConsoleWindowSize(console_win_id: number)
+    console_geometry[b:console_name]["height"] = winheight(console_win_id)
+    console_geometry[b:console_name]["width"] = winwidth(console_win_id)
+enddef
+
+
+export def ConsoleExists(): bool
+    # It only say if a console is in the buffer list
+    # but not if it is in any window.
+    if IsFiletypeSupported()
         return bufexists(bufnr('^' .. b:console_name .. '$'))
     else
         return false
     endif
 enddef
 
-export def g:IsConsoleDisplayed(): bool
-    if exists("b:kernel_name")
-        return !empty(win_findbuf(bufnr('^' .. b:console_name .. '$')))
+export def ConsoleWinID(): list<number>
+    # Return the windows ID where the console is displayed.
+    if IsFiletypeSupported()
+        return win_findbuf(bufnr('^' .. b:console_name .. '$'))
     else
-        return false
+        return []
     endif
 enddef
 
 
-export def g:IsFiletypeSupported(): bool
+export def IsFiletypeSupported(): bool
     return exists("b:kernel_name")
 enddef
 
 
-# TODO: add WriteConsoleGeometry(), ReadConsoleGeometry()
-export def g:ConsoleOpen()
-    if g:IsFiletypeSupported()
-        if !g:ConsoleExists()
-            # win_execute(win_getid(), 'split ' .. b:console_name)
-            # var console_win_id = win_findbuf(bufnr('$'))[0]
-            echom "Trying to open the terminalllll"
-            # term_start("jupyter console --kernel=" .. b:kernel_name, {'term_name': b:console_name} )
+export def ConsoleOpen()
+    # If console does not exist, then create one,
+    # otherwise, if it is hidden, just display it.
+    if IsFiletypeSupported()
+        if !ConsoleExists()
             win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
-            # setlocal nobuflisted
-        elseif !g:IsConsoleDisplayed()
-            exe "sbuffer " .. bufnr('^' .. b:console_name .. '$')
+        elseif empty(ConsoleWinID())
+            win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
         endif
+
+        # Set few options
+        var console_win_id = win_findbuf(bufnr('$'))[0]
+        win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
+        win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
         # Set geometry
-        # ResizeConsoleWindow()
+        ResizeConsoleWindow(console_win_id)
     endif
 enddef
 
-export def ConsoleClose(...replica_name_passed: list<string>)
-    # Close the repl, store last size and mark it as closed.
-    #
-    # If the cursor in on the terminal window, use :bdelete
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    if !empty(replica_name_passed)
-        # replica_name_passed is a list or arguments
-        console_name = replica_name_passed[0]
-    endif
 
-    # If user wants to close and he is on the repl
-    if getbufvar(bufnr("%"), '&buftype') == 'terminal'
-        if index(["J", "K"], g:replica_console_direction) >= 0
-            b:replica_console_size = winheight(0)
-        else
-            b:replica_console_size = winwidth(0)
-        endif
-        exe "close"
-    else
-        # The user may mistakenly open more repl windows in the same tab.
-        # We close all of them.
-        var windows_to_close = win_findbuf(bufnr('^' .. console_name .. '$'))
-        # Note that if the buffer does not exist, the for loop is skipped
-        # so we don't need to check if the window exist.
-        for win in windows_to_close
-            # Store the last user-setting
-            if index(["J", "K"], g:replica_console_direction) >= 0
-                b:replica_console_size = winheight(win)
-            else
-                b:replica_console_size = winwidth(win)
-            endif
-            win_execute(win, "close")
-        endfor
-    endif
-    b:replica_is_open = false
+export def ConsoleClose()
+    for win in ConsoleWinID()
+        SaveConsoleWindowSize(win)
+        win_execute(win, "close")
+    endfor
 enddef
 
 
-
-export def ConsoleToggle()
-
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    # TODO: to be improved. repl buffer don't have a variable b:console_name so we need an OR condition
-    if !empty(win_findbuf(bufnr('^' .. console_name .. '$')))  || getbufvar(bufnr("%"), '&buftype') == "terminal"
-        ConsoleClose()
-    else
+export def g:ConsoleToggle()
+    if empty(ConsoleWinID())
         ConsoleOpen()
+    else
+        ConsoleClose()
     endif
 enddef
 
 
-export def ConsoleShutoff(...replica_name_passed: list<string>)
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    if !empty(replica_name_passed)
-        console_name = replica_name_passed[0]
-    endif
-
-    if bufexists(bufnr('^' .. console_name .. '$'))
-        exe "bw! " .. bufnr('^' .. console_name .. '$')
+export def g:ConsoleWipeout()
+    if ConsoleExists()
+        exe "bw! " .. bufnr('^' .. b:console_name .. '$')
     endif
 enddef
+
 
 export def RemoveCells()
-    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
-    exe ":%g/^" .. cell_delimiter .. "/d"
+    if IsFiletypeSupported()
+        exe ":%g/^" .. b:cell_delimiter .. "/d _"
+    endif
 enddef
 
 
@@ -193,13 +152,13 @@ export def SendLines(firstline: number, lastline: number)
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
     # with a name IPYTHON, JULIA, etc.
-    if !bufexists(bufnr('^' .. console_name .. '$'))
+    if !ConsoleExists()
         ConsoleOpen()
     endif
 
     # Actual implementation
     silent exe ":" .. firstline .. "," .. lastline .. "y"
-    term_sendkeys(bufnr('^' .. console_name .. '$'), @")
+    term_sendkeys(bufnr('^' .. b:console_name .. '$'), @")
     norm! j^
 enddef
 
@@ -210,7 +169,7 @@ export def SendCell()
     var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. console_name .. '$'))
+    if !ConsoleExists()
         ConsoleOpen()
     endif
 
@@ -238,7 +197,7 @@ export def SendFile(...filename: list<string>)
     var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
     # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !bufexists(bufnr('^' .. console_name .. '$'))
+    if !ConsoleExists()
         ConsoleOpen()
     endif
 

@@ -28,14 +28,28 @@ if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
 
-if !exists('g:replica_console_direction')
-    g:replica_console_direction = "L"
+if !exists('g:replica_console_position')
+    g:replica_console_position = "J"
+elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
+    echoerr "g:replica_console_position must be one of HJKL"
 endif
 
-if !exists('g:replica_console_size')
-    g:replica_console_size = 0 # Use 0 to take the half of the whole space
+
+if !exists('g:replica_console_width')
+    if index(["J", "K"], g:replica_console_position) >= 0
+        g:replica_console_width = &columns
+    else
+        g:replica_console_width = 10
+    endif
 endif
 
+if !exists('g:replica_console_height')
+    if index(["H", "L"], g:replica_console_position) >= 0
+        g:replica_console_height = &lines
+    else
+        g:replica_console_height = 10
+    endif
+endif
 
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
