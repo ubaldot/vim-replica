@@ -106,7 +106,7 @@ if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
-            \ :call <SID>replica.SendLines(<line1>, <line2>)<cr>
+            \ :call <SID>replica.SendLines(<line1>, <line2>)
 if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
     nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
     inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
@@ -163,9 +163,10 @@ if !exists(":ReplicaSendCell")
     command ReplicaSendCell silent :call replica.SendCell()
 endif
 
+# TODO: readd silent
 if !exists(":ReplicaSendFile")
     command -nargs=? -complete=file ReplicaSendFile
-                \ silent :call replica.SendFile(<f-args>)
+                \ :call replica.SendFile(<f-args>)
 endif
 
 if !exists(":ReplicaRemoveCells")

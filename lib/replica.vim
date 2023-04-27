@@ -84,10 +84,12 @@ enddef
 
 export def ConsoleWinID(): list<number>
     # Return the windows ID where the console is displayed.
+    # OBS! b:console_name does not exist for terminal windows!
     echom ConsoleExists()
     if ConsoleExists()
         if getbufvar(bufnr("%"), '&buftype') == "terminal"
                 \ && index(values(g:replica_console_names), bufname()) != -1
+            # If we are on a console, then the current buffer is the console
             return win_findbuf(bufnr())
         else
             return win_findbuf(bufnr('^' .. b:console_name .. '$'))
@@ -98,8 +100,13 @@ export def ConsoleWinID(): list<number>
 enddef
 
 
-export def IsFiletypeSupported(): bool
-    return exists("b:kernel_name")
+export def IsFiletypeSupported(...bufnames: list<string>): bool
+    # If no argument is passed use the current buffer
+    var bufname = get(bufnames, 0, "%")
+    echom "bufname: " .. bufname
+    echo "bufnr: " .. bufnr()
+    echom "kernel_name: " .. getbufvar(bufname, "kernel_name")
+    return !empty(getbufvar(bufname, "kernel_name"))
 enddef
 
 
@@ -151,89 +158,118 @@ enddef
 
 export def RemoveCells()
     if IsFiletypeSupported()
-        exe ":%g/^" .. b:cell_delimiter .. "/d _"
+        for ii in range(1, line('$'))
+            if getline(ii) =~ "^" .. b:cells_delimiter
+                deletebufline('%', ii)
+            endif
+        endfor
     endif
 enddef
 
 
 export def SendLines(firstline: number, lastline: number)
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
 
-    # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    # with a name IPYTHON, JULIA, etc.
-    if !ConsoleExists()
-        ConsoleOpen()
+    if IsFiletypeSupported()
+        if !ConsoleExists()
+            ConsoleOpen()
+        endif
+
+        # Actual implementation
+        for line in getline(firstline, lastline)
+            term_sendkeys(bufnr('^' .. b:console_name .. '$'), line .. "\n")
+        endfor
+        # TODO: avoid the following when firstline and lastline are passed
+        norm! j^
     endif
-
-    # Actual implementation
-    silent exe ":" .. firstline .. "," .. lastline .. "y"
-    term_sendkeys(bufnr('^' .. b:console_name .. '$'), @")
-    norm! j^
 enddef
 
 
 # Actually sending code-cell
 export def SendCell()
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
-    # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !ConsoleExists()
-        ConsoleOpen()
+    if IsFiletypeSupported()
+        if !ConsoleExists()
+            ConsoleOpen()
+        endif
+
+        # Get beginning and end of the cell
+        var extremes = GetExtremes()
+        var line_in = extremes[0]
+        var line_out = extremes[1]
+
+        # Jump to the next cell
+        cursor(line_out, getcurpos()[2])
+
+        # Write tmp file
+        delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
+        writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
+        term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     endif
-
-    # Get beginning and end of the cell
-    var extremes = GetExtremes()
-    var line_in = extremes[0]
-    var line_out = extremes[1]
-
-    # Jump to the next cell
-    cursor(line_out, getcurpos()[2])
-
-    # Write tmp file
-    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-    writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
 enddef
 
 
+# TODO: good until here
+
 export def SendFile(...filename: list<string>)
-    var file_to_send = expand("%")
-    if !empty(filename)
-        file_to_send = filename[0]
-    endif
-    var console_name = get(b:, 'console_name', g:replica_console_names["default"])
-    var run_command = get(b:, 'run_command', g:replica_run_commands["default"])
 
-    # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
-    if !ConsoleExists()
-        ConsoleOpen()
+# TODO: this is a bit more elaborated because you can send a file from
+# anywhere.
+    var buf_to_send = "pippo"
+    if empty(filename)
+        buf_to_send = "%"
+    else
+        # This is a temp buffer
+        buf_to_send = bufname(bufadd(fnameescape(filename[0])))
+        bufload(buf_to_send)
+    endif
+    echom "buf_to_send: " .. buf_to_send
+
+    if IsFiletypeSupported(buf_to_send)
+        echom "Cazzo!!!"
+        # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
+        if !ConsoleExists()
+            ConsoleOpen()
+        endif
+
+        var console_name = getbufvar(buf_to_send, "console_name")
+        var run_command = getbufvar(buf_to_send, "run_command")
+        echom "console_name:" .. console_name
+
+        # Write tmp file
+        delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
+        writefile(getbufline(buf_to_send, 1, '$'), g:replica_tmp_filename, "a")
+        term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
     endif
 
-    # Write tmp file
-    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-    writefile(readfile(fnameescape(file_to_send)), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
+    # # Remove temp buffer
+    # if !empty(filename)
+    #     exe "bw! " .. buf_to_send
+    # endif
 enddef
 
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
-    var line_in = search("\^"  .. cell_delimiter, 'cnbW')
-    var line_out = search("\^" .. cell_delimiter, 'nW')
-    # If search() returns 0 it means that the pattern has not been found
-    if line_in == 0
-        line_in = 1
+
+    if IsFiletypeSupported()
+        var line_in = search("\^"  .. b:cell_delimiter, 'cnbW')
+        var line_out = search("\^" .. b:cell_delimiter, 'nW')
+        # If search() returns 0 it means that the pattern has not been found
+        if line_in == 0
+            line_in = 1
+        endif
+        if line_out == 0
+            line_out = line("$")
+        endif
+        # Display range only if some cell has been found
+        if (line_in != 1 || line_out != line("$")) && display_range
+            echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
+        endif
+        return [line_in, line_out]
+    else
+        return [0, 0]
     endif
-    if line_out == 0
-        line_out = line("$")
-    endif
-    # Display range only if some cell has been found
-    if (line_in != 1 || line_out != line("$")) && display_range
-        echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
-    endif
-    return [line_in, line_out]
+
 enddef
 
 
@@ -253,57 +289,56 @@ var list_sign_id = []
 # When adding a sign keep in mind that we set sign_id = line number
 export def HighlightCell(display_range: bool = false)
 
-    var cell_delimiter = get(b:, 'cells_delimiter', g:replica_cells_delimiters["default"])
-    var extremes = GetExtremes(display_range)
-    var line_in = extremes[0]
-    var line_out = extremes[1]
-    var hlgroup = ""
+    if IsFiletypeSupported()
+        var extremes = GetExtremes(display_range)
+        var line_in = extremes[0]
+        var line_out = extremes[1]
+        var hlgroup = ""
 
-    if g:replica_alt_highlight == false
-        hlgroup = "ReplicaConsoleHl"
-    else
-        hlgroup = "ReplicaConsoleHlFast"
-    endif
-
-    # There is at least one cell
-    if line_in != 1 || line_out != line("$")
-        # ...and if the cursor moved into another cell, then update the signs
-        if line_in != line_in_old || line_out != line_out_old
-            # counter_dbg = counter_dbg + 1
-            # echo counter_dbg
-
-            # Remove existing signs related to ReplicaConsoleHl
-            if !empty(list_sign_id_old)
-                for line in list_sign_id_old
-                    sign_unplace("", {"buffer": expand("%:p"), "id": line})
-                endfor
-            endif
-
-
-            # Find lines
-            if g:replica_alt_highlight == false
-                # Case Slow
-                list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
-            else
-                # exe ":g/" .. b:replica_cell_delimiter .. "/add(list_sign_id, line('.')"
-                list_sign_id = [line_in, line_out]
-            endif
-
-            # Place signs and move current values to _old
-            list_sign_id_old = []
-            for line in list_sign_id
-                sign_place(line, "", hlgroup, expand("%:p"), {"lnum": line})
-                add(list_sign_id_old, line)
-            endfor
-            # Update old values
-            line_in_old = line_in
-            line_out_old = line_out
+        if g:replica_alt_highlight == false
+            hlgroup = "ReplicaConsoleHl"
+        else
+            hlgroup = "ReplicaConsoleHlFast"
         endif
-    else
-        # ..which means line_in = 1 and line_out = line("$")
-        # i.e. if there are no cells left remove all the signs
-        for line in list_sign_id_old
-            sign_unplace("", {"buffer": expand("%:p"), "id": line})
-        endfor
+
+        # There is at least one cell
+        if line_in != 1 || line_out != line("$")
+            # ...and if the cursor moved into another cell, then update the signs
+            if line_in != line_in_old || line_out != line_out_old
+                # counter_dbg = counter_dbg + 1
+                # echo counter_dbg
+
+                # Remove existing signs related to ReplicaConsoleHl
+                if !empty(list_sign_id_old)
+                    for line in list_sign_id_old
+                        sign_unplace("", {"buffer": expand("%:p"), "id": line})
+                    endfor
+                endif
+
+                # Find lines
+                if g:replica_alt_highlight == false
+                    # Case Slow
+                    list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
+                else
+                    list_sign_id = [line_in, line_out]
+                endif
+
+                # Place signs and move current values to _old
+                list_sign_id_old = []
+                for line in list_sign_id
+                    sign_place(line, "", hlgroup, expand("%:p"), {"lnum": line})
+                    add(list_sign_id_old, line)
+                endfor
+                # Update old values
+                line_in_old = line_in
+                line_out_old = line_out
+            endif
+        else
+            # ..which means line_in = 1 and line_out = line("$")
+            # i.e. if there are no cells left remove all the signs
+            for line in list_sign_id_old
+                sign_unplace("", {"buffer": expand("%:p"), "id": line})
+            endfor
+        endif
     endif
 enddef
