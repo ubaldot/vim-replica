@@ -25,36 +25,36 @@ enddef
 # ---------------------------------------
 # Functions for sending stuff to the REPL
 # ---------------------------------------
-export def BufferListAdd(bufnr: number)
-    # if buflisted(bufnr)
-  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-  var idx = index(open_buffers_ft, bufnr)
+# export def BufferListAdd(bufnr: number)
+#     # if buflisted(bufnr)
+#   var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
+#   var idx = index(open_buffers_ft, bufnr)
 
-  # If buffer exists, move it to the end, otherwise append it.
-  if idx != -1
-    # Move buffer to the end
-    var item = remove(open_buffers_ft, idx)
-    add(open_buffers_ft, item)
-  else
-    # Append new buffer
-    add(open_buffers_ft, bufnr)
-  endif
-    # endif
-    echom "open buffers:" ..  string(open_buffers_ft)
-enddef
+#   # If buffer exists, move it to the end, otherwise append it.
+#   if idx != -1
+#     # Move buffer to the end
+#     var item = remove(open_buffers_ft, idx)
+#     add(open_buffers_ft, item)
+#   else
+#     # Append new buffer
+#     add(open_buffers_ft, bufnr)
+#   endif
+#     # endif
+#     echom "open buffers:" ..  string(open_buffers_ft)
+# enddef
 
-export def BufferListRemove(bufnr: number)
-  # If the buffer is in the buffer list, then remove it.
-  # # TODO Move to the function call in &filetypeplugin
-  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-  echo open_buffers_ft
-  var idx = index(open_buffers_ft, bufnr)
-  if idx != -1
-    remove(open_buffers_ft, idx)
-  endif
-  echom "removed buffer: " .. string(bufnr)
-  echom "open buffers:" ..  string(open_buffers_ft)
-enddef
+# export def BufferListRemove(bufnr: number)
+#   # If the buffer is in the buffer list, then remove it.
+#   # # TODO Move to the function call in &filetypeplugin
+#   var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
+#   echo open_buffers_ft
+#   var idx = index(open_buffers_ft, bufnr)
+#   if idx != -1
+#     remove(open_buffers_ft, idx)
+#   endif
+#   echom "removed buffer: " .. string(bufnr)
+#   echom "open buffers:" ..  string(open_buffers_ft)
+# enddef
 
 export def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
@@ -85,7 +85,6 @@ enddef
 export def ConsoleWinID(): list<number>
     # Return the windows ID where the console is displayed.
     # OBS! b:console_name does not exist for terminal windows!
-    echom ConsoleExists()
     if ConsoleExists()
         if getbufvar(bufnr("%"), '&buftype') == "terminal"
                 \ && index(values(g:replica_console_names), bufname()) != -1
@@ -109,23 +108,27 @@ export def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
     if IsFiletypeSupported()
+        var console_win_id = 0
         if !ConsoleExists()
             win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
+            console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
             win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
+            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))[0]
         endif
-
         # Set few options
-        var console_win_id = win_findbuf(bufnr('$'))[0]
         win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
         win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
         # Set geometry
         ResizeConsoleWindow(console_win_id)
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 enddef
 
 
 export def ConsoleClose()
+    # TODO Modify and make all the REPL to close from wherever you are
     for win in ConsoleWinID()
         SaveConsoleWindowSize(win)
         win_execute(win, "close")
@@ -133,8 +136,7 @@ export def ConsoleClose()
 enddef
 
 
-export def g:ConsoleToggle()
-    echom ConsoleWinID()
+export def ConsoleToggle()
     if empty(ConsoleWinID())
         ConsoleOpen()
     else
@@ -143,7 +145,7 @@ export def g:ConsoleToggle()
 enddef
 
 
-export def g:ConsoleWipeout()
+export def ConsoleShutoff()
     for win in ConsoleWinID()
         SaveConsoleWindowSize(win)
         exe "bw! " .. winbufnr(win)
@@ -158,6 +160,8 @@ export def RemoveCells()
                 deletebufline('%', ii)
             endif
         endfor
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 enddef
 
@@ -175,6 +179,8 @@ export def SendLines(firstline: number, lastline: number)
         endfor
         # TODO: avoid the following when firstline and lastline are passed
         norm! j^
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 enddef
 
@@ -194,11 +200,12 @@ export def SendCell()
 
         # Jump to the next cell
         cursor(line_out, getcurpos()[2])
-
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 enddef
 
@@ -206,8 +213,7 @@ enddef
 
 export def SendFile(...filename: list<string>)
 
-# TODO: too many Ex commands.
-# anywhere.
+    # TODO: too many Ex commands.
     if !empty(filename)
         exe ":edit " ..  fnameescape(filename[0])
     endif
@@ -217,11 +223,12 @@ export def SendFile(...filename: list<string>)
         if !ConsoleExists()
             ConsoleOpen()
         endif
-
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(1, '$'), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 
     # Remove temp buffer
@@ -237,8 +244,8 @@ enddef
 export def GetExtremes(display_range: bool = false): list<number>
 
     if IsFiletypeSupported()
-        var line_in = search("\^"  .. b:cell_delimiter, 'cnbW')
-        var line_out = search("\^" .. b:cell_delimiter, 'nW')
+        var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
+        var line_out = search("\^" .. b:cells_delimiter, 'nW')
         # If search() returns 0 it means that the pattern has not been found
         if line_in == 0
             line_in = 1
@@ -285,21 +292,18 @@ export def HighlightCell(display_range: bool = false)
         else
             hlgroup = "ReplicaConsoleHlFast"
         endif
-
         # There is at least one cell
         if line_in != 1 || line_out != line("$")
             # ...and if the cursor moved into another cell, then update the signs
             if line_in != line_in_old || line_out != line_out_old
                 # counter_dbg = counter_dbg + 1
                 # echo counter_dbg
-
                 # Remove existing signs related to ReplicaConsoleHl
                 if !empty(list_sign_id_old)
                     for line in list_sign_id_old
                         sign_unplace("", {"buffer": expand("%:p"), "id": line})
                     endfor
                 endif
-
                 # Find lines
                 if g:replica_alt_highlight == false
                     # Case Slow
@@ -307,7 +311,6 @@ export def HighlightCell(display_range: bool = false)
                 else
                     list_sign_id = [line_in, line_out]
                 endif
-
                 # Place signs and move current values to _old
                 list_sign_id_old = []
                 for line in list_sign_id
@@ -325,5 +328,7 @@ export def HighlightCell(display_range: bool = false)
                 sign_unplace("", {"buffer": expand("%:p"), "id": line})
             endfor
         endif
+    else
+        echo "vim-replica: filetype not supported!"
     endif
 enddef

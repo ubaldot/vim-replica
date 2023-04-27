@@ -137,7 +137,7 @@ endif
 
 if !exists(":ReplicaConsoleClose")
     command -nargs=? ReplicaConsoleClose
-                \ silent :call replica.ConsoleClose(<f-args>)
+                \ :call replica.ConsoleClose(<f-args>)
 endif
 
 if !exists(":ReplicaConsoleToggle")
@@ -151,12 +151,12 @@ endif
 
 if !exists(":ReplicaConsoleShutoff")
     command -nargs=? ReplicaConsoleShutoff
-                \ silent :call replica.ConsoleShutoff(<f-args>)
+                \ :call replica.ConsoleShutoff(<f-args>)
 endif
 
 if !exists(":ReplicaSendLines")
     command -range ReplicaSendLines
-            \ silent :call replica.SendLines(<line1>, <line2>)
+            \ :call replica.SendLines(<line1>, <line2>)
 endif
 
 if !exists(":ReplicaSendCell")
@@ -170,5 +170,5 @@ if !exists(":ReplicaSendFile")
 endif
 
 if !exists(":ReplicaRemoveCells")
-    command ReplicaRemoveCells silent :call replica.RemoveCells()
+    command ReplicaRemoveCells :call replica.RemoveCells()
 endif
