@@ -20,16 +20,16 @@ g:replica_loaded = true
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
-if !exists('g:replica_console_autostart')
-    g:replica_console_autostart = true
-endif
+# if !exists('g:replica_console_autostart')
+#     g:replica_console_autostart = true
+# endif
 
 if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
 
 if !exists('g:replica_console_position')
-    g:replica_console_position = "J"
+    g:replica_console_position = "L"
 elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
     echoerr "g:replica_console_position must be one of HJKL"
 endif
@@ -39,7 +39,7 @@ if !exists('g:replica_console_width')
     if index(["J", "K"], g:replica_console_position) >= 0
         g:replica_console_width = &columns
     else
-        g:replica_console_width = 10
+        g:replica_console_width = floor(&columns / 2)
     endif
 endif
 

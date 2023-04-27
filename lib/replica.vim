@@ -25,36 +25,6 @@ enddef
 # ---------------------------------------
 # Functions for sending stuff to the REPL
 # ---------------------------------------
-export def BufferListAdd(bufnr: number)
-    # if buflisted(bufnr)
-  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-  var idx = index(open_buffers_ft, bufnr)
-
-  # If buffer exists, move it to the end, otherwise append it.
-  if idx != -1
-    # Move buffer to the end
-    var item = remove(open_buffers_ft, idx)
-    add(open_buffers_ft, item)
-  else
-    # Append new buffer
-    add(open_buffers_ft, bufnr)
-  endif
-    # endif
-    echom "open buffers:" ..  string(open_buffers_ft)
-enddef
-
-export def BufferListRemove(bufnr: number)
-  # If the buffer is in the buffer list, then remove it.
-  # # TODO Move to the function call in &filetypeplugin
-  var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-  echo open_buffers_ft
-  var idx = index(open_buffers_ft, bufnr)
-  if idx != -1
-    remove(open_buffers_ft, idx)
-  endif
-  echom "removed buffer: " .. string(bufnr)
-  echom "open buffers:" ..  string(open_buffers_ft)
-enddef
 
 export def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
@@ -136,7 +106,6 @@ enddef
 
 
 export def ConsoleToggle()
-    echom ConsoleWinID()
     if empty(ConsoleWinID())
         ConsoleOpen()
     else
@@ -145,7 +114,7 @@ export def ConsoleToggle()
 enddef
 
 
-export def ConsoleWipeout()
+export def ConsoleShutoff()
     for win in ConsoleWinID()
         SaveConsoleWindowSize(win)
         exe "bw! " .. winbufnr(win)
@@ -177,6 +146,8 @@ export def SendLines(firstline: number, lastline: number)
         endfor
         # TODO: avoid the following when firstline and lastline are passed
         norm! j^
+    else
+        echo "vim_replica: filetype not supported!"
     endif
 enddef
 
@@ -188,19 +159,18 @@ export def SendCell()
         if !ConsoleExists()
             ConsoleOpen()
         endif
-
         # Get beginning and end of the cell
         var extremes = GetExtremes()
         var line_in = extremes[0]
         var line_out = extremes[1]
-
         # Jump to the next cell
         cursor(line_out, getcurpos()[2])
-
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+    else
+        echo "vim_replica: filetype not supported!"
     endif
 enddef
 
@@ -224,6 +194,8 @@ export def SendFile(...filename: list<string>)
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(1, '$'), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+    else
+        echo "vim_replica: filetype not supported!"
     endif
 
     # Remove temp buffer
@@ -233,7 +205,6 @@ export def SendFile(...filename: list<string>)
     endif
 enddef
 
-# TODO: good until here
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
