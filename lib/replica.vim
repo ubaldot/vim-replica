@@ -108,15 +108,17 @@ enddef
 export def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
+    var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
             win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
+            console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
             win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
+            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))[0]
         endif
 
         # Set few options
-        var console_win_id = win_findbuf(bufnr('$'))[0]
         win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
         win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
         # Set geometry
@@ -133,7 +135,7 @@ export def ConsoleClose()
 enddef
 
 
-export def g:ConsoleToggle()
+export def ConsoleToggle()
     echom ConsoleWinID()
     if empty(ConsoleWinID())
         ConsoleOpen()
@@ -143,7 +145,7 @@ export def g:ConsoleToggle()
 enddef
 
 
-export def g:ConsoleWipeout()
+export def ConsoleWipeout()
     for win in ConsoleWinID()
         SaveConsoleWindowSize(win)
         exe "bw! " .. winbufnr(win)
@@ -237,8 +239,8 @@ enddef
 export def GetExtremes(display_range: bool = false): list<number>
 
     if IsFiletypeSupported()
-        var line_in = search("\^"  .. b:cell_delimiter, 'cnbW')
-        var line_out = search("\^" .. b:cell_delimiter, 'nW')
+        var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
+        var line_out = search("\^" .. b:cells_delimiter, 'nW')
         # If search() returns 0 it means that the pattern has not been found
         if line_in == 0
             line_in = 1

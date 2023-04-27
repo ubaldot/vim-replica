@@ -8,11 +8,11 @@ b:console_name = g:replica_console_names[&filetype]
 b:cells_delimiter = g:replica_cells_delimiters[&filetype]
 b:run_command = g:replica_run_commands[&filetype]
 
-# augroup highlight_cells
-#     autocmd! * <buffer>
-#     autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> replica.HighlightCell()
-#     autocmd CursorMoved,CursorMovedI <buffer> replica.HighlightCell(true)
-# augroup END
+augroup highlight_cells
+    autocmd! * <buffer>
+    autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> replica.HighlightCell()
+    autocmd CursorMoved,CursorMovedI <buffer> replica.HighlightCell(true)
+augroup END
 
 
 # def Startup(): bool
@@ -35,12 +35,12 @@ b:run_command = g:replica_run_commands[&filetype]
 # enddef
 
 
-augroup test
-    autocmd! * <buffer>
-    # autocmd BufEnter <buffer> :call replica.BufferListAdd(&filetype, bufnr(expand('<abuf>'))) | echom "BufEnter triggered"
-    autocmd BufEnter <buffer> :call replica.BufferListAdd(bufnr())
-    autocmd BufWipeout <buffer> :call replica.BufferListRemove(str2nr(expand('<abuf>')))
-augroup END
+# augroup test
+#     autocmd! * <buffer>
+#     # autocmd BufEnter <buffer> :call replica.BufferListAdd(&filetype, bufnr(expand('<abuf>'))) | echom "BufEnter triggered"
+#     autocmd BufEnter <buffer> :call replica.BufferListAdd(bufnr())
+#     autocmd BufWipeout <buffer> :call replica.BufferListRemove(str2nr(expand('<abuf>')))
+# augroup END
 # var tmp = 0
 # augroup leave_replica_python
 #     autocmd! * <buffer>
