@@ -68,7 +68,7 @@ enddef
 
 
 export def ConsoleExists(): bool
-    # It only say if a console is in the buffer list
+    # It only say if a console of this type is in the buffer list
     # but not if it is in any window.
     if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
@@ -107,49 +107,81 @@ enddef
 export def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
+    var console_win_id = []
     if IsFiletypeSupported()
-        var console_win_id = 0
         if !ConsoleExists()
             win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
-            console_win_id = win_findbuf(bufnr('$'))[0]
+            console_win_id = win_findbuf(bufnr('$'))
         elseif empty(ConsoleWinID())
             win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
-            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))[0]
+            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))
         endif
-        # Set few options
-        win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
-        win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
-        # Set geometry
-        ResizeConsoleWindow(console_win_id)
     else
-        echo "vim-replica: filetype not supported!"
+        for buf_nr in term_list()
+            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && empty(win_findbuf(buf_nr))
+                win_execute(win_getid(), 'sbuffer ' .. buf_nr)
+                console_win_id -> add(win_findbuf(buf_nr)[0])
+            endif
+        endfor
     endif
+    for wind in console_win_id
+        # Set few options
+        win_execute(wind, 'wincmd ' .. g:replica_console_position)
+        win_execute(wind, 'setlocal nobuflisted winminheight winminwidth')
+        # Set geometry
+        ResizeConsoleWindow(wind)
+    endfor
 enddef
 
 
 export def ConsoleClose()
     # TODO Modify and make all the REPL to close from wherever you are
-    for win in ConsoleWinID()
-        SaveConsoleWindowSize(win)
-        win_execute(win, "close")
-    endfor
+
+    if IsFiletypeSupported()
+        for win in ConsoleWinID()
+            SaveConsoleWindowSize(win)
+            win_execute(win, "close")
+        endfor
+    else
+        for buf_nr in term_list()
+            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && !empty(win_findbuf(buf_nr))
+                for wind in win_findbuf(buf_nr)
+                    win_execute(wind, "close")
+                endfor
+            endif
+        endfor
+    endif
 enddef
 
 
 export def ConsoleToggle()
-    if empty(ConsoleWinID())
-        ConsoleOpen()
+    if IsFiletypeSupported()
+        if empty(ConsoleWinID())
+            ConsoleOpen()
+        else
+            ConsoleClose()
+        endif
     else
-        ConsoleClose()
+
     endif
 enddef
 
 
 export def ConsoleShutoff()
-    for win in ConsoleWinID()
-        SaveConsoleWindowSize(win)
-        exe "bw! " .. winbufnr(win)
-    endfor
+    if IsFiletypeSupported()
+        for win in ConsoleWinID()
+            SaveConsoleWindowSize(win)
+            exe "bw! " .. winbufnr(win)
+        endfor
+    else
+        for buf_nr in term_list()
+            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && !empty(win_findbuf(buf_nr))
+                for wind in win_findbuf(buf_nr)
+                    exe "bw! " .. winbufnr(wind)
+                endfor
+            endif
+        endfor
+    endif
 enddef
 
 
