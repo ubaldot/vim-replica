@@ -100,13 +100,8 @@ export def ConsoleWinID(): list<number>
 enddef
 
 
-export def IsFiletypeSupported(...bufnames: list<string>): bool
-    # If no argument is passed use the current buffer
-    var bufname = get(bufnames, 0, "%")
-    echom "bufname: " .. bufname
-    echo "bufnr: " .. bufnr()
-    echom "kernel_name: " .. getbufvar(bufname, "kernel_name")
-    return !empty(getbufvar(bufname, "kernel_name"))
+export def IsFiletypeSupported(): bool
+    return !empty(getbufvar('%', "kernel_name"))
 enddef
 
 
@@ -208,45 +203,35 @@ export def SendCell()
 enddef
 
 
-# TODO: good until here
 
 export def SendFile(...filename: list<string>)
 
-# TODO: this is a bit more elaborated because you can send a file from
+# TODO: too many Ex commands.
 # anywhere.
-    var buf_to_send = "pippo"
-    if empty(filename)
-        buf_to_send = "%"
-    else
-        # This is a temp buffer
-        buf_to_send = bufname(bufadd(fnameescape(filename[0])))
-        bufload(buf_to_send)
+    if !empty(filename)
+        exe ":edit " ..  fnameescape(filename[0])
     endif
-    echom "buf_to_send: " .. buf_to_send
 
-    if IsFiletypeSupported(buf_to_send)
-        echom "Cazzo!!!"
+    if IsFiletypeSupported()
         # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
         if !ConsoleExists()
             ConsoleOpen()
         endif
 
-        var console_name = getbufvar(buf_to_send, "console_name")
-        var run_command = getbufvar(buf_to_send, "run_command")
-        echom "console_name:" .. console_name
-
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-        writefile(getbufline(buf_to_send, 1, '$'), g:replica_tmp_filename, "a")
-        term_sendkeys(bufnr('^' .. console_name .. '$'), run_command .. "\n")
+        writefile(getline(1, '$'), g:replica_tmp_filename, "a")
+        term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     endif
 
-    # # Remove temp buffer
-    # if !empty(filename)
-    #     exe "bw! " .. buf_to_send
-    # endif
+    # Remove temp buffer
+    if !empty(filename)
+        exe ":bprev"
+        exe "bw! " .. fnameescape(filename[0])
+    endif
 enddef
 
+# TODO: good until here
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
