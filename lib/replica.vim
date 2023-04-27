@@ -4,12 +4,8 @@ vim9script
 # State
 # ====================================
 # Init
-var console_geometry = {"IPYTHON":
-            \ {"width": g:replica_console_width,
-            \ "height": g:replica_console_height},
-            \  "JULIA":
-            \ {"width": g:replica_console_width,
-            \ "height": g:replica_console_height}}
+var console_geometry = {"width": g:replica_console_width,
+            \ "height": g:replica_console_height}
 
 
 var open_buffers = {
@@ -61,21 +57,26 @@ export def BufferListRemove(bufnr: number)
 enddef
 
 export def ResizeConsoleWindow(console_win_id: number)
-    win_execute(console_win_id, 'resize ' .. console_geometry[b:console_name]["height"])
-    win_execute(console_win_id, 'vertical resize ' .. console_geometry[b:console_name]["width"])
+    win_execute(console_win_id, 'resize ' .. console_geometry["height"])
+    win_execute(console_win_id, 'vertical resize ' .. console_geometry["width"])
 enddef
 
 export def SaveConsoleWindowSize(console_win_id: number)
-    console_geometry[b:console_name]["height"] = winheight(console_win_id)
-    console_geometry[b:console_name]["width"] = winwidth(console_win_id)
+    console_geometry["height"] = winheight(console_win_id)
+    console_geometry["width"] = winwidth(console_win_id)
 enddef
 
 
 export def ConsoleExists(): bool
     # It only say if a console is in the buffer list
     # but not if it is in any window.
-    if IsFiletypeSupported()
+    if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
+    # In case you are on a console, then b:console_name does not exists,
+    # therefore you have to check if it is a terminal with some console name.
+    elseif getbufvar(bufnr(), '&buftype') == "terminal"
+                \ && index(values(g:replica_console_names), bufname()) != -1
+        return true
     else
         return false
     endif
@@ -83,8 +84,14 @@ enddef
 
 export def ConsoleWinID(): list<number>
     # Return the windows ID where the console is displayed.
-    if IsFiletypeSupported()
-        return win_findbuf(bufnr('^' .. b:console_name .. '$'))
+    echom ConsoleExists()
+    if ConsoleExists()
+        if getbufvar(bufnr("%"), '&buftype') == "terminal"
+                \ && index(values(g:replica_console_names), bufname()) != -1
+            return win_findbuf(bufnr())
+        else
+            return win_findbuf(bufnr('^' .. b:console_name .. '$'))
+        endif
     else
         return []
     endif
@@ -125,6 +132,7 @@ enddef
 
 
 export def g:ConsoleToggle()
+    echom ConsoleWinID()
     if empty(ConsoleWinID())
         ConsoleOpen()
     else
@@ -134,9 +142,10 @@ enddef
 
 
 export def g:ConsoleWipeout()
-    if ConsoleExists()
-        exe "bw! " .. bufnr('^' .. b:console_name .. '$')
-    endif
+    for win in ConsoleWinID()
+        SaveConsoleWindowSize(win)
+        exe "bw! " .. winbufnr(win)
+    endfor
 enddef
 
 
