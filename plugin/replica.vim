@@ -89,18 +89,18 @@ g:replica_run_commands = replica_run_commands_default
 # Default mappings
 # -----------------------------
 #
-import autoload "../lib/replica.vim"
+import autoload "../lib/repl_funcs.vim"
 
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :call <SID>replica.ConsoleToggle()<cr>
+            \ :call <SID>repl_funcs.ConsoleToggle()<cr>
 if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
     nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
     inoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    tnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+    tnoremap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
-            \ :call <SID>replica.SendLines(<line1>, <line2>)
+            \ :call <SID>repl_funcs.SendLines(<line1>, <line2>)
 if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
     nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
     inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
@@ -108,14 +108,14 @@ if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendFile
-            \ :call <SID>replica.SendFile(<f-args>)<cr>
+            \ :call <SID>repl_funcs.SendFile(<f-args>)<cr>
 if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "ni"))
     nnoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
     inoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendCell
-            \ :call <SID>replica.SendCell()<cr>
+            \ :call <SID>repl_funcs.SendCell()<cr>
 if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "ni"))
     nnoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
     inoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
@@ -125,44 +125,50 @@ endif
 # -----------------------------
 #  Commands
 # -----------------------------
-if !exists(":ReplicaConsoleOpen")
-    command ReplicaConsoleOpen silent call replica.ConsoleOpen()
-endif
-
-if !exists(":ReplicaConsoleClose")
-    command -nargs=? ReplicaConsoleClose
-                \ :call replica.ConsoleClose(<f-args>)
-endif
-
 if !exists(":ReplicaConsoleToggle")
-    command ReplicaConsoleToggle silent :call replica.ConsoleToggle()
+    command ReplicaConsoleToggle silent :call repl_funcs.ConsoleToggle()
 endif
 
 if !exists(":ReplicaConsoleRestart" )
-    command ReplicaConsoleRestart silent :call replica.ConsoleShutoff() |
-            \ replica.ConsoleOpen()
+    command ReplicaConsoleRestart silent :call repl_funcs.ConsoleShutoff() |
+            \ repl_funcs.ConsoleToggle()
 endif
 
 if !exists(":ReplicaConsoleShutoff")
     command -nargs=? ReplicaConsoleShutoff
-                \ :call replica.ConsoleShutoff(<f-args>)
+                \ :call repl_funcs.ConsoleShutoff(<f-args>)
 endif
 
 if !exists(":ReplicaSendLines")
     command -range ReplicaSendLines
-            \ :call replica.SendLines(<line1>, <line2>)
+            \ :call repl_funcs.SendLines(<line1>, <line2>)
 endif
 
 if !exists(":ReplicaSendCell")
-    command ReplicaSendCell silent :call replica.SendCell()
+    command ReplicaSendCell :call repl_funcs.SendCell()
 endif
 
-# TODO: readd silent
 if !exists(":ReplicaSendFile")
     command -nargs=? -complete=file ReplicaSendFile
-                \ :call replica.SendFile(<f-args>)
+                \ :call repl_funcs.SendFile(<f-args>)
 endif
 
 if !exists(":ReplicaRemoveCells")
-    command ReplicaRemoveCells :call replica.RemoveCells()
+    command ReplicaRemoveCells :call repl_funcs.RemoveCells()
 endif
+
+augroup delete_tmp_file
+    autocmd VimLeave * delete(g:replica_tmp_filename)
+augroup END
+
+def WipeoutConsoles()
+    for buf_nr in term_list()
+        # if index(values(g:replica_console_names), bufname(buf_nr))
+            exe "bw! " .. buf_nr
+        # endif
+    endfor
+enddef
+
+augroup shoutoff_replica_consoles
+    autocmd VimLeavePre * call WipeoutConsoles()
+augroup END
