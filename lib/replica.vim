@@ -11,7 +11,7 @@ var console_geometry = {"width": g:replica_console_width,
 var open_buffers = {
             \ "python": [],
             \ "julia": []}
-            # \ "matlab" : []
+# \ "matlab" : []
 
 # ====================================
 # Functions
@@ -22,7 +22,8 @@ var open_buffers = {
 
 export def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
-    win_execute(console_win_id, 'vertical resize ' .. console_geometry["width"])
+    win_execute(console_win_id, 'vertical resize '
+                \ .. console_geometry["width"])
 enddef
 
 export def SaveConsoleWindowSize(console_win_id: number)
@@ -39,7 +40,7 @@ export def ConsoleExists(): bool
     # In case you are on a console, then b:console_name does not exists,
     # therefore you have to check if it is a terminal with some console name.
     elseif getbufvar(bufnr(), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname("%")) != -1
+         \ && index(values(g:replica_console_names), bufname("%")) != -1
         return true
     else
         return false
@@ -74,16 +75,20 @@ export def ConsoleOpen()
     var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
-            win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
+            win_execute(win_getid(), 'term_start("jupyter console --kernel="
+                        \ .. b:kernel_name, {"term_name": b:console_name})' )
             console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
-            win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
-            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))[0]
+            win_execute(win_getid(), 'sbuffer '
+                        \ .. bufnr('^' .. b:console_name .. '$'))
+            console_win_id = win_findbuf(bufnr('^'
+                        \ .. b:console_name .. '$'))[0]
         endif
 
         # Set few options
         win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
-        win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
+        win_execute(console_win_id, 'setlocal nobuflisted winminheight
+                    \ winminwidth')
         # Set geometry
         ResizeConsoleWindow(console_win_id)
     endif
@@ -168,7 +173,8 @@ export def SendCell()
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
-        term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+        term_sendkeys(bufnr('^' .. b:console_name .. '$'),
+                    \ b:run_command .. "\n")
     else
         echo "vim-replica: filetype not supported!"
     endif
@@ -184,14 +190,16 @@ export def SendFile(...filename: list<string>)
     endif
 
     if IsFiletypeSupported()
-        # If there are open terminals with different names than IPYTHON, JULIA, etc. it will open its own
+        # If there are open terminals with different names than IPYTHON,
+        # JULIA, etc. it will open its own
         if !ConsoleExists()
             ConsoleOpen()
         endif
         # Write tmp file
         delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
         writefile(getline(1, '$'), g:replica_tmp_filename, "a")
-        term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
+        term_sendkeys(bufnr('^' .. b:console_name .. '$'),
+                    \ b:run_command .. "\n")
     else
         echo "vim-replica: filetype not supported!"
     endif
@@ -256,27 +264,31 @@ export def HighlightCell(display_range: bool = false)
         endif
         # There is at least one cell
         if line_in != 1 || line_out != line("$")
-            # ...and if the cursor moved into another cell, then update the signs
+            # ...and if the cursor moved into another cell, then update the
+            # signs
             if line_in != line_in_old || line_out != line_out_old
                 # counter_dbg = counter_dbg + 1
                 # echo counter_dbg
                 # Remove existing signs related to ReplicaConsoleHl
                 if !empty(list_sign_id_old)
                     for line in list_sign_id_old
-                        sign_unplace("", {"buffer": expand("%:p"), "id": line})
+                        sign_unplace("", {"buffer": expand("%:p"),
+                                    \ "id": line})
                     endfor
                 endif
                 # Find lines
                 if g:replica_alt_highlight == false
                     # Case Slow
-                    list_sign_id = range(1, line_in - 1) + range(line_out, line("$"))
+                    list_sign_id = range(1, line_in - 1)
+                                \ + range(line_out, line("$"))
                 else
                     list_sign_id = [line_in, line_out]
                 endif
                 # Place signs and move current values to _old
                 list_sign_id_old = []
                 for line in list_sign_id
-                    sign_place(line, "", hlgroup, expand("%:p"), {"lnum": line})
+                    sign_place(line, "", hlgroup, expand("%:p"),
+                                \ {"lnum": line})
                     add(list_sign_id_old, line)
                 endfor
                 # Update old values
