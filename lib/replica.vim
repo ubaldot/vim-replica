@@ -10,14 +10,8 @@ var console_geometry = {"width": g:replica_console_width,
 
 var open_buffers = {
             \ "python": [],
-            \ "julia": [],
-            \ "matlab": [],
-            \ "default": []}
-
-export def g:OpenBuffers()
-    var open_buffers_ft = get(open_buffers, &filetype, [])
-    echo "open buffers:" .. string(open_buffers_ft)
-enddef
+            \ "julia": []}
+            # \ "matlab" : []
 
 # ====================================
 # Functions
@@ -25,6 +19,7 @@ enddef
 # ---------------------------------------
 # Functions for sending stuff to the REPL
 # ---------------------------------------
+<<<<<<< HEAD
 # export def BufferListAdd(bufnr: number)
 #     # if buflisted(bufnr)
 #   var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
@@ -55,6 +50,8 @@ enddef
 #   echom "removed buffer: " .. string(bufnr)
 #   echom "open buffers:" ..  string(open_buffers_ft)
 # enddef
+=======
+>>>>>>> from_here
 
 export def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
@@ -68,14 +65,18 @@ enddef
 
 
 export def ConsoleExists(): bool
+<<<<<<< HEAD
     # It only say if a console of this type is in the buffer list
+=======
+    # It only say if this console is in the buffer list
+>>>>>>> from_here
     # but not if it is in any window.
     if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
     # In case you are on a console, then b:console_name does not exists,
     # therefore you have to check if it is a terminal with some console name.
     elseif getbufvar(bufnr(), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname()) != -1
+                \ && index(values(g:replica_console_names), bufname("%")) != -1
         return true
     else
         return false
@@ -87,7 +88,7 @@ export def ConsoleWinID(): list<number>
     # OBS! b:console_name does not exist for terminal windows!
     if ConsoleExists()
         if getbufvar(bufnr("%"), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname()) != -1
+                \ && index(values(g:replica_console_names), bufname("%")) != -1
             # If we are on a console, then the current buffer is the console
             return win_findbuf(bufnr())
         else
@@ -107,6 +108,7 @@ enddef
 export def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
+<<<<<<< HEAD
     var console_win_id = []
     if IsFiletypeSupported()
         if !ConsoleExists()
@@ -123,6 +125,23 @@ export def ConsoleOpen()
                 console_win_id -> add(win_findbuf(buf_nr)[0])
             endif
         endfor
+=======
+    var console_win_id = 0
+    if IsFiletypeSupported()
+        if !ConsoleExists()
+            win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
+            console_win_id = win_findbuf(bufnr('$'))[0]
+        elseif empty(ConsoleWinID())
+            win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
+            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))[0]
+        endif
+
+        # Set few options
+        win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
+        win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
+        # Set geometry
+        ResizeConsoleWindow(console_win_id)
+>>>>>>> from_here
     endif
     for wind in console_win_id
         # Set few options
@@ -137,11 +156,17 @@ enddef
 export def ConsoleClose()
     # TODO Modify and make all the REPL to close from wherever you are
 
+<<<<<<< HEAD
     if IsFiletypeSupported()
         for win in ConsoleWinID()
             SaveConsoleWindowSize(win)
             win_execute(win, "close")
         endfor
+=======
+export def ConsoleToggle()
+    if empty(ConsoleWinID())
+        ConsoleOpen()
+>>>>>>> from_here
     else
         for buf_nr in term_list()
             if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && !empty(win_findbuf(buf_nr))
@@ -154,6 +179,7 @@ export def ConsoleClose()
 enddef
 
 
+<<<<<<< HEAD
 export def ConsoleToggle()
     if IsFiletypeSupported()
         if empty(ConsoleWinID())
@@ -182,6 +208,13 @@ export def ConsoleShutoff()
             endif
         endfor
     endif
+=======
+export def ConsoleShutoff()
+    for win in ConsoleWinID()
+        SaveConsoleWindowSize(win)
+        exe "bw! " .. winbufnr(win)
+    endfor
+>>>>>>> from_here
 enddef
 
 
@@ -212,7 +245,11 @@ export def SendLines(firstline: number, lastline: number)
         # TODO: avoid the following when firstline and lastline are passed
         norm! j^
     else
+<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
+=======
+        echo "vim_replica: filetype not supported!"
+>>>>>>> from_here
     endif
 enddef
 
@@ -224,12 +261,10 @@ export def SendCell()
         if !ConsoleExists()
             ConsoleOpen()
         endif
-
         # Get beginning and end of the cell
         var extremes = GetExtremes()
         var line_in = extremes[0]
         var line_out = extremes[1]
-
         # Jump to the next cell
         cursor(line_out, getcurpos()[2])
         # Write tmp file
@@ -237,7 +272,11 @@ export def SendCell()
         writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     else
+<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
+=======
+        echo "vim_replica: filetype not supported!"
+>>>>>>> from_here
     endif
 enddef
 
@@ -260,7 +299,11 @@ export def SendFile(...filename: list<string>)
         writefile(getline(1, '$'), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     else
+<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
+=======
+        echo "vim_replica: filetype not supported!"
+>>>>>>> from_here
     endif
 
     # Remove temp buffer
@@ -270,11 +313,9 @@ export def SendFile(...filename: list<string>)
     endif
 enddef
 
-# TODO: good until here
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-
     if IsFiletypeSupported()
         var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
         var line_out = search("\^" .. b:cells_delimiter, 'nW')
@@ -293,7 +334,6 @@ export def GetExtremes(display_range: bool = false): list<number>
     else
         return [0, 0]
     endif
-
 enddef
 
 

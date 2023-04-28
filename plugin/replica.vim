@@ -20,16 +20,16 @@ g:replica_loaded = true
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
-if !exists('g:replica_console_autostart')
-    g:replica_console_autostart = true
-endif
+# if !exists('g:replica_console_autostart')
+#     g:replica_console_autostart = true
+# endif
 
 if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
 
 if !exists('g:replica_console_position')
-    g:replica_console_position = "J"
+    g:replica_console_position = "L"
 elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
     echoerr "g:replica_console_position must be one of HJKL"
 endif
@@ -39,7 +39,7 @@ if !exists('g:replica_console_width')
     if index(["J", "K"], g:replica_console_position) >= 0
         g:replica_console_width = &columns
     else
-        g:replica_console_width = 10
+        g:replica_console_width = floor(&columns / 2)
     endif
 endif
 
@@ -54,27 +54,23 @@ endif
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
             \ "python": "python3",
-            \ "julia": "julia-1.8",
-            \ "matlab": "jupyter_matlab_kernel",
-            \ "default": "terminal"}
+            \ "julia": "julia-1.8"}
+            # \ "matlab": "jupyter_matlab_kernel",
 
 var replica_console_names_default = {
             \ "python": "IPYTHON",
-            \ "julia": "JULIA",
-            \ "matlab": "MATLAB",
-            \ "default": "TERMINAL"}
+            \ "julia": "JULIA"}
+            # \ "matlab": "MATLAB",
 
 var replica_cells_delimiters_default = {
             \ "python": "# %%",
-            \ "julia": "# %%",
-            \ "matlab": "%%",
-            \ "default": "#--"}
+            \ "julia": "# %%",}
+            # \ "matlab": "%%"
 
 var replica_run_commands_default = {
             \ "python": "run -i " .. g:replica_tmp_filename,
-            \ "julia": 'include("' .. g:replica_tmp_filename .. '")',
-            \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
-            \ "default": "sh " .. g:replica_tmp_filename}
+            \ "julia": 'include("' .. g:replica_tmp_filename .. '")'}
+            # \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
 
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters

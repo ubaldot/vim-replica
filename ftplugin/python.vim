@@ -13,6 +13,7 @@ augroup highlight_cells
     autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> replica.HighlightCell()
     autocmd CursorMoved,CursorMovedI <buffer> replica.HighlightCell(true)
 augroup END
+<<<<<<< HEAD
 
 
 # augroup open_close_console
@@ -23,3 +24,5 @@ augroup END
 
 
 # # Why <buffer>? Read here: https://vi.stackexchange.com/questions/8056/for-an-autocmd-in-a-ftplugin-should-i-use-pattern-matching-or-buffer
+=======
+>>>>>>> from_here
