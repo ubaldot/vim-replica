@@ -10,14 +10,8 @@ var console_geometry = {"width": g:replica_console_width,
 
 var open_buffers = {
             \ "python": [],
-            \ "julia": [],
-            \ "matlab": [],
-            \ "default": []}
-
-export def g:OpenBuffers()
-    var open_buffers_ft = get(open_buffers, &filetype, [])
-    echo "open buffers:" .. string(open_buffers_ft)
-enddef
+            \ "julia": []}
+            # \ "matlab" : []
 
 # ====================================
 # Functions
@@ -38,14 +32,14 @@ enddef
 
 
 export def ConsoleExists(): bool
-    # It only say if a console is in the buffer list
+    # It only say if this console is in the buffer list
     # but not if it is in any window.
     if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
     # In case you are on a console, then b:console_name does not exists,
     # therefore you have to check if it is a terminal with some console name.
     elseif getbufvar(bufnr(), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname()) != -1
+                \ && index(values(g:replica_console_names), bufname("%")) != -1
         return true
     else
         return false
@@ -55,10 +49,9 @@ enddef
 export def ConsoleWinID(): list<number>
     # Return the windows ID where the console is displayed.
     # OBS! b:console_name does not exist for terminal windows!
-    echom ConsoleExists()
     if ConsoleExists()
         if getbufvar(bufnr("%"), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname()) != -1
+                \ && index(values(g:replica_console_names), bufname("%")) != -1
             # If we are on a console, then the current buffer is the console
             return win_findbuf(bufnr())
         else
@@ -103,7 +96,6 @@ export def ConsoleClose()
         win_execute(win, "close")
     endfor
 enddef
-
 
 export def ConsoleToggle()
     if empty(ConsoleWinID())
@@ -208,7 +200,6 @@ enddef
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-
     if IsFiletypeSupported()
         var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
         var line_out = search("\^" .. b:cells_delimiter, 'nW')
@@ -227,7 +218,6 @@ export def GetExtremes(display_range: bool = false): list<number>
     else
         return [0, 0]
     endif
-
 enddef
 
 

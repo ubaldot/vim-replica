@@ -54,27 +54,23 @@ endif
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
             \ "python": "python3",
-            \ "julia": "julia-1.8",
-            \ "matlab": "jupyter_matlab_kernel",
-            \ "default": "terminal"}
+            \ "julia": "julia-1.8"}
+            # \ "matlab": "jupyter_matlab_kernel",
 
 var replica_console_names_default = {
             \ "python": "IPYTHON",
-            \ "julia": "JULIA",
-            \ "matlab": "MATLAB",
-            \ "default": "TERMINAL"}
+            \ "julia": "JULIA"}
+            # \ "matlab": "MATLAB",
 
 var replica_cells_delimiters_default = {
             \ "python": "# %%",
-            \ "julia": "# %%",
-            \ "matlab": "%%",
-            \ "default": "#--"}
+            \ "julia": "# %%",}
+            # \ "matlab": "%%"
 
 var replica_run_commands_default = {
             \ "python": "run -i " .. g:replica_tmp_filename,
-            \ "julia": 'include("' .. g:replica_tmp_filename .. '")',
-            \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
-            \ "default": "sh " .. g:replica_tmp_filename}
+            \ "julia": 'include("' .. g:replica_tmp_filename .. '")'}
+            # \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
 
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
