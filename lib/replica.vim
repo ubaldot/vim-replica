@@ -19,39 +19,6 @@ var open_buffers = {
 # ---------------------------------------
 # Functions for sending stuff to the REPL
 # ---------------------------------------
-<<<<<<< HEAD
-# export def BufferListAdd(bufnr: number)
-#     # if buflisted(bufnr)
-#   var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-#   var idx = index(open_buffers_ft, bufnr)
-
-#   # If buffer exists, move it to the end, otherwise append it.
-#   if idx != -1
-#     # Move buffer to the end
-#     var item = remove(open_buffers_ft, idx)
-#     add(open_buffers_ft, item)
-#   else
-#     # Append new buffer
-#     add(open_buffers_ft, bufnr)
-#   endif
-#     # endif
-#     echom "open buffers:" ..  string(open_buffers_ft)
-# enddef
-
-# export def BufferListRemove(bufnr: number)
-#   # If the buffer is in the buffer list, then remove it.
-#   # # TODO Move to the function call in &filetypeplugin
-#   var open_buffers_ft = get(open_buffers, getbufvar(bufnr, '&filetype'), [])
-#   echo open_buffers_ft
-#   var idx = index(open_buffers_ft, bufnr)
-#   if idx != -1
-#     remove(open_buffers_ft, idx)
-#   endif
-#   echom "removed buffer: " .. string(bufnr)
-#   echom "open buffers:" ..  string(open_buffers_ft)
-# enddef
-=======
->>>>>>> from_here
 
 export def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
@@ -65,11 +32,7 @@ enddef
 
 
 export def ConsoleExists(): bool
-<<<<<<< HEAD
     # It only say if a console of this type is in the buffer list
-=======
-    # It only say if this console is in the buffer list
->>>>>>> from_here
     # but not if it is in any window.
     if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
@@ -108,24 +71,6 @@ enddef
 export def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
-<<<<<<< HEAD
-    var console_win_id = []
-    if IsFiletypeSupported()
-        if !ConsoleExists()
-            win_execute(win_getid(), 'term_start("jupyter console --kernel=" .. b:kernel_name, {"term_name": b:console_name})' )
-            console_win_id = win_findbuf(bufnr('$'))
-        elseif empty(ConsoleWinID())
-            win_execute(win_getid(), 'sbuffer ' .. bufnr('^' .. b:console_name .. '$'))
-            console_win_id = win_findbuf(bufnr('^' .. b:console_name .. '$'))
-        endif
-    else
-        for buf_nr in term_list()
-            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && empty(win_findbuf(buf_nr))
-                win_execute(win_getid(), 'sbuffer ' .. buf_nr)
-                console_win_id -> add(win_findbuf(buf_nr)[0])
-            endif
-        endfor
-=======
     var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
@@ -141,45 +86,21 @@ export def ConsoleOpen()
         win_execute(console_win_id, 'setlocal nobuflisted winminheight winminwidth')
         # Set geometry
         ResizeConsoleWindow(console_win_id)
->>>>>>> from_here
     endif
-    for wind in console_win_id
-        # Set few options
-        win_execute(wind, 'wincmd ' .. g:replica_console_position)
-        win_execute(wind, 'setlocal nobuflisted winminheight winminwidth')
-        # Set geometry
-        ResizeConsoleWindow(wind)
-    endfor
 enddef
 
 
 export def ConsoleClose()
     # TODO Modify and make all the REPL to close from wherever you are
-
-<<<<<<< HEAD
     if IsFiletypeSupported()
         for win in ConsoleWinID()
             SaveConsoleWindowSize(win)
             win_execute(win, "close")
         endfor
-=======
-export def ConsoleToggle()
-    if empty(ConsoleWinID())
-        ConsoleOpen()
->>>>>>> from_here
-    else
-        for buf_nr in term_list()
-            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && !empty(win_findbuf(buf_nr))
-                for wind in win_findbuf(buf_nr)
-                    win_execute(wind, "close")
-                endfor
-            endif
-        endfor
     endif
 enddef
 
 
-<<<<<<< HEAD
 export def ConsoleToggle()
     if IsFiletypeSupported()
         if empty(ConsoleWinID())
@@ -187,34 +108,15 @@ export def ConsoleToggle()
         else
             ConsoleClose()
         endif
-    else
-
     endif
 enddef
 
 
 export def ConsoleShutoff()
-    if IsFiletypeSupported()
-        for win in ConsoleWinID()
-            SaveConsoleWindowSize(win)
-            exe "bw! " .. winbufnr(win)
-        endfor
-    else
-        for buf_nr in term_list()
-            if index(values(g:replica_console_names), bufname(buf_nr)) != -1 && !empty(win_findbuf(buf_nr))
-                for wind in win_findbuf(buf_nr)
-                    exe "bw! " .. winbufnr(wind)
-                endfor
-            endif
-        endfor
-    endif
-=======
-export def ConsoleShutoff()
     for win in ConsoleWinID()
         SaveConsoleWindowSize(win)
         exe "bw! " .. winbufnr(win)
     endfor
->>>>>>> from_here
 enddef
 
 
@@ -245,11 +147,7 @@ export def SendLines(firstline: number, lastline: number)
         # TODO: avoid the following when firstline and lastline are passed
         norm! j^
     else
-<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
-=======
-        echo "vim_replica: filetype not supported!"
->>>>>>> from_here
     endif
 enddef
 
@@ -272,11 +170,7 @@ export def SendCell()
         writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     else
-<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
-=======
-        echo "vim_replica: filetype not supported!"
->>>>>>> from_here
     endif
 enddef
 
@@ -299,11 +193,7 @@ export def SendFile(...filename: list<string>)
         writefile(getline(1, '$'), g:replica_tmp_filename, "a")
         term_sendkeys(bufnr('^' .. b:console_name .. '$'), b:run_command .. "\n")
     else
-<<<<<<< HEAD
         echo "vim-replica: filetype not supported!"
-=======
-        echo "vim_replica: filetype not supported!"
->>>>>>> from_here
     endif
 
     # Remove temp buffer

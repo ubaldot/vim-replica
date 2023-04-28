@@ -15,8 +15,6 @@ if exists('g:replica_loaded')
 endif
 g:replica_loaded = true
 
-
-
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
@@ -64,7 +62,7 @@ var replica_console_names_default = {
 
 var replica_cells_delimiters_default = {
             \ "python": "# %%",
-            \ "julia": "# %%",}
+            \ "julia": "# %%"}
             # \ "matlab": "%%"
 
 var replica_run_commands_default = {
