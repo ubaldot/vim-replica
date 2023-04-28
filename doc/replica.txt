@@ -53,11 +53,11 @@ Replica is written in Vim9script, therefore you need at least Vim 9.0.
 
 Furthermore, you must install jupyter console to make replica to work.
 
-Once you have it installed, you need to install the jupyter kernels for all
-the languages that you want to use.
-You can google to discover what are the available jupyter kernels out there
-whereas you can run jupyter kernelspec list from the command line of your
-terminal to see the list of kernels installed on your machine.
+Once you have the latter installed, you need to install the jupyter kernels
+for all the languages that you want to use with vim-replica.
+You can google to discover the available jupyter kernels out there whereas you
+can run jupyter kernelspec list from the command line of your terminal to see
+the list of kernels installed on your machine.
 
 See jupyter console docs for more information.
 
@@ -225,7 +225,7 @@ Note: this dictionary shall not be changed by the user!
 ==============================================================================
 ADD NEW LANGUAGES                                     *ReplicaAddLanguages*
 
-Replica is nicely extendable and to add new languages is fairly easy.
+Replica is nicely extendable and adding new languages is fairly easy.
 
 Say that a new language is associated to a certain 'filetype'.
 Then, you can add it to replica in two steps:
@@ -243,7 +243,7 @@ You may use the global ftplugin folder but it has not been tested yet.
 TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
 Q. My Vim became very slow!
-A. You can try to set |g:replica_alt_highlight| = true in your .vimrc.
+A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
 
 Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
