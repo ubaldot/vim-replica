@@ -18,9 +18,9 @@ g:replica_loaded = true
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
-# if !exists('g:replica_console_autostart')
-#     g:replica_console_autostart = true
-# endif
+if !exists('g:replica_enable_highlight')
+    g:replica_enable_highlight = true
+endif
 
 if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
@@ -161,14 +161,14 @@ augroup delete_tmp_file
     autocmd VimLeave * delete(g:replica_tmp_filename)
 augroup END
 
-def WipeoutConsoles()
-    for buf_nr in term_list()
-        # if index(values(g:replica_console_names), bufname(buf_nr))
-            exe "bw! " .. buf_nr
-        # endif
-    endfor
-enddef
+# def WipeoutConsoles()
+#     for buf_nr in term_list()
+#         # if index(values(g:replica_console_names), bufname(buf_nr))
+#             exe "bw! " .. buf_nr
+#         # endif
+#     endfor
+# enddef
 
-augroup shoutoff_replica_consoles
-    autocmd VimLeavePre * call WipeoutConsoles()
-augroup END
+# augroup shoutoff_replica_consoles
+#     autocmd VimLeavePre * call WipeoutConsoles()
+# augroup END

@@ -133,6 +133,12 @@ The temp file that is used when using the command |:ReplicaSendCell| and
 |:ReplicaSendFile|.
 Note: This dictionary shall not be changed by the user!
 
+                                                  *g:replica_enable_highlight*
+Type: 'bool'
+Default: true
+
+Enable/disable cells highlighting.
+
 
                                                   *g:replica_alt_highlight*
 Type: 'bool'
@@ -145,7 +151,7 @@ you could try to set it to true.
 
                                                 *g:replica_console_position*
 Type: HJKL.
-Default: L.
+Default: L
 
 The location of the REPL window.
 
@@ -244,6 +250,8 @@ TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
 Q. My Vim became very slow!
 A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
+Or, if it is still very slow, you can try to completely disable the cells
+highlighting by setting |g:replica_enable_highlight| to false.
 
 Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
