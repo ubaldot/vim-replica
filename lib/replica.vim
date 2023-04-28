@@ -211,6 +211,9 @@ export def SendFile(...filename: list<string>)
     endif
 enddef
 
+# ---------------------------------------
+# Functions for highlighing cells
+# ---------------------------------------
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
@@ -235,9 +238,6 @@ export def GetExtremes(display_range: bool = false): list<number>
 enddef
 
 
-# ---------------------------------------
-# Functions for highlighing cells
-# ---------------------------------------
 sign define ReplicaConsoleHl text=- linehl=CursorLine
 sign define ReplicaConsoleHlFast text=- linehl=UnderLined
 
