@@ -27,9 +27,9 @@ satisfactory under Windows and vim-REPL crashes too often when using the
 toggle function.
 
 ## Requirements
-Replica is written in Vim9script, and you need at least Vim 9.0.
-Furthermore, you need jupyter console to make replica to work with the
-associated kernels that you need for your specific language.
+Replica is written in *Vim9script*, and you need at least Vim 9.0.
+Furthermore, you need `jupyter console` to make Replica to work and the
+associated *kernels* depending on the language you wish to use.
 
 You can google to discover the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
@@ -45,7 +45,7 @@ See jupyter console docs for more information.
 
 `:ReplicaConsoleShutoff`    - wipeout the buffer associated to the REPL.
 
-`:[range]ReplSendLines`     - send the lines in [range] to the REPL.
+`:[range]ReplSendLines`     - send the lines in *[range]* to the REPL.
 
 `:ReplicaSendCell`          - send the current code-cell.
 
@@ -53,9 +53,6 @@ See jupyter console docs for more information.
 
 `:ReplicaRemoveCells`       - remove all the cells from the current buffer.
 
-> **Warning**
-> The commands work only if they are run from a buffer whose *filetype* is
-> supported.
 
 #### Mappings
 ```
@@ -75,6 +72,10 @@ nnoremap <c-enter> <Plug>ReplicaSendCell
 inoremap <c-enter> <Plug>ReplicaSendCell
 ```
 
+> **Warning**
+> Both the above commands and mappings work only if they are run from a buffer
+> whose *filetype* is supported.
+
 ## Basic Configuration
 ```
 # Default values
@@ -88,8 +89,8 @@ g:replica_cells_delimiters = { "python": "# %%",
                              \ "julia": "# %%"}
 ```
 
-## Add new languages
-At the moment vim-replica only support python and julia languages.
+## Adding new languages
+At the moment vim-replica only support *python* and *julia*.
 However, vim-eplica is nicely extendable and adding new languages is easy.
 
 Say that a new language is associated to a certain *filetype*.
@@ -107,19 +108,24 @@ Done!
 
 ## Troubleshooting
 
-Q. My Vim became very slow!
-A. You can try to set |g:replica_alt_highlight| = true in your *vimrc*.
+*Q.* My Vim became very slow!
+
+*A.* You can try to set |g:replica_alt_highlight| = true in your *vimrc*.
 Or, if it is still very slow, you can try to completely disable the cells
 highlighting by setting |g:replica_enable_highlight| to false.
 
-Q. Is it possible to copy from a REPL to a buffer?
-A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
+
+*Q.* Is it possible to copy from a REPL to a buffer?
+
+*A.* Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
 There you can yank everything you want.
 To re-enable the REPL just press i with the cursor located on the REPL window.
 
-Q. Is it possible to automatically change the REPL folder when I change
+
+*Q.* Is it possible to automatically change the REPL folder when I change
 Vim folder?
-A. Yes, but you need to define your own function, something like
+
+*A.* Yes, but you need to define your own function, something like
 ```
 def ChangeTerminalDir()
     for ii in term_list()
@@ -140,8 +146,9 @@ augroup END
 >It does not work the other way around, i.e. if you change folder from a
 >*terminal* buffer the Vim current folder won't change.
 
-Q. When I call |:ReplicaConsoleToggle| the console window won't close.
-A. Replica commands work only if executed from a buffer with a supported
+*Q.* When I call |:ReplicaConsoleToggle| the console window won't close.
+
+*A.* Replica commands work only if executed from a buffer with a supported
 *filetype*. That is, if you have an IPYTHON console displayed in a window and
 you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
 will happen.
