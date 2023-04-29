@@ -73,24 +73,24 @@ supported.
 COMMANDS                                                     *ReplicaCommands*
 
                                                   *:ReplicaConsoleToggle*
-:ReplicaConsoleToggle         Un-hide and hide a REPL.
+:ReplicaConsoleToggle           Un-hide and hide a REPL.
 
                                                *:ReplicaConsoleRestart*
-:ReplicaConsoleRestart        Restart the REPL associated to the
+:ReplicaConsoleRestart          Restart the REPL associated to the
                                 'filetype' of the current buffer as specified
-                                in |g:replica_names|.
+                                 in |g:replica_names|.
 
                                                *:ReplicaConsoleShutoff*
-:ReplicaConsoleShutoff        Wipeout the buffer associated to the REPL.
+:ReplicaConsoleShutoff          Wipeout the buffer associated to the REPL.
 
                                                   *:ReplicaSendLines*
-:[range]ReplSendLines         Send the lines in [range] to the REPL
+:[range]ReplicaSendLines        Send the lines in [range] to the REPL
                                 specified in |g:replica_names|.  If no range
                                 is given, then it sends the current line.
 
 
                                                        *:ReplicaSendCell*
-:ReplicaSendCell              Send the current code-cell.
+:ReplicaSendCell                Send the current code-cell.
                                 Cell delimiters are specified in the
                                 |g:replica_cells_delimiters| dictionary.
 
@@ -242,6 +242,7 @@ Then, you can add it to replica in two steps:
        according to the newly included 'filetype'.
 
 Done!
+Feel free to contribute by adding new languages!
 
 You may use the global ftplugin folder but it has not been tested yet.
 

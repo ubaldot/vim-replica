@@ -19,11 +19,10 @@ Each REPL is a `jupyter console` initiated with a specific kernel running in a
 For each *filetype* Replica provides you with one
 available REPL to send text in.
 
-I wrote vim-replica because I never managed to make
-[vim-slime](https://github.com/jpalardy/vim-slime) to work
-satisfactory under Windows and
+I wrote vim-replica because I always had problems with
+[vim-slime](https://github.com/jpalardy/vim-slime) under Windows and
 [vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
-the toggle function. Also because the mentioned plugins are way too general
+the toggle function. Also, the mentioned plugins are way too general
 and I needed something focused on Scientific applications.
 
 ## Requirements
@@ -31,7 +30,7 @@ Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
 Furthermore, you need `jupyter console` and the *kernels* associated to the
 language you would like to use.
 
-You can google to discover the available jupyter kernels out there whereas you
+You can google to find out the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
 see the list of kernels installed on your machine.
 
@@ -45,7 +44,7 @@ Search for `jupyter console` docs on the Internet for more information.
 
 `:ReplicaConsoleShutoff`    - wipeout the buffer associated to the REPL.
 
-`:[range]ReplSendLines`     - send the lines in *[range]* to the REPL.
+`:[range]ReplicaSendLines`  - send the lines in *[range]* to the REPL.
 
 `:ReplicaSendCell`          - send the current code-cell.
 
@@ -99,10 +98,11 @@ Then, you can add it to replica in two steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
   `g:replica_cells_delimiters` and `g:replica_run_commands` dictionaries.
-2. Duplicate any existing vim-replica/ftplugin/*.vim file and rename it
+2. Duplicate any existing `vim-replica/ftplugin/*.vim` file and rename it
    according to the newly included *filetype*.
 
-Done!
+Done!<br>
+Feel free to contribute by adding new languages!
 
 > **Note**
 >
@@ -112,22 +112,23 @@ Done!
 
 *Q.* My Vim became slow!
 
-*A.* You can try to set `g:replica_alt_highlight` = true in your *vimrc*.<br>
+*A.* You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
 Or, if still slow, you can try to disable the cells
-highlighting by setting `g:replica_enable_highlight` to false.
+highlighting by setting `g:replica_enable_highlight` to `false`.
 
 
 *Q.* Is it possible to copy from the REPL to a buffer?
 
 *A.* Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
-There you can yank everything you want.
-To re-enable the REPL press i with the cursor located on the REPL window.
+There you can yank everything you want.<br>
+To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 
 *Q.* Is it possible to automatically change the REPL folder when I change
 Vim folder?
 
-*A.* Yes, but you need to define your own function, something like
+*A.* Yes, but you need to define your own function, something like the
+following:
 ```
 def ChangeTerminalDir()
     for ii in term_list()
@@ -149,13 +150,14 @@ augroup END
 >The above function is an example and it has its own limitations.
 >For example, it does not work the other way around, i.e. if you change folder
 >from a
->*terminal* buffer the Vim current folder won't change.
+>*terminal* buffer then the Vim current folder won't change.
 
 *Q.* When I call `:ReplicaConsoleToggle` the console window won't close.
 
 *A.* Replica commands work only if executed from a buffer with a supported
-*filetype*. That is, if you have an IPYTHON console displayed in a window and
-you call `:ReplicaConsoleToggle`  from a text filetype buffer, then nothing
+*filetype*. <br>
+That is, if you have an *IPYTHON* console displayed in a window and
+you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then nothing
 will happen.
 You can close the window where the console is running with standard
 Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
