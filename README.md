@@ -15,20 +15,21 @@ Replica supports the following key features:
 2. Code-cells highlighting.
 
 Each REPL is a jupyter-console initiated with a specific kernel running in a
-*terminal* buffer.  For each *filetype* Replica provides you with one
+*terminal* buffer. <br>
+For each *filetype* Replica provides you with one
 available REPL to send text in.
 
 I wrote vim-replica because I never managed to make
 [vim-slime](https://github.com/jpalardy/vim-slime) to work
 satisfactory under Windows and
 [vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
-the toggle function. Also because the mentioned plugin are way too general and
+the toggle function. Also because the mentioned plugins are way too general and
 I needed something focused on Scientific applications.
 
 ## Requirements
 Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
 Furthermore, you need `jupyter console` to make Replica to work and the
-associated *kernels* depending on the language you wish to use.
+associated *kernels* depending on the language you would like to use.
 
 You can google to discover the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
@@ -80,7 +81,7 @@ inoremap <c-enter> <Plug>ReplicaSendCell
 ```
 # Default values
 g:replica_enable_highlight = true
-g:replica_console_position = L
+g:replica_console_position = "L"
 g:replica_console_height = &lines
 g:replica_console_width = floor(&columns/2)
 g:replica_kernels = {"python": "python3",
@@ -90,10 +91,10 @@ g:replica_cells_delimiters = { "python": "# %%",
 ```
 
 ## Adding new languages
-At the moment vim-replica only support *python* and *julia*.
+At the moment vim-replica only support *python* and *julia*.<br>
 However, this plugin is nicely extendable and adding new languages is easy.
 
-Say that a new language is associated to a certain *filetype*.
+Say that a new language is associated to a certain *filetype*.<cr>
 Then, you can add it to replica in two steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
@@ -103,24 +104,24 @@ Then, you can add it to replica in two steps:
 
 Done!
 
-> **Note***
+> **Note**
 >
 > You may use the global `ftplugin` folder but it has not been tested yet.
 
 ## Troubleshooting
 
-*Q.* My Vim became very slow!
+*Q.* My Vim became slow!
 
-*A.* You can try to set |g:replica_alt_highlight| = true in your *vimrc*.
-Or, if it is still very slow, you can try to completely disable the cells
-highlighting by setting |g:replica_enable_highlight| to false.
+*A.* You can try to set `g:replica_alt_highlight` = true in your *vimrc*.
+Or, if still slow, you can try to disable the cells
+highlighting by setting `g:replica_enable_highlight` to false.
 
 
 *Q.* Is it possible to copy from the REPL to a buffer?
 
-*A.* Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
+*A.* Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
 There you can yank everything you want.
-To re-enable the REPL just press i with the cursor located on the REPL window.
+To re-enable the REPL press i with the cursor located on the REPL window.
 
 
 *Q.* Is it possible to automatically change the REPL folder when I change
@@ -145,12 +146,12 @@ augroup END
 ```
 >**Note***
 >
->The above function is just an example and it has its own limitations.
+>The above function is an example and it has its own limitations.
 >For example, it does not work the other way around, i.e. if you change folder
 >from a
 >*terminal* buffer the Vim current folder won't change.
 
-*Q.* When I call |:ReplicaConsoleToggle| the console window won't close.
+*Q.* When I call `:ReplicaConsoleToggle` the console window won't close.
 
 *A.* Replica commands work only if executed from a buffer with a supported
 *filetype*. That is, if you have an IPYTHON console displayed in a window and
