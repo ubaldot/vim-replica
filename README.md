@@ -11,15 +11,15 @@ inside Vim in a seamless way.
 
 Replica supports the following key features:
 
-    1. Sending lines, files and code-cells to a REPL,
-    2. Code-cells highlighting.
+1. Sending lines, files and code-cells to a REPL,
+2. Code-cells highlighting.
 
 Each REPL is a jupyter-console initiated with a specific kernel running in a
-'terminal' buffer.  For each 'filetype' replica provides you with one
+*terminal* buffer.  For each *filetype* replica provides you with one
 available REPL to send text in.
 
 You can work with many REPL:s for different languages at the same time.
-Based on the current buffer 'filetype' replica will send text in the
+Based on the current buffer *filetype* replica will send text in the
 appropriate REPL automatically.
 
 I wrote vim-replica because I never managed to make vim-slime to work
@@ -95,10 +95,10 @@ However, vim-eplica is nicely extendable and adding new languages is easy.
 Say that a new language is associated to a certain *filetype*.
 Then, you can add it to replica in two steps:
 
-    1. Add a new key-value pair to the |g:replica_kernels|, |g:replica_names|,
-       |g:replica_cells_delimiters| and |g:replica_run_commands| dictionaries.
-    2. Duplicate any existing vim-replica/ftplugin/*.vim file and rename it
-       according to the newly included 'filetype'.
+1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
+  `g:replica_cells_delimiters` and `g:replica_run_commands` dictionaries.
+2. Duplicate any existing vim-replica/ftplugin/*.vim file and rename it
+   according to the newly included *filetype*.
 
 Done!
 
@@ -108,7 +108,7 @@ Done!
 ## Troubleshooting
 
 Q. My Vim became very slow!
-A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
+A. You can try to set |g:replica_alt_highlight| = true in your *vimrc*.
 Or, if it is still very slow, you can try to completely disable the cells
 highlighting by setting |g:replica_enable_highlight| to false.
 
@@ -138,11 +138,11 @@ augroup END
 ```
 >*Note*
 >It does not work the other way around, i.e. if you change folder from a
->'terminal' buffer the Vim current folder won't change.
+>*terminal* buffer the Vim current folder won't change.
 
 Q. When I call |:ReplicaConsoleToggle| the console window won't close.
 A. Replica commands work only if executed from a buffer with a supported
-'filetype'. That is, if you have an IPYTHON console displayed in a window and
+*filetype*. That is, if you have an IPYTHON console displayed in a window and
 you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
 will happen.
 However, you can close the window where the console is running with standard
