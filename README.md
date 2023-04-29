@@ -14,7 +14,7 @@ Replica supports the following key features:
 1. Sending lines, files and code-cells to a REPL,
 2. Code-cells highlighting.
 
-Each REPL is a jupyter-console initiated with a specific kernel running in a
+Each REPL is a `jupyter console` initiated with a specific kernel running in a
 *terminal* buffer. <br>
 For each *filetype* Replica provides you with one
 available REPL to send text in.
@@ -23,13 +23,13 @@ I wrote vim-replica because I never managed to make
 [vim-slime](https://github.com/jpalardy/vim-slime) to work
 satisfactory under Windows and
 [vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
-the toggle function. Also because the mentioned plugins are way too general and
-I needed something focused on Scientific applications.
+the toggle function. Also because the mentioned plugins are way too general
+and I needed something focused on Scientific applications.
 
 ## Requirements
 Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
-Furthermore, you need `jupyter console` to make Replica to work and the
-associated *kernels* depending on the language you would like to use.
+Furthermore, you need `jupyter console` and the *kernels* associated to the
+language you would like to use.
 
 You can google to discover the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
@@ -94,7 +94,7 @@ g:replica_cells_delimiters = { "python": "# %%",
 At the moment vim-replica only support *python* and *julia*.<br>
 However, this plugin is nicely extendable and adding new languages is easy.
 
-Say that a new language is associated to a certain *filetype*.<cr>
+Say that a new language is associated to a certain *filetype*.<br>
 Then, you can add it to replica in two steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
@@ -112,14 +112,14 @@ Done!
 
 *Q.* My Vim became slow!
 
-*A.* You can try to set `g:replica_alt_highlight` = true in your *vimrc*.
+*A.* You can try to set `g:replica_alt_highlight` = true in your *vimrc*.<br>
 Or, if still slow, you can try to disable the cells
 highlighting by setting `g:replica_enable_highlight` to false.
 
 
 *Q.* Is it possible to copy from the REPL to a buffer?
 
-*A.* Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
+*A.* Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
 There you can yank everything you want.
 To re-enable the REPL press i with the cursor located on the REPL window.
 
@@ -155,7 +155,7 @@ augroup END
 
 *A.* Replica commands work only if executed from a buffer with a supported
 *filetype*. That is, if you have an IPYTHON console displayed in a window and
-you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
+you call `:ReplicaConsoleToggle`  from a text filetype buffer, then nothing
 will happen.
 You can close the window where the console is running with standard
 Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
@@ -165,3 +165,6 @@ Contributions are more than welcome!
 
 ## Help
 `:h vim-replica.txt`
+
+## License
+Vim license.
