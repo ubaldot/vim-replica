@@ -24,7 +24,8 @@ appropriate REPL automatically.
 
 I wrote vim-replica because I never managed to make vim-slime to work
 satisfactory under Windows and vim-REPL crashes too often when using the
-toggle function.
+toggle function. Also because the mentioned plugin are way too general and I
+needed something focused on Scientific applications.
 
 ## Requirements
 Replica is written in *Vim9script*, and you need at least Vim 9.0.
@@ -35,7 +36,7 @@ You can google to discover the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
 see the list of kernels installed on your machine.
 
-See jupyter console docs for more information.
+Search for `jupyter console` docs on the Internet for more information.
 
 ## Usage
 #### Commands
@@ -73,6 +74,7 @@ inoremap <c-enter> <Plug>ReplicaSendCell
 ```
 
 > **Warning**
+>
 > Both the above commands and mappings work only if they are run from a buffer
 > whose *filetype* is supported.
 
@@ -81,8 +83,8 @@ inoremap <c-enter> <Plug>ReplicaSendCell
 # Default values
 g:replica_enable_highlight = true
 g:replica_console_position = L
+g:replica_console_height = &lines
 g:replica_console_width = floor(&columns/2)
-g:replica_console_width = &lines
 g:replica_kernels = {"python": "python3",
                    \ "julia": "julia-1.8"}
 g:replica_cells_delimiters = { "python": "# %%",
@@ -91,7 +93,7 @@ g:replica_cells_delimiters = { "python": "# %%",
 
 ## Adding new languages
 At the moment vim-replica only support *python* and *julia*.
-However, vim-eplica is nicely extendable and adding new languages is easy.
+However, this plugin is nicely extendable and adding new languages is easy.
 
 Say that a new language is associated to a certain *filetype*.
 Then, you can add it to replica in two steps:
@@ -104,6 +106,7 @@ Then, you can add it to replica in two steps:
 Done!
 
 > *Note*
+>
 > You may use the global `ftplugin` folder but it has not been tested yet.
 
 ## Troubleshooting
@@ -115,7 +118,7 @@ Or, if it is still very slow, you can try to completely disable the cells
 highlighting by setting |g:replica_enable_highlight| to false.
 
 
-*Q.* Is it possible to copy from a REPL to a buffer?
+*Q.* Is it possible to copy from the REPL to a buffer?
 
 *A.* Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
 There you can yank everything you want.
@@ -143,7 +146,9 @@ augroup DIRCHANGE
 augroup END
 ```
 >*Note*
->It does not work the other way around, i.e. if you change folder from a
+>
+>The above function is just an example and it has its own limitations.
+>For example, it does not work the other way around, i.e. if you change folder from a
 >*terminal* buffer the Vim current folder won't change.
 
 *Q.* When I call |:ReplicaConsoleToggle| the console window won't close.
