@@ -92,7 +92,7 @@ g:replica_run_commands = replica_run_commands_default
 import autoload "../lib/repl_funcs.vim"
 
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :call <SID>repl_funcs.ConsoleToggle()<cr>
+            \ :call <SID>repl_funcs.ConsoleToggle()
 if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
     nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
     inoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
@@ -100,25 +100,25 @@ if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
-            \ :call <SID>repl_funcs.SendLines(<line1>, <line2>)
+            \ :call <SID>repl_funcs.SendLines(line('.'), line('.'))
 if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
-    nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
-    inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
-    xnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
+    nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+    inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+    xnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendFile
-            \ :call <SID>repl_funcs.SendFile(<f-args>)<cr>
+            \ :call <SID>repl_funcs.SendFile()
 if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "ni"))
     nnoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
     inoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendCell
-            \ :call <SID>repl_funcs.SendCell()<cr>
+            \ :call <SID>repl_funcs.SendCell()
 if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "ni"))
-    nnoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
-    inoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>
+    nnoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+    inoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
 endif
 
 

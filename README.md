@@ -56,19 +56,19 @@ Search for `jupyter console` docs on the Internet for more information.
 #### Mappings
 ```
 # Default mappings
-nnoremap <F2> <Plug>ReplicaConsoleToggle
-inoremap <F2> <Plug>ReplicaConsoleToggle
-tnoremap <F2> <c-w><Plug>ReplicaConsoleToggle
+nnoremap <F2> <Plug>ReplicaConsoleToggle<cr>
+inoremap <F2> <Plug>ReplicaConsoleToggle<cr>
+tnoremap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
 
-nnoremap <F9> <Plug>ReplicaSendLines
-inoremap <F9> <Plug>ReplicaSendLines
-xnoremap <F9> <Plug>ReplicaSendLines
+nnoremap <F9> <Plug>ReplicaSendLines<cr>
+inoremap <F9> <Plug>ReplicaSendLines<cr>
+xnoremap <F9> <Plug>ReplicaSendLines<cr>
 
-nnoremap <F5> <Plug>ReplicaSendFile
-inoremap <F5> <Plug>ReplicaSendFile
+nnoremap <F5> <Plug>ReplicaSendFile<cr>
+inoremap <F5> <Plug>ReplicaSendFile<cr>
 
-nnoremap <c-enter> <Plug>ReplicaSendCell
-inoremap <c-enter> <Plug>ReplicaSendCell
+nnoremap <c-enter> <Plug>ReplicaSendCell<cr>j
+inoremap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
 > **Warning**
@@ -110,24 +110,24 @@ Feel free to contribute by adding new languages!
 
 ## Troubleshooting
 
-*Q.* My Vim became slow!
+*Q. My Vim became slow!*
 
-*A.* You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
+A. You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
 Or, if still slow, you can try to disable the cells
 highlighting by setting `g:replica_enable_highlight` to `false`.
 
 
-*Q.* Is it possible to copy from the REPL to a buffer?
+*Q. Is it possible to copy from the REPL to a buffer?*
 
-*A.* Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
+A. Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
 There you can yank everything you want.<br>
 To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 
-*Q.* Is it possible to automatically change the REPL folder when I change
-Vim folder?
+*Q. Is it possible to automatically change the REPL folder when I change
+Vim folder?*
 
-*A.* Yes, but you need to define your own function, something like the
+A. Yes, but you need to define your own function, something like the
 following:
 ```
 def ChangeTerminalDir()
@@ -152,9 +152,9 @@ augroup END
 >from a
 >*terminal* buffer then the Vim current folder won't change.
 
-*Q.* When I call `:ReplicaConsoleToggle` the console window won't close.
+*Q. When I call `:ReplicaConsoleToggle` the console window won't close.*
 
-*A.* Replica commands work only if executed from a buffer with a supported
+A. Replica commands work only if executed from a buffer with a supported
 *filetype*. <br>
 That is, if you have an *IPYTHON* console displayed in a window and
 you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then nothing
