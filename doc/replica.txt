@@ -27,8 +27,8 @@ CONTENTS                                                     *ReplicaContents*
 ==============================================================================
 INTRODUCTION                                         *ReplicaIntroduction*
 
-Replica allows the utilization of any REPL programs (Python, Julia, etc.)
-inside Vim in a seamless way.
+Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
+way.
 
 Replica supports the following key features:
 

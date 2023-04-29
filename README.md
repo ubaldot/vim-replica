@@ -6,8 +6,8 @@ REPL for Scientific applications.
 </p>
 
 ## Introduction
-Replica allows the utilization of any REPL programs (Python, Julia, etc.)
-inside Vim in a seamless way.
+Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
+way.
 
 Replica supports the following key features:
 
@@ -15,20 +15,18 @@ Replica supports the following key features:
 2. Code-cells highlighting.
 
 Each REPL is a jupyter-console initiated with a specific kernel running in a
-*terminal* buffer.  For each *filetype* replica provides you with one
+*terminal* buffer.  For each *filetype* Replica provides you with one
 available REPL to send text in.
 
-You can work with many REPL:s for different languages at the same time.
-Based on the current buffer *filetype* replica will send text in the
-appropriate REPL automatically.
-
-I wrote vim-replica because I never managed to make vim-slime to work
-satisfactory under Windows and vim-REPL crashes too often when using the
-toggle function. Also because the mentioned plugin are way too general and I
-needed something focused on Scientific applications.
+I wrote vim-replica because I never managed to make
+[vim-slime](https://github.com/jpalardy/vim-slime) to work
+satisfactory under Windows and
+[vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
+the toggle function. Also because the mentioned plugin are way too general and
+I needed something focused on Scientific applications.
 
 ## Requirements
-Replica is written in *Vim9script*, and you need at least Vim 9.0.
+Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
 Furthermore, you need `jupyter console` to make Replica to work and the
 associated *kernels* depending on the language you wish to use.
 
@@ -105,7 +103,7 @@ Then, you can add it to replica in two steps:
 
 Done!
 
-> *Note*
+> **Note***
 >
 > You may use the global `ftplugin` folder but it has not been tested yet.
 
@@ -145,10 +143,11 @@ augroup DIRCHANGE
     autocmd DirChanged global ChangeTerminalDir()
 augroup END
 ```
->*Note*
+>**Note***
 >
 >The above function is just an example and it has its own limitations.
->For example, it does not work the other way around, i.e. if you change folder from a
+>For example, it does not work the other way around, i.e. if you change folder
+>from a
 >*terminal* buffer the Vim current folder won't change.
 
 *Q.* When I call |:ReplicaConsoleToggle| the console window won't close.
@@ -157,8 +156,8 @@ augroup END
 *filetype*. That is, if you have an IPYTHON console displayed in a window and
 you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
 will happen.
-However, you can close the window where the console is running with standard
-Vim commands such as <c-w>q, :close, :$close, etc.
+You can close the window where the console is running with standard
+Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
 
 ## Contributing
 Contributions are more than welcome!
