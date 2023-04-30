@@ -89,7 +89,7 @@ At the moment vim-replica only support *python* and *julia*.<br>
 However, this plugin is nicely extendable and adding new languages is easy.
 
 Say that a new language is associated to a certain *filetype*.<br>
-Then, you can add it to replica in two steps:
+Then, perform the following steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
   `g:replica_cells_delimiters` and `g:replica_run_commands` dictionaries.
@@ -97,6 +97,7 @@ Then, you can add it to replica in two steps:
    according to the newly included *filetype*.
 
 Done!<br>
+Your new language is now added to vim-replica!
 Feel free to contribute by adding new languages!
 
 > **Note**
