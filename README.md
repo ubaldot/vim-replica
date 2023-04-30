@@ -28,7 +28,7 @@ the toggle function and I discovered
 [jupyter-vim](https://github.com/jupyter-vim/jupyter-vim) too late.
 
 If you like this plugin you may also want to take a look at
-[vim-outline](https://github.com/ubaldot/vim-outline)
+[vim-outline](https://github.com/ubaldot/vim-outline).
 
 ## Requirements
 Replica is entirely written in *Vim9script* so you need at least
@@ -112,7 +112,7 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-*Q. IPython won't start*
+*Q. IPython won't start.*
 
 A. Be sure that in the current virtual environment:
 
