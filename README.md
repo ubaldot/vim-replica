@@ -6,7 +6,7 @@ Enjoy Jupyter through Vim!
 </p>
 
 ## Introduction
-Replica allows REPL programs such as Python or Julia inside Vim in a seamless
+Replica allows REPL shells such as IPython or Julia inside Vim in a seamless
 way.
 
 Replica supports the following key features:
@@ -112,7 +112,7 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-*Q. Ipython won't start*
+*Q. IPython won't start*
 
 A. Be sure that in the current virtual environment:
 

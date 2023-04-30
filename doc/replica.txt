@@ -249,7 +249,7 @@ You may use the global ftplugin folder but it has not been tested yet.
 ==============================================================================
 TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
-Q. Ipython won't start.
+Q. IPython won't start.
 A. Be sure that in the current virtual environment:
 
 1. jupyter console is installed,
