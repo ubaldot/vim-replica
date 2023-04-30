@@ -2,7 +2,7 @@
 Enjoy Jupyter through Vim!
 
 <p align="center">
-<img src="/ReplicaDemo.gif" width="60%" height="60%">
+<img src="/ReplicaDemo.gif" width="75%" height="75%">
 </p>
 
 ## Introduction
