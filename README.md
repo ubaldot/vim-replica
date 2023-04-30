@@ -48,8 +48,8 @@ Search for `jupyter console` docs on the Internet for more information.
 
 `:ReplicaSendCell`          - send the current code-cell.
 
-`:ReplicaSendFile [{file}]` - send {file} to the REPL. If no file is given, it
-sends the content of the current buffer.
+`:ReplicaSendFile [{file}]` - send {file} to the REPL. If no file is given,
+send the content of the current buffer.
 
 `:ReplicaRemoveCells`       - remove all the cells from the current buffer.
 
