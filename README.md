@@ -140,7 +140,7 @@ augroup DIRCHANGE
     autocmd DirChanged global ChangeTerminalDir()
 augroup END
 ```
->**Note***
+>**Note**
 >
 >The above function is an example and it has its own limitations.
 >For example, it does not work the other way around, i.e. if you change folder
