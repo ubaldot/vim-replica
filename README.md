@@ -1,12 +1,12 @@
 # **REPL**ica.vim
-REPL for Scientific applications.
+Enjoy Jupyter through Vim!
 
 <p align="center">
 <img src="/OutlineDemo.gif" width="60%" height="60%">
 </p>
 
 ## Introduction
-Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
+Replica allows REPL programs such as Python or Julia inside Vim in a seamless
 way.
 
 Replica supports the following key features:
@@ -15,31 +15,29 @@ Replica supports the following key features:
 2. Code-cells highlighting.
 
 Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console)
-initiated with a specific kernel running in a *terminal* buffer. <br>
+initiated with a specific
+[kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a
+*terminal* buffer. <br>
 For each *filetype* Replica provides you with one
 available REPL to send text in.
 
 I wrote vim-replica because I always had problems with
 [vim-slime](https://github.com/jpalardy/vim-slime) under Windows and
 [vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
-the toggle function. Also, the mentioned plugins are way too general
-and I needed something focused on Scientific applications.
+the toggle function and I discovered
+[jupyter-vim](https://github.com/jupyter-vim/jupyter-vim) too late.
 
 If you like this plugin you may also want to take a look at
 [vim-outline](https://github.com/ubaldot/vim-outline)
 
 ## Requirements
-Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
-Furthermore, you need [jupyter
-console](https://github.com/jupyter/jupyter_console) and the *kernels*
-associated to the language you would like to use.
-
-You can google to find out the available jupyter kernels out there whereas you
-can run `jupyter kernelspec list` from the command line of your terminal to
-see the list of kernels installed on your machine.
-
-Search for [jupyter console](https://github.com/jupyter/jupyter_console) docs
-for more information.
+Replica is entirely written in *Vim9script* so you need at least
+Vim 9.0.<br>
+If you are using Windows be sure that Python and Vim are both 32- or
+64-bit.<br>
+You also need [jupyter console](https://github.com/jupyter/jupyter_console)
+and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
+of the language you would like to use.
 
 ## Usage
 #### Commands
@@ -91,20 +89,21 @@ g:replica_cells_delimiters = { "python": "# %%",
 ```
 
 ## Adding new languages
-At the moment vim-replica only support *python* and *julia*.<br>
-However, this plugin is nicely extendable and adding new languages is easy.
+At the moment Replica support *python* and *julia* but adding new
+languages should be a breeze.<br>
 
-Say that a new language is associated to a certain *filetype*.<br>
-Then, perform the following steps:
+Say that you want to add `foo` language to Replica.
+You proceed in two steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
   `g:replica_cells_delimiters` and `g:replica_run_commands` dictionaries.
-2. Duplicate any existing `vim-replica/ftplugin/*.vim` file and rename it
-   according to the newly included *filetype*.
+   Take a look at `:h replica.txt` to understand how to set them.
+2. Duplicate any existing file in `vim-replica/ftplugin/` file and rename it
+   as `foo.vim`. Note that `foo` must be a recognized vim *filetype*.
 
 Done!<br>
 Your new language is now added to vim-replica!
-Feel free to contribute by adding new languages!
+If you add a new language consider to issue a PR.
 
 > **Note**
 >
