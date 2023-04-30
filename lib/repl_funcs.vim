@@ -102,7 +102,6 @@ def ConsoleClose()
     # TODO Modify and make all the REPL to close from wherever you are
     # if IsFiletypeSupported() || getbufvar(bufnr(), '&buftype') == "terminal"
     if IsFiletypeSupported()
-            \ && index(values(g:replica_console_names), bufname("%")) != -1
         for win in ConsoleWinID()
             SaveConsoleWindowSize(win)
             win_execute(win, "close")
@@ -114,7 +113,6 @@ enddef
 export def ConsoleToggle()
     # if IsFiletypeSupported() || getbufvar(bufnr(), '&buftype') == "terminal"
     if IsFiletypeSupported()
-         \ && index(values(g:replica_console_names), bufname("%")) != -1
         if empty(ConsoleWinID())
             ConsoleOpen()
         else
