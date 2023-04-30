@@ -162,9 +162,9 @@ You can close the window where the console is running with standard
 Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
 
 ## Contributing
-Contributions are more than welcome!
-Note that in the source code there are TODO items.
-Feel free to address any of them.
+Contributions are more than welcome!<br>
+In the source code there are TODO items.
+Feel free to address any of them or propose your own change.
 
 ## Help
 `:h vim-replica.txt`
