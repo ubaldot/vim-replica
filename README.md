@@ -112,6 +112,14 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
+*Q. Ipython won't start*
+
+A. Be sure that in the current virtual environment:
+
+1. `jupyter console` is installed,
+2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
+3. vim is launched from this virtual environment.
+
 *Q. My Vim became slow!*
 
 A. You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>

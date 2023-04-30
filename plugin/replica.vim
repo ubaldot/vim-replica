@@ -85,6 +85,10 @@ g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 
+# g:replica_precommands = {
+#             \ "python": "source ~/pippo && ",
+#             \ "julia": ""}
+
 # -----------------------------
 # Default mappings
 # -----------------------------

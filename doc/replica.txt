@@ -249,6 +249,13 @@ You may use the global ftplugin folder but it has not been tested yet.
 ==============================================================================
 TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
+Q. Ipython won't start.
+A. Be sure that in the current virtual environment:
+
+1. jupyter console is installed,
+2. some ipython jupyter kernel (e.g. pyhon3) is installed,
+3. vim is launched from this virtual environment.
+
 Q. My Vim became very slow!
 A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
 Or, if it is still very slow, you can try to completely disable the cells
