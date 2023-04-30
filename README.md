@@ -102,7 +102,8 @@ Feel free to contribute by adding new languages!
 
 > **Note**
 >
-> You may use the global `ftplugin` folder but it has not been tested yet.
+> You could also use the global `ftplugin` folder instead of the plugin
+> `vim-replica/ftplugin` folder but that has not been tested yet.
 
 ## Troubleshooting
 
@@ -153,7 +154,8 @@ augroup END
 A. Replica commands work only if executed from a buffer with a supported
 *filetype*. <br>
 That is, if you have an *IPYTHON* console displayed in a window and
-you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then nothing
+you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then
+nothing
 will happen.
 You can close the window where the console is running with standard
 Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
