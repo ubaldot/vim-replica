@@ -178,7 +178,7 @@ In the source code there are TODO items.
 Feel free to address any of them or propose your own change.
 
 ## Help
-`:h vim-replica.txt`
+`:h replica.txt`
 
 ## License
 Vim license.
