@@ -90,7 +90,7 @@ g:replica_cells_delimiters = { "python": "# %%",
 
 ## Adding new languages
 At the moment Replica support *python* and *julia* but adding new
-languages should be a breeze.<br>
+languages should not be too difficult.<br>
 
 Say that you want to add `foo` language to Replica.
 You proceed in two steps:
