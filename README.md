@@ -14,8 +14,8 @@ Replica supports the following key features:
 1. Sending lines, files and code-cells to a REPL,
 2. Code-cells highlighting.
 
-Each REPL is a `jupyter console` initiated with a specific kernel running in a
-*terminal* buffer. <br>
+Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console)
+initiated with a specific kernel running in a *terminal* buffer. <br>
 For each *filetype* Replica provides you with one
 available REPL to send text in.
 
@@ -27,14 +27,16 @@ and I needed something focused on Scientific applications.
 
 ## Requirements
 Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
-Furthermore, you need `jupyter console` and the *kernels* associated to the
-language you would like to use.
+Furthermore, you need [jupyter
+console](https://github.com/jupyter/jupyter_console) and the *kernels*
+associated to the language you would like to use.
 
 You can google to find out the available jupyter kernels out there whereas you
 can run `jupyter kernelspec list` from the command line of your terminal to
 see the list of kernels installed on your machine.
 
-Search for `jupyter console` docs on the Internet for more information.
+Search for [jupyter console](https://github.com/jupyter/jupyter_console) docs
+for more information.
 
 ## Usage
 #### Commands
@@ -149,6 +151,12 @@ augroup END
 >For example, it does not work the other way around, i.e. if you change folder
 >from a
 >*terminal* buffer then the Vim current folder won't change.
+
+*Q. When I open the REPL the layout is horrible!*
+
+A. Set a desired value of `g:replica_console_height` and
+`g:replica_console_width` in your `vimrc`.<br>
+The units are number of lines and number of columns, respectively. <br>
 
 *Q. When I call `:ReplicaConsoleToggle` the console window won't close.*
 

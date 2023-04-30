@@ -34,10 +34,10 @@ endif
 
 
 if !exists('g:replica_console_width')
-    if index(["J", "K"], g:replica_console_position) >= 0
-        g:replica_console_width = &columns
-    else
+    if index(["H", "L"], g:replica_console_position) >= 0
         g:replica_console_width = floor(&columns / 2)
+    else
+        g:replica_console_width = &columns
     endif
 endif
 
