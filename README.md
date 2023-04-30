@@ -25,6 +25,9 @@ I wrote vim-replica because I always had problems with
 the toggle function. Also, the mentioned plugins are way too general
 and I needed something focused on Scientific applications.
 
+If you like this plugin you may also want to take a look at
+[vim-outline](https://github.com/ubaldot/vim-outline)
+
 ## Requirements
 Replica is written in *Vim9script*, and you need at least Vim 9.0.<br>
 Furthermore, you need [jupyter

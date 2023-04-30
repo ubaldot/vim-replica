@@ -292,6 +292,12 @@ will happen.
 However, you can close the window where the console is running with standard
 Vim commands such as <c-w>q, :close, :$close, etc.
 
+Q. When I open the REPL the layout is horrible!
+
+A. Set a desired value of |g:replica_console_height| and
+|g:replica_console_width| in your |vimrc|.
+The units are number of lines and number of columns, respectively.
+
 ==============================================================================
 CONTRIBUTING                                            *ReplicaContributing*
 
