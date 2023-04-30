@@ -32,6 +32,9 @@ enddef
 
 # var counter_dbg = 0
 # When adding a sign keep in mind that we set sign_id = line number
+# TODO: lines are shaded through sign feature, but this also add a small sign
+# next by the line numbers which is not super nice. Is there any other
+# alternative to sign for shading lines?
 export def HighlightCell(display_range: bool = false)
     var extremes = GetExtremes(display_range)
     var line_in = extremes[0]
@@ -66,6 +69,8 @@ export def HighlightCell(display_range: bool = false)
                 list_sign_id = [line_in, line_out]
             endif
             # Place signs and move current values to _old
+            # TODO: avoid highlighting the last line of the buffer
+            # when the cursor is in the last cell
             list_sign_id_old = []
             for line in list_sign_id
                 sign_place(line, "", hlgroup, expand("%:p"),

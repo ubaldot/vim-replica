@@ -296,7 +296,8 @@ Vim commands such as <c-w>q, :close, :$close, etc.
 CONTRIBUTING                                            *ReplicaContributing*
 
 Contributions are most than welcome!
-Feel free to add a PR on GitHub. :)
+In the source code there are TODO items.
+Feel free to address any of them or propose your own changes. :)
 
 ==============================================================================
 LICENSE                                                    *ReplicaLicense*

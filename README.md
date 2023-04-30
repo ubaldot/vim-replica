@@ -56,19 +56,14 @@ Search for `jupyter console` docs on the Internet for more information.
 #### Mappings
 ```
 # Default mappings
-nnoremap <F2> <Plug>ReplicaConsoleToggle<cr>
-inoremap <F2> <Plug>ReplicaConsoleToggle<cr>
-tnoremap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+nmap <F2> <Plug>ReplicaConsoleToggle<cr>
 
-nnoremap <F9> <Plug>ReplicaSendLines<cr>
-inoremap <F9> <Plug>ReplicaSendLines<cr>
-xnoremap <F9> <Plug>ReplicaSendLines<cr>
+nmap <F9> <Plug>ReplicaSendLines<cr>
+xmap <F9> <Plug>ReplicaSendLines<cr>
 
-nnoremap <F5> <Plug>ReplicaSendFile<cr>
-inoremap <F5> <Plug>ReplicaSendFile<cr>
+nmap <F5> <Plug>ReplicaSendFile<cr>
 
-nnoremap <c-enter> <Plug>ReplicaSendCell<cr>j
-inoremap <c-enter> <Plug>ReplicaSendCell<cr>j
+nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
 > **Warning**
@@ -164,6 +159,8 @@ Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
 
 ## Contributing
 Contributions are more than welcome!
+Note that in the source code there are TODO items.
+Feel free to address any of them.
 
 ## Help
 `:h vim-replica.txt`

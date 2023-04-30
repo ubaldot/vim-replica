@@ -91,34 +91,35 @@ g:replica_run_commands = replica_run_commands_default
 #
 import autoload "../lib/repl_funcs.vim"
 
+# TODO: make imap and tmap to work.
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
             \ :call <SID>repl_funcs.ConsoleToggle()
-if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nit"))
-    nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    inoremap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    tnoremap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
+    nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+    # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+    # tmap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
             \ :call <SID>repl_funcs.SendLines(line('.'), line('.'))
-if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nix"))
-    nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-    inoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-    xnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
+    nmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+    # imap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+    xmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendFile
             \ :call <SID>repl_funcs.SendFile()
-if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "ni"))
-    nnoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
-    inoremap <silent> <F5> <Plug>ReplicaSendFile<cr>
+if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
+    nmap <silent> <F5> <Plug>ReplicaSendFile<cr>
+    # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendCell
             \ :call <SID>repl_funcs.SendCell()
-if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "ni"))
-    nnoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
-    inoremap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
+    nmap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+    # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
 endif
 
 
@@ -160,15 +161,3 @@ endif
 augroup delete_tmp_file
     autocmd VimLeave * delete(g:replica_tmp_filename)
 augroup END
-
-# def WipeoutConsoles()
-#     for buf_nr in term_list()
-#         # if index(values(g:replica_console_names), bufname(buf_nr))
-#             exe "bw! " .. buf_nr
-#         # endif
-#     endfor
-# enddef
-
-# augroup shoutoff_replica_consoles
-#     autocmd VimLeavePre * call WipeoutConsoles()
-# augroup END
