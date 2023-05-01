@@ -9,9 +9,9 @@ Enjoy Jupyter through Vim!
 Replica allows REPL shells such as IPython or Julia inside Vim in a seamless
 way.
 
-Replica supports the following key features:
+It supports the following key features:
 
-1. Sending lines, files and code-cells to a REPL,
+1. Send lines, files and code-cells to a REPL,
 2. Code-cells highlighting.
 
 Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console)
