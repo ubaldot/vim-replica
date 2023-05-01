@@ -1,5 +1,7 @@
 # **REPL**ica.vim
-Enjoy Jupyter through Vim!
+<p style="text-align:center;font-size:24">
+* Enjoy Jupyter through Vim! *
+</p>
 
 <p align="center">
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
