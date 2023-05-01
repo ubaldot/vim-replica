@@ -116,9 +116,9 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-*Q. IPython won't start.*
+#### IPython won't start.
 
-A. Be sure that in the current virtual environment:
+Be sure that in the current virtual environment:
 
 1. `jupyter console` is installed,
 2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
