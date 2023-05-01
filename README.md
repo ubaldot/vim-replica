@@ -2,12 +2,11 @@
 
 <p align="center">
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
-Enjoy Jupyter with Vim.
 </p>
 
-<!-- <p align="center" style="font-size:24;"> -->
-<!-- * Enjoy Jupyter through Vim! * -->
-<!-- </p> -->
+<p align="center" style="font-size:24;">
+* Enjoy Jupyter through Vim! *
+</p>
 
 ## Introduction
 Replica allows REPL shells such as IPython or Julia inside Vim in a seamless
