@@ -1,11 +1,11 @@
 # **REPL**ica.vim
 
-<!-- <p align="center"> -->
+<p align="center">
 <figure>
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
-<figcaption>MacOS BigSur Walpaper</figcaption>
+<figcaption>Enjoy Jupyter with Vim.</figcaption>
 </figure>
-<!-- </p> -->
+</p>
 
 <!-- <p align="center" style="font-size:24;"> -->
 <!-- * Enjoy Jupyter through Vim! * -->
