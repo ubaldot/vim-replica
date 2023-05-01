@@ -4,7 +4,7 @@
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
 </p>
 
-<p align="center" style="font-size:24;">
+<p align="center" style="font-size:38;">
 * Enjoy Jupyter through Vim! *
 </p>
 
