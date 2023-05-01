@@ -30,10 +30,10 @@ If you like this plugin you may also want to take a look at
 ## Requirements
 Replica is entirely written in *Vim9script*, hence you need at least
 Vim 9.0 compiled with `+python3` support.<br>
-To figure out if your Vim is compatible, run `:echo has('python3')`.
-If the answer is `1` then you should be set. <br>
-If you are using Windows, please be sure that Python and Vim are both 32- or
-64-bit.<br>
+<!-- To figure out if your Vim is compatible, run `:echo has('python3')`. -->
+<!-- If the answer is `1` then you should be set. <br> -->
+<!-- If you are using Windows, please be sure that Python and Vim are both 32- or -->
+<!-- 64-bit.<br> -->
 
 
 <!-- Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console) -->
@@ -41,9 +41,11 @@ If you are using Windows, please be sure that Python and Vim are both 32- or
 <!-- [kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a -->
 <!-- *terminal* buffer and for each *filetype* Replica provides you with one -->
 <!-- available REPL to send text in. -->
-You also  need [jupyter console](https://github.com/jupyter/jupyter_console)
+You also need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
-of the languages you would like to use to enjoy Replica.
+of the languages you would like to use to enjoy Replica.<br>
+That is pretty much all.
+
 
 ## Usage
 #### Commands
@@ -118,9 +120,15 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-#### Q: IPython won't start.
+#### Q: The REPL won't start.
 
-A: Be sure that in the current virtual environment:
+A: Ok, let's start with some basic checks:
+
+1. run `:echo has('python3')`. The answer should be `1`.
+2. if you are using Windows, make sure that Python and Vim are both 32- or 64
+   bit.
+
+Next, be sure that in the current virtual environment:
 
 1. `jupyter console` is installed,
 2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
