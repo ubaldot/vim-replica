@@ -1,10 +1,8 @@
 # **REPL**ica.vim
 
 <p align="center">
-<figure>
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
 <figcaption>Enjoy Jupyter with Vim.</figcaption>
-</figure>
 </p>
 
 <!-- <p align="center" style="font-size:24;"> -->
