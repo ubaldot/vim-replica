@@ -32,7 +32,7 @@ Replica is entirely written in *Vim9script*, hence you need at least
 Vim 9.0 compiled with `+python3` support.<br>
 To figure out if your Vim is compatible, run `:echo has('python3')`.
 If the answer is `1` then you should be set. <br>
-If you are using Windows be sure that Python and Vim are both 32- or
+If you are using Windows, please be sure that Python and Vim are both 32- or
 64-bit.<br>
 
 
@@ -43,7 +43,7 @@ If you are using Windows be sure that Python and Vim are both 32- or
 <!-- available REPL to send text in. -->
 You also  need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
-of the language you would like to use to enjoy Replica.
+of the languages you would like to use to enjoy Replica.
 
 ## Usage
 #### Commands
