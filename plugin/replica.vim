@@ -15,6 +15,7 @@ if exists('g:replica_loaded')
 endif
 g:replica_loaded = true
 
+# TODO: think if you can avoid using it as a g: variable
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
@@ -53,22 +54,18 @@ endif
 var replica_kernels_default = {
             \ "python": "python3",
             \ "julia": "julia-1.8"}
-            # \ "matlab": "jupyter_matlab_kernel",
 
 var replica_console_names_default = {
             \ "python": "IPYTHON",
             \ "julia": "JULIA"}
-            # \ "matlab": "MATLAB",
 
 var replica_cells_delimiters_default = {
             \ "python": "# %%",
             \ "julia": "# %%"}
-            # \ "matlab": "%%"
 
 var replica_run_commands_default = {
             \ "python": "run -i " .. g:replica_tmp_filename,
             \ "julia": 'include("' .. g:replica_tmp_filename .. '")'}
-            # \ "matlab": 'run("' .. g:replica_tmp_filename .. '")',
 
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
@@ -85,6 +82,12 @@ g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 
+# TODO at the moment the term is started directly with
+# jupyter console ... but a user may want to do something before opening the
+# console. One could
+# a. use b:precommand = g:replica_pre_commands[&filtype] in ft files
+# b. Update ConsoleOpen() function with term_start(b:precommand .. "jupyter
+# console ..."
 # g:replica_precommands = {
 #             \ "python": "source ~/pippo && ",
 #             \ "julia": ""}

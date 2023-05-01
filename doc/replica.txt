@@ -150,8 +150,8 @@ you could try to set it to true.
 
 
                                                 *g:replica_console_position*
-Type: HJKL.
-Default: L
+Type: "H", "J", "K", "L".
+Default: "L"
 
 The location of the REPL window.
 
@@ -256,6 +256,11 @@ A. Be sure that in the current virtual environment:
 2. some ipython jupyter kernel (e.g. pyhon3) is installed,
 3. vim is launched from this virtual environment.
 
+Q. When I open the REPL the layout is horrible!
+A. Set a desired value of |g:replica_console_height| and
+|g:replica_console_width| in your |vimrc|.
+The units are number of lines and number of columns, respectively.
+
 Q. My Vim became very slow!
 A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
 Or, if it is still very slow, you can try to completely disable the cells
@@ -265,6 +270,14 @@ Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.
 There you can yank everything you want.
 To re-enable the REPL just press i with the cursor located on the REPL window.
+
+Q. When I call |:ReplicaConsoleToggle| the console window won't close.
+A. Replica commands work only if executed from a buffer with a supported
+'filetype'. That is, if you have an IPYTHON console displayed in a window and
+you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
+will happen.
+However, you can close the window where the console is running with standard
+Vim commands such as <c-w>q, :close, :$close, etc.
 
 Q. Is it possible to automatically change the REPL folder when I change
 Vim folder?
@@ -290,20 +303,6 @@ Note: Depending on the REPL, you may need a different command to
 change folder.
 Note: It does not work the other way around, i.e. if you change folder from a
 'terminal' buffer the Vim current folder won't change.
-
-Q. When I call |:ReplicaConsoleToggle| the console window won't close.
-A. Replica commands work only if executed from a buffer with a supported
-'filetype'. That is, if you have an IPYTHON console displayed in a window and
-you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
-will happen.
-However, you can close the window where the console is running with standard
-Vim commands such as <c-w>q, :close, :$close, etc.
-
-Q. When I open the REPL the layout is horrible!
-
-A. Set a desired value of |g:replica_console_height| and
-|g:replica_console_width| in your |vimrc|.
-The units are number of lines and number of columns, respectively.
 
 ==============================================================================
 CONTRIBUTING                                            *ReplicaContributing*
