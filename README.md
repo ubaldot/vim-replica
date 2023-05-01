@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+* Enjoy Jupyter through Vim! *
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
 </p>
 
