@@ -14,12 +14,6 @@ It supports the following key features:
 1. Send lines, files and code-cells to a REPL,
 2. Highlight code-cells.
 
-Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console)
-initiated with a specific
-[kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a
-*terminal* buffer. <br>
-For each *filetype* Replica provides you with one
-available REPL to send text in.
 
 I wrote vim-replica because I always had problems with
 [vim-slime](https://github.com/jpalardy/vim-slime) under Windows and
@@ -35,9 +29,16 @@ Replica is entirely written in *Vim9script* so you need at least
 Vim 9.0.<br>
 If you are using Windows be sure that Python and Vim are both 32- or
 64-bit.<br>
-You also need [jupyter console](https://github.com/jupyter/jupyter_console)
+
+
+Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console)
+initiated with a specific
+[kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a
+*terminal* buffer and for each *filetype* Replica provides you with one
+available REPL to send text in.
+You need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
-of the language you would like to use.
+of the language you would like to use to enjoy Replica.
 
 ## Usage
 #### Commands
