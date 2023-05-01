@@ -43,7 +43,7 @@ Vim 9.0 compiled with `+python3` support.
 <!-- available REPL to send text in. -->
 You also need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
-of the languages you would like to use to enjoy Replica.<br><br>
+of the languages you would like to use.<br><br>
 That is pretty much all.
 
 
