@@ -130,7 +130,7 @@ A: Set a desired value of `g:replica_console_height` and
 `g:replica_console_width` in your `vimrc`.<br>
 The units are number of lines and number of columns, respectively. <br>
 
-#### Q. My Vim became slow!
+#### Q. Vim slow down a lot with this st"pid plugin!
 
 A: You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
 Or, if still slow, you can try to disable the cells
