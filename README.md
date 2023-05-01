@@ -41,7 +41,7 @@ If you are using Windows be sure that Python and Vim are both 32- or
 <!-- [kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a -->
 <!-- *terminal* buffer and for each *filetype* Replica provides you with one -->
 <!-- available REPL to send text in. -->
-You alsoalso  need [jupyter console](https://github.com/jupyter/jupyter_console)
+You also  need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
 of the language you would like to use to enjoy Replica.
 
