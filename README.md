@@ -80,7 +80,7 @@ nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 
 > **Warning**
 >
-> Both the above commands and mappings work only if they are run from a buffer
+> Both the above commands and mappings work if they are run from a buffer
 > whose *filetype* is supported.
 
 ## Basic Configuration
@@ -149,7 +149,7 @@ highlighting by setting `g:replica_enable_highlight` to `false`.
 
 #### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
-A: Replica commands work only if executed from a buffer with a supported
+A: Replica commands work if executed from a buffer with a supported
 *filetype*. <br>
 That is, if you have an *IPYTHON* console displayed in a window and
 you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then
@@ -166,7 +166,7 @@ To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 
 #### Q. Is it possible to automatically change the REPL folder when I change
-  Vim folder?
+#### Vim folder?
 
 A: Yes, but you need to define your own function, something like the
 following:
