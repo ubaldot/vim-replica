@@ -2,7 +2,7 @@
 
 <p align="center">
 <img src="/ReplicaDemo.gif" width="75%" height="75%">
-<figcaption>Enjoy Jupyter with Vim.</figcaption>
+Enjoy Jupyter with Vim.
 </p>
 
 <!-- <p align="center" style="font-size:24;"> -->
