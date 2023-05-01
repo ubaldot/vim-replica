@@ -120,7 +120,7 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-#### Q: The REPL won't start.
+#### Q: This plugin does not even start!
 
 A: Ok, let's start with some basic checks:
 
@@ -166,7 +166,7 @@ To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 
 #### Q. Is it possible to automatically change the REPL folder when I change
-#### Vim folder?
+  Vim folder?
 
 A: Yes, but you need to define your own function, something like the
 following:
