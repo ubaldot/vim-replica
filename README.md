@@ -116,30 +116,30 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-#### Q. IPython won't start.
+#### Q: IPython won't start.
 
-A. Be sure that in the current virtual environment:
+A: Be sure that in the current virtual environment:
 
 1. `jupyter console` is installed,
 2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
 3. vim is launched from this virtual environment.
 
-*Q. When I open the REPL the layout is horrible!*
+#### Q: When I open the REPL the layout is horrible!
 
-A. Set a desired value of `g:replica_console_height` and
+A: Set a desired value of `g:replica_console_height` and
 `g:replica_console_width` in your `vimrc`.<br>
 The units are number of lines and number of columns, respectively. <br>
 
-*Q. My Vim became slow!*
+#### Q. My Vim became slow!
 
-A. You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
+A: You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
 Or, if still slow, you can try to disable the cells
 highlighting by setting `g:replica_enable_highlight` to `false`.
 
 
-*Q. When I call `:ReplicaConsoleToggle` the console window won't close.*
+#### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
-A. Replica commands work only if executed from a buffer with a supported
+A: Replica commands work only if executed from a buffer with a supported
 *filetype*. <br>
 That is, if you have an *IPYTHON* console displayed in a window and
 you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then
@@ -148,17 +148,17 @@ will happen.
 You can close the window where the console is running with standard
 Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
 
-*Q. Is it possible to copy from the REPL to a buffer?*
+#### Q. Is it possible to copy from the REPL to a buffer?
 
-A. Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
+A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
 There you can yank everything you want.<br>
 To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 
-*Q. Is it possible to automatically change the REPL folder when I change
-Vim folder?*
+#### Q. Is it possible to automatically change the REPL folder when I change
+#### Vim folder?
 
-A. Yes, but you need to define your own function, something like the
+A: Yes, but you need to define your own function, something like the
 following:
 ```
 def ChangeTerminalDir()
