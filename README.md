@@ -120,7 +120,7 @@ If you add a new language consider to issue a PR.
 
 ## Troubleshooting
 
-#### Q: This plugin does not even start!
+#### Q: The REPL does not even start!
 
 A: Ok, let's start with some basic checks:
 
