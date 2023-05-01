@@ -2,8 +2,8 @@ vim9script
 # ---------------------------------------
 # Functions for highlighing cells
 # ---------------------------------------
-sign define ReplicaConsoleHl text=- linehl=CursorLine
-sign define ReplicaConsoleHlFast text=- linehl=UnderLined
+sign define ReplicaConsoleHl  linehl=CursorLine
+sign define ReplicaConsoleHlFast  linehl=UnderLined
 
 var line_in_old = 1
 var line_out_old = line("$")
