@@ -12,7 +12,6 @@ var console_geometry = {"width": g:replica_console_width,
 var open_buffers = {
             \ "python": [],
             \ "julia": []}
-# \ "matlab" : []
 
 # ====================================
 # Functions
@@ -41,8 +40,7 @@ def ConsoleExists(): bool
     # In case you are on a console, then b:console_name does not exists,
     # therefore you have to check if it is a terminal with some console name.
     elseif getbufvar(bufnr(), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname("%")) !=
-                -1
+          \ && index(values(g:replica_console_names), bufname("%")) != -1
         return true
     else
         return false
@@ -54,8 +52,7 @@ def ConsoleWinID(): list<number>
     # OBS! b:console_name does not exist for terminal windows!
     if ConsoleExists()
         if getbufvar(bufnr("%"), '&buftype') == "terminal"
-                    \ && index(values(g:replica_console_names), bufname("%"))
-                    != -1
+                \ && index(values(g:replica_console_names), bufname("%")) != -1
             # If we are on a console, then the current buffer is the console
             return win_findbuf(bufnr())
         else

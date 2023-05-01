@@ -11,7 +11,6 @@ var list_sign_id_old = []
 var list_sign_id = []
 
 
-
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
     var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
@@ -48,8 +47,7 @@ export def HighlightCell(display_range: bool = false)
     endif
     # There is at least one cell
     if line_in != 1 || line_out != line("$")
-        # ...and if the cursor moved into another cell, then update the
-        # signs
+        # if the cursor moved into another cell, then update the signs
         if line_in != line_in_old || line_out != line_out_old
             # counter_dbg = counter_dbg + 1
             # echo counter_dbg
