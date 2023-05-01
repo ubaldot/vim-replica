@@ -29,7 +29,7 @@ If you like this plugin you may also want to take a look at
 
 ## Requirements
 Replica is entirely written in *Vim9script*, hence you need at least
-Vim 9.0 compiled with `+python3` support.
+Vim 9.0 compiled with `python3` support.
 <!-- To figure out if your Vim is compatible, run `:echo has('python3')`. -->
 <!-- If the answer is `1` then you should be set. <br> -->
 <!-- If you are using Windows, please be sure that Python and Vim are both 32- or -->
