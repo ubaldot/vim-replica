@@ -1,6 +1,8 @@
 # **REPL**ica.vim
-<p style="text-align:center;font-size:24">
+<p align="center">
+<p style="font-size:24;">
 * Enjoy Jupyter through Vim! *
+</p>
 </p>
 
 <p align="center">
