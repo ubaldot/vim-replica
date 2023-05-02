@@ -75,7 +75,7 @@ def ConsoleOpen()
     var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
-            win_execute(win_getid(), 'term_start(" jupyter console --kernel="
+            win_execute(win_getid(), 'term_start("jupyter console --kernel="
                         \ .. b:kernel_name, {"term_name": b:console_name})' )
             console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
