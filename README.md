@@ -153,10 +153,6 @@ A: This is more a matplotlib setting than a replica problem. :)
 You should change the matplotlib backend. For example, you could use the magic
 `%matplotlib qt` to use the `qt` backend. See matplotlib docs for more info.
 
-A: You can try to set `g:replica_alt_highlight = true` in your *vimrc*.<br>
-Or, if still slow, you can try to disable the cells
-highlighting by setting `g:replica_enable_highlight` to `false`.
-
 #### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
 A: Replica commands work if executed from a buffer with a supported
