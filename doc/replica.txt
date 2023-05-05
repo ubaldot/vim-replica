@@ -289,6 +289,11 @@ You should change the matplotlib backend. For example, you could use the magic
 %matplotlib qt to use the qt backend.
 See matplotlib docs for more info.
 
+Q. Is it possible to embed figures in the console?
+A: Nope. In general, you cannot display figures in terminal emulators, even if
+some hacks could allow you to do that (for example using imagemagick).
+For having inline figures, you should use GUI applications like QtConsole or
+classic Jupyter notebooks.
 
 Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.

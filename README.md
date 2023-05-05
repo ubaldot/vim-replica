@@ -32,14 +32,18 @@ Replica is entirely written in *Vim9script*, hence you need at least
 Vim 9.0 compiled with `python3` support.
 <!-- To figure out if your Vim is compatible, run `:echo has('python3')`. -->
 <!-- If the answer is `1` then you should be set. <br> -->
-<!-- If you are using Windows, please be sure that Python and Vim are both 32- or -->
+<!-- If you are using Windows, please be sure that Python and Vim are both 32-
+or -->
 <!-- 64-bit.<br> -->
 
 
-<!-- Each REPL is a [jupyter console](https://github.com/jupyter/jupyter_console) -->
+<!-- Each REPL is a [jupyter
+console](https://github.com/jupyter/jupyter_console) -->
 <!-- initiated with a specific -->
-<!-- [kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running in a -->
-<!-- *terminal* buffer and for each *filetype* Replica provides you with one -->
+<!-- [kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running
+in a -->
+<!-- *terminal* buffer and for each *filetype* Replica provides you with one
+-->
 <!-- available REPL to send text in. -->
 You also need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels)
@@ -152,6 +156,13 @@ highlighting by setting `g:replica_enable_highlight` to `false`.
 A: This is more a matplotlib setting than a replica problem. :)
 You should change the matplotlib backend. For example, you could use the magic
 `%matplotlib qt` to use the `qt` backend. See matplotlib docs for more info.
+
+#### Q. Is it possible to embed figures in the console?
+
+A: Nope. In general, you cannot display figures in terminal emulators, even if
+some hacks could allow you to do that (for example using imagemagick).
+For having inline figures, you should use GUI applications like QtConsole or
+classic Jupyter notebooks.
 
 #### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
