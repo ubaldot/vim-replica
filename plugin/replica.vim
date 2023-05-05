@@ -110,7 +110,7 @@ noremap <unique> <script> <Plug>ReplicaConsoleToggle
 if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
     nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
     # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    # tmap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+    tnoremap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines

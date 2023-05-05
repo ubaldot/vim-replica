@@ -102,18 +102,19 @@ def ConsoleClose()
             SaveConsoleWindowSize(win)
             win_execute(win, "close")
         endfor
+    elseif getbufvar(bufnr(), '&buftype') == "terminal"
+                \ && index(values(g:replica_console_names), bufname()) != -1
+        wincmd c
     endif
 enddef
 
 
 export def ConsoleToggle()
     # if IsFiletypeSupported() || getbufvar(bufnr(), '&buftype') == "terminal"
-    if IsFiletypeSupported()
-        if empty(ConsoleWinID())
-            ConsoleOpen()
-        else
-            ConsoleClose()
-        endif
+    if empty(ConsoleWinID())
+        ConsoleOpen()
+    else
+        ConsoleClose()
     endif
 enddef
 
