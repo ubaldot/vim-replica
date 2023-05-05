@@ -1,6 +1,6 @@
 vim9script
 
-import autoload "../lib/highlight_funcs.vim"
+import autoload "../lib/highlight.vim"
 
 # The following variable won't change during run-time
 b:kernel_name = g:replica_kernels[&filetype]
@@ -12,9 +12,9 @@ if g:replica_enable_highlight
     augroup highlight_cells
         autocmd! * <buffer>
         autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer>
-                    \ highlight_funcs.HighlightCell()
+                    \ highlight.HighlightCell()
         autocmd CursorMoved,CursorMovedI <buffer>
-                    \ highlight_funcs.HighlightCell(true)
+                    \ highlight.HighlightCell(true)
     augroup END
 endif
 

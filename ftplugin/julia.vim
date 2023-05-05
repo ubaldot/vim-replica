@@ -4,7 +4,7 @@ vim9script
 # exe "source " .. expand('%:h:h') .. "/lib/ft_common.vim"
 
 
-import autoload "../lib/highlight_funcs.vim"
+import autoload "../lib/highlight.vim"
 
 # The following variable won't change during run-time
 b:kernel_name = g:replica_kernels[&filetype]
@@ -15,8 +15,8 @@ b:run_command = g:replica_run_commands[&filetype]
 if g:replica_enable_highlight
     augroup highlight_cells
         autocmd! * <buffer>
-        autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> highlight_funcs.HighlightCell()
-        autocmd CursorMoved,CursorMovedI <buffer> highlight_funcs.HighlightCell(true)
+        autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer> highlight.HighlightCell()
+        autocmd CursorMoved,CursorMovedI <buffer> highlight.HighlightCell(true)
     augroup END
 endif
 
