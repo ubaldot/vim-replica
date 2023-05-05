@@ -196,6 +196,22 @@ Note: to add a new language in replica you need to do a bit more work than
 just editing this dictionary. See |ReplicaAddLanguages| for more information.
 
 
+                                        *g:replica_jupyter_console_options*
+  Type: 'dict'<'filetype', 'string'>
+  Default: { "python": "",
+            \ "julia": ""}
+
+Specify options to append to jupyter console command when creating a new repl
+console. You could for example set:
+>
+    g:replica_jupyter_console_option['julia': "--config=myconfig.py"]
+<
+See jupyter console --help for possible options.
+
+Associates 'filetype' to cell delimiters.
+You can change the cell delimiter associated to a 'filetype' simply by
+changing the value associated to such a 'filetype' key.
+
                                            *g:replica_cells_delimiters*
   Type: 'dict'<'filetype', 'string'>
   Default: { "python": "# %%",
@@ -265,6 +281,14 @@ Q. My Vim became very slow!
 A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
 Or, if it is still very slow, you can try to completely disable the cells
 highlighting by setting |g:replica_enable_highlight| to false.
+
+
+Q. I am using matplotlib and the figures are not interactive.
+A. This is more a matplotlib setting than a replica problem. :)
+You should change the matplotlib backend. For example, you could use the magic
+%matplotlib qt to use the qt backend.
+See matplotlib docs for more info.
+
 
 Q. Is it possible to copy from a REPL to a buffer?
 A. Yes! If you <c-w>N in your REPL, then it becomes just an ordinary buffer.

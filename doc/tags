@@ -22,6 +22,7 @@ g:replica_console_height	replica.txt	/*g:replica_console_height*
 g:replica_console_position	replica.txt	/*g:replica_console_position*
 g:replica_console_width	replica.txt	/*g:replica_console_width*
 g:replica_enable_highlight	replica.txt	/*g:replica_enable_highlight*
+g:replica_jupyter_console_options	replica.txt	/*g:replica_jupyter_console_options*
 g:replica_kernels	replica.txt	/*g:replica_kernels*
 g:replica_names	replica.txt	/*g:replica_names*
 g:replica_run_commands	replica.txt	/*g:replica_run_commands*
