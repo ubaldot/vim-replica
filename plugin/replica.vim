@@ -83,6 +83,11 @@ g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 
+
+g:replica_jupyter_console_options = {
+            \ "python": "",
+            \ "julia": ""}
+
 # TODO at the moment the term is started directly with
 # jupyter console ... but a user may want to do something before opening the
 # console. One could

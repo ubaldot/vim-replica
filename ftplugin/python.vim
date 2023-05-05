@@ -6,6 +6,7 @@ import autoload "../lib/highlight.vim"
 b:kernel_name = g:replica_kernels[&filetype]
 b:console_name = g:replica_console_names[&filetype]
 b:cells_delimiter = g:replica_cells_delimiters[&filetype]
+b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
 b:run_command = g:replica_run_commands[&filetype]
 
 if g:replica_enable_highlight
