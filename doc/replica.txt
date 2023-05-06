@@ -296,8 +296,8 @@ give you an answer anyway.
 In general, you cannot display pictures in terminal emulators, but there are
 some that allows you to do that (I think kitty is one but there should be
 others out there).
-Hence, to display inline figures I think you need (but I may be wrong) the
-following:
+Hence, to display inline figures I think that you need (but I may be wrong)
+the following:
 
  1. A terminal emulator support that feature,
  2. A library that you are using allows inline figures.
