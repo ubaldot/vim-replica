@@ -171,7 +171,7 @@ others out there).
 Hence, to display inline figures I think that you need (but I may be wrong)
 the following:
 
- 1. A terminal emulator that support such a feature,
+ 1. A terminal emulator that support viewing images,
  2. A library that allows inline figures.
 
 Again, I prefer floating, interactive figure, but it you succeed in displaying
