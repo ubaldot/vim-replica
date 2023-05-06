@@ -44,6 +44,7 @@ def ConsoleExists(): bool
 enddef
 
 def ConsoleWinID(): list<number>
+    # TODO This may be improved for allowing closing consoles from anywhere.
     # Return the windows ID where the console is displayed.
     # OBS! b:console_name does not exist for terminal windows!
     if ConsoleExists()

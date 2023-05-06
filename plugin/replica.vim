@@ -107,10 +107,12 @@ import autoload "../lib/repl.vim"
 # TODO: make imap and tmap to work.
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
             \ :call <SID>repl.ConsoleToggle()
+tnoremap <unique> <script> <Plug>ReplicaConsoleToggle
+            \ :call <SID>repl.ConsoleToggle()
 if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
     nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
     # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    tnoremap <silent> <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+    tmap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
