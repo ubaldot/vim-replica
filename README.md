@@ -98,6 +98,9 @@ g:replica_kernels = {"python": "python3",
                    \ "julia": "julia-1.8"}
 g:replica_cells_delimiters = { "python": "# %%",
                              \ "julia": "# %%"}
+g:replica_jupyter_console_options = {
+                    \ "python": "",
+                    \ "julia": ""}
 ```
 
 ## Adding new languages
