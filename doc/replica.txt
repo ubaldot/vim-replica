@@ -253,6 +253,7 @@ Say that a new language is associated to a certain 'filetype'.
 Then, you can add it to replica in two steps:
 
     1. Add a new key-value pair to the |g:replica_kernels|, |g:replica_names|,
+       |g:replica_jupyter_console_options|,
        |g:replica_cells_delimiters| and |g:replica_run_commands| dictionaries.
     2. Duplicate any existing vim-replica/ftplugin/*.vim file and rename it
        according to the newly included 'filetype'.

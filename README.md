@@ -108,6 +108,7 @@ Say that you want to add `foo` language to Replica.
 You proceed in two steps:
 
 1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
+  `g:replica_jupyter_console_options`,
   `g:replica_cells_delimiters` and `g:replica_run_commands` dictionaries.
    Take a look at `:h replica.txt` to understand how to set them.
 2. Duplicate any existing file in `vim-replica/ftplugin/` file and rename it
