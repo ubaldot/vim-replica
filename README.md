@@ -159,10 +159,18 @@ You should change the matplotlib backend. For example, you could use the magic
 
 #### Q. Is it possible to embed figures in the console?
 
-A: Nope. In general, you cannot display figures in terminal emulators, even if
-some hacks could allow you to do that (for example using imagemagick).
-For having inline figures, you should use GUI applications like QtConsole or
-classic Jupyter notebooks.
+A: I am not a fan of inline figures, so I haven't tested but I will try to
+give you an answer anyway.
+In general, you cannot display pictures in terminal emulators, but there are
+some that allows you to do that (I think kitty is one but there should be
+others out there).
+Hence, I think (but I may be wrong) it depends on if:
+
+ 1. The terminal emulator support that feature,
+ 2. The library that you are using allows inline figures.
+
+Again, I prefer floating, interactive figure, but it you succeed in displaying
+inline figures while using Replica, out of curiosity, please let us know. :)
 
 #### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
