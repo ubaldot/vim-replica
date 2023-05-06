@@ -165,11 +165,9 @@ You should change the matplotlib backend. For example, you could use the magic
 
 A: I am not a fan of inline figures, so I haven't tested but I will try to
 give you an answer anyway.
-
 In general, you cannot display pictures in terminal emulators, but there are
 some that allows you to do that (I think kitty is one but there should be
 others out there).
-
 Hence, to display inline figures I think that you need (but I may be wrong)
 the following:
 
