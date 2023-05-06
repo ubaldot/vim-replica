@@ -168,10 +168,11 @@ give you an answer anyway.
 In general, you cannot display pictures in terminal emulators, but there are
 some that allows you to do that (I think kitty is one but there should be
 others out there).
-Hence, I think (but I may be wrong) it depends on if:
+Hence, to display inline figures I think you need (but I may be wrong) the
+following:
 
- 1. The terminal emulator support that feature,
- 2. The library that you are using allows inline figures.
+ 1. A terminal emulator support that feature,
+ 2. A library that you are using allows inline figures.
 
 Again, I prefer floating, interactive figure, but it you succeed in displaying
 inline figures while using Replica, out of curiosity, please let us know. :)
