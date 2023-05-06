@@ -229,7 +229,8 @@ In the source code there are TODO items.
 Feel free to address any of them or propose your own change.
 
 ## Help
-`:h replica.txt`
+This Readme is a good start to gt some insight on Replica, but you can find
+more info in `:h replica.txt`,
 
 ## License
 Vim license.
