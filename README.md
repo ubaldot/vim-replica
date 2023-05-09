@@ -183,10 +183,13 @@ A: Replica commands work if executed from a buffer with a supported
 *filetype*. <br>
 That is, if you have an *IPYTHON* console displayed in a window and
 you call `:ReplicaConsoleToggle`  from a `text` *filetype* buffer, then
-nothing
-will happen.
-You can close the window where the console is running with standard
-Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
+nothing will happen.
+This because if you have a Python and a Julia console open and you are editing
+a .txt file, then which console should close? Python? Julia? Both?
+At the moment, you can close the window where the console is running with
+standard Vim commands such as `<c-w>q`, `:close`, `:$close`, etc.
+Such a behavior may change if there is a sufficiently large amount of users
+who wants that. :)
 
 #### Q. Is it possible to copy from the REPL to a buffer?
 

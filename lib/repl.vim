@@ -5,9 +5,9 @@ import autoload "../lib/highlight.vim"
 # State
 # ====================================
 # Init
+#
 var console_geometry = {"width": g:replica_console_width,
             \ "height": g:replica_console_height}
-
 
 # ====================================
 # Functions
@@ -29,32 +29,18 @@ enddef
 
 
 def ConsoleExists(): bool
-    # It only say if a console of this type is in the buffer list
-    # but not if it is in any window.
+    # Check if exists a console of a given filetype (i.e.calling buffer ft)
     if exists("b:console_name")
         return bufexists(bufnr('^' .. b:console_name .. '$'))
-    # In case you are on a console, then b:console_name does not exists,
-    # therefore you have to check if it is a terminal with some console name.
-    elseif getbufvar(bufnr(), '&buftype') == "terminal"
-          \ && index(values(g:replica_console_names), bufname("%")) != -1
-        return true
     else
         return false
     endif
 enddef
 
 def ConsoleWinID(): list<number>
-    # TODO This may be improved for allowing closing consoles from anywhere.
-    # Return the windows ID where the console is displayed.
-    # OBS! b:console_name does not exist for terminal windows!
+    # Return the windows ID where a console of a specific ft is displayed.
     if ConsoleExists()
-        if getbufvar(bufnr("%"), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname("%")) != -1
-            # If we are on a console, then the current buffer is the console
-            return win_findbuf(bufnr())
-        else
-            return win_findbuf(bufnr('^' .. b:console_name .. '$'))
-        endif
+        return win_findbuf(bufnr('^' .. b:console_name .. '$'))
     else
         return []
     endif
@@ -62,7 +48,10 @@ enddef
 
 
 def IsFiletypeSupported(): bool
-    return !empty(getbufvar('%', "kernel_name"))
+    # Use has_hey maybe is more clear?
+    # No, because if we are on a console it would return false.
+    # Terminal buffers have no filetype.
+    return !empty(getbufvar('%', "console_name"))
 enddef
 
 
@@ -77,6 +66,10 @@ def ConsoleOpen()
             setwinvar(win_getid(), 'start_cmd', start_cmd)
             win_execute(win_getid(), 'term_start(w:start_cmd,
                         \ {"term_name": b:console_name})' )
+            # We give console terminal buffer has b:console_name and
+            # b:kernel_name variable.
+            setbufvar(bufnr('$'), 'console_name', b:console_name)
+            setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
             console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
             win_execute(win_getid(), 'sbuffer '
@@ -96,22 +89,19 @@ enddef
 
 
 def ConsoleClose()
-    # TODO Modify and make all the REPL to close from wherever you are
-    # if IsFiletypeSupported() || getbufvar(bufnr(), '&buftype') == "terminal"
+    # TODO Modify and make all the REPL to close from wherever you are?
     if IsFiletypeSupported()
         for win in ConsoleWinID()
             SaveConsoleWindowSize(win)
             win_execute(win, "close")
         endfor
-    elseif getbufvar(bufnr(), '&buftype') == "terminal"
-                \ && index(values(g:replica_console_names), bufname()) != -1
-        wincmd c
     endif
 enddef
 
 
+# TODO: implement a full screen console feature?
+#
 export def ConsoleToggle()
-    # if IsFiletypeSupported() || getbufvar(bufnr(), '&buftype') == "terminal"
     if empty(ConsoleWinID())
         ConsoleOpen()
     else
@@ -121,10 +111,9 @@ enddef
 
 
 export def ConsoleShutoff()
-    for win in ConsoleWinID()
-        SaveConsoleWindowSize(win)
-        exe "bw! " .. winbufnr(win)
-    endfor
+    if ConsoleExists()
+        exe "bw! " .. bufnr('^' .. b:console_name .. '$')
+    endif
 enddef
 
 
