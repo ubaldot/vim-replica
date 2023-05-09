@@ -317,6 +317,9 @@ will happen.
 However, you can close the window where the console is running with standard
 Vim commands such as <c-w>q, :close, :$close, etc.
 
+Q. How do I know which kernel is running on a given console?
+A. Go on the open console, hit <c-w> and type :echo b:kernel_name.
+
 Q. Is it possible to automatically change the REPL folder when I change
 Vim folder?
 A. Yes, but you need to define your own function, something like

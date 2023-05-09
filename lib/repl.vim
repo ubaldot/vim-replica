@@ -1,19 +1,17 @@
 vim9script
 
 import autoload "../lib/highlight.vim"
-# ====================================
+
+# ---------------------------------------
 # State
-# ====================================
+# ---------------------------------------
 # Init
 #
 var console_geometry = {"width": g:replica_console_width,
             \ "height": g:replica_console_height}
 
-# ====================================
-# Functions
-# ====================================
 # ---------------------------------------
-# Functions for sending stuff to the REPL
+# Functions for dealing with the console
 # ---------------------------------------
 
 def ResizeConsoleWindow(console_win_id: number)
@@ -66,8 +64,8 @@ def ConsoleOpen()
             setwinvar(win_getid(), 'start_cmd', start_cmd)
             win_execute(win_getid(), 'term_start(w:start_cmd,
                         \ {"term_name": b:console_name})' )
-            # We give console terminal buffer has b:console_name and
-            # b:kernel_name variable.
+            # We give console terminal buffer b:console_name and
+            # b:kernel_name variables.
             setbufvar(bufnr('$'), 'console_name', b:console_name)
             setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
             console_win_id = win_findbuf(bufnr('$'))[0]
@@ -129,7 +127,9 @@ export def RemoveCells()
     endif
 enddef
 
-
+# ---------------------------------------
+# Functions for sending stuff to the REPL
+# ---------------------------------------
 export def SendLines(firstline: number, lastline: number)
     if IsFiletypeSupported()
         if !ConsoleExists()
