@@ -201,10 +201,6 @@ To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 A: Go on the open console, hit `<c-w>` and type `:echo b:kernel_name`.
 
-A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
-There you can yank everything you want.<br>
-To re-enable the REPL press `i` with the cursor located on the REPL window.
-
 #### Q. Is it possible to automatically change the REPL folder when I change
 #### Vim folder?
 
