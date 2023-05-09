@@ -236,7 +236,7 @@ In the source code there are TODO items.
 Feel free to address any of them or propose your own change.
 
 ## Help
-This README is a good start to gt some insight on Replica, but you can find
+This README is a good start to get some insights on Replica, but you can find
 more info in `:h replica.txt`.
 
 ## License
