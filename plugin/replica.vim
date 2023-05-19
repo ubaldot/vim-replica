@@ -28,6 +28,10 @@ if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
 
+if !exists('g:replica_python_options')
+    g:replica_python_options = ""
+endif
+
 if !exists('g:replica_console_position')
     g:replica_console_position = "L"
 elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
@@ -51,6 +55,12 @@ if !exists('g:replica_console_height')
     endif
 endif
 
+if !exists('g:replica_jupyter_console_options')
+    g:replica_jupyter_console_options = {
+                \ "python": "",
+                \ "julia": ""}
+endif
+
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
             \ "python": "python3",
@@ -68,6 +78,9 @@ var replica_run_commands_default = {
             \ "python": "run -i " .. g:replica_tmp_filename,
             \ "julia": 'include("' .. g:replica_tmp_filename .. '")'}
 
+var replica_jupyter_console_options_default = {
+            \ "python": "",
+            \ "julia": ""}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
@@ -78,15 +91,16 @@ if exists('g:replica_cells_delimiters')
     extend(replica_delimiters_default, g:replica_cells_delimiters, "force")
 endif
 
+if exists('g:replica_jupyter_console_options')
+    extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
+endif
+
 g:replica_kernels = replica_kernels_default
 g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 
 
-g:replica_jupyter_console_options = {
-            \ "python": "",
-            \ "julia": ""}
 
 # TODO at the moment the term is started directly with
 # jupyter console ... but a user may want to do something before opening the
