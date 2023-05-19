@@ -59,8 +59,10 @@ def ConsoleOpen()
     var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
-            var start_cmd = $"jupyter console --kernel={b:kernel_name} "
-                        \ .. b:jupyter_console_options
+            var start_cmd = "python " .. g:replica_python_options ..
+                \ $" -m jupyter console --kernel={b:kernel_name} "
+                \ .. b:jupyter_console_options
+            echom start_cmd
             setwinvar(win_getid(), 'start_cmd', start_cmd)
             win_execute(win_getid(), 'term_start(w:start_cmd,
                         \ {"term_name": b:console_name})' )

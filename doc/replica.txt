@@ -188,29 +188,49 @@ You can override existing key-values.
 For example, to use the kernel julia-2.0 when working with julia
 'filetype' you can use:    >
 
-    g:replica_kernels['julia': "julia-2.0"]
+    g:replica_kernels = {'julia': "julia-2.0"}
 <
 To see the list of installed jupyter kernels run jupyter kernelspec list
 from your terminal.
 Note: to add a new language in replica you need to do a bit more work than
 just editing this dictionary. See |ReplicaAddLanguages| for more information.
 
+                                        *g:replica_python_options*
+Type: 'string'
+Default: ""
+
+The command started for launching a jupyter console is
+>
+    var start_cmd = "python " .. g:replica_python_options ..
+        \ $" -m jupyter console --kernel={b:kernel_name} "
+        \ .. b:jupyter_console_options
+<
+This variable specifies what append to the python command when creating a
+new repl console depending on the 'filetype'. You could for example set:
+>
+    g:replica_python_options = "-Xfrozen_modules=off"
+<
 
                                         *g:replica_jupyter_console_options*
-  Type: 'dict'<'filetype', 'string'>
-  Default: { "python": "",
+Type: 'dict'<'filetype', 'string'>
+Default: { "python": "",
             \ "julia": ""}
 
-Specify options to append to jupyter console command when creating a new repl
-console. You could for example set:
+The command started for launching a jupyter console is
+
 >
-    g:replica_jupyter_console_option['julia': "--config=myconfig.py"]
+    var start_cmd = $"python " .. g:replica_python_options ..
+        \ " -m jupyter console --kernel={b:kernel_name} "
+        \ .. b:jupyter_console_options
+<
+
+This variable specifies what append to jupyter console command when creating a
+new repl console depending on the 'filetype'. You could for example set:
+>
+    g:replica_jupyter_console_options = {'julia': "--config=myconfig.py"}
 <
 See jupyter console --help for possible options.
 
-Associates 'filetype' to cell delimiters.
-You can change the cell delimiter associated to a 'filetype' simply by
-changing the value associated to such a 'filetype' key.
 
                                            *g:replica_cells_delimiters*
   Type: 'dict'<'filetype', 'string'>
