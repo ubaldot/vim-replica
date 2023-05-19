@@ -25,6 +25,7 @@ g:replica_enable_highlight	replica.txt	/*g:replica_enable_highlight*
 g:replica_jupyter_console_options	replica.txt	/*g:replica_jupyter_console_options*
 g:replica_kernels	replica.txt	/*g:replica_kernels*
 g:replica_names	replica.txt	/*g:replica_names*
+g:replica_python_options	replica.txt	/*g:replica_python_options*
 g:replica_run_commands	replica.txt	/*g:replica_run_commands*
 g:replica_tmp_filename	replica.txt	/*g:replica_tmp_filename*
 replica.txt	replica.txt	/*replica.txt*
