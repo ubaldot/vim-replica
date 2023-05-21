@@ -1,9 +1,5 @@
 vim9script
 
-# Nice attempt with source but it won't work.
-# exe "source " .. expand('%:h:h') .. "/lib/ft_common.vim"
-
-
 import autoload "../lib/highlight.vim"
 
 # The following variable won't change during run-time
