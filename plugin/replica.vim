@@ -1,4 +1,4 @@
-vim9script
+vim9script noclear
 
 # Vim plugin to get an outline of your scripts.
 # Maintainer:	Ubaldo Tiberi
@@ -120,9 +120,9 @@ import autoload "../lib/repl.vim"
 
 # TODO: make imap and tmap to work.
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :call <SID>repl.ConsoleToggle()
+            \ :vim9cmd <SID>repl.ConsoleToggle()
 tnoremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :call <SID>repl.ConsoleToggle()
+            \ :vim9cmd <SID>repl.ConsoleToggle()
 if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
     nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
     # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
@@ -130,7 +130,7 @@ if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
-            \ :call <SID>repl.SendLines(line('.'), line('.'))
+            \ :vim9cmd <SID>repl.SendLines(line('.'), line('.'))
 if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
     nmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
     # imap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
@@ -138,14 +138,14 @@ if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendFile
-            \ :call <SID>repl.SendFile()
+            \ :vim9cmd <SID>repl.SendFile()
 if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
     nmap <silent> <F5> <Plug>ReplicaSendFile<cr>
     # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
 endif
 
 noremap <unique> <script> <Plug>ReplicaSendCell
-            \ :call <SID>repl.SendCell()
+            \ :vim9cmd <SID>repl.SendCell()
 if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
     nmap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
     # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
@@ -156,35 +156,35 @@ endif
 #  Commands
 # -----------------------------
 if !exists(":ReplicaConsoleToggle")
-    command ReplicaConsoleToggle silent :call repl.ConsoleToggle()
+    command ReplicaConsoleToggle silent repl.ConsoleToggle()
 endif
 
 if !exists(":ReplicaConsoleRestart" )
-    command ReplicaConsoleRestart silent :call repl.ConsoleShutoff() |
+    command ReplicaConsoleRestart silent repl.ConsoleShutoff() |
             \ repl.ConsoleToggle()
 endif
 
 if !exists(":ReplicaConsoleShutoff")
     command -nargs=? ReplicaConsoleShutoff
-                \ :call repl.ConsoleShutoff(<f-args>)
+                \ repl.ConsoleShutoff(<f-args>)
 endif
 
 if !exists(":ReplicaSendLines")
     command -range ReplicaSendLines
-            \ :call repl.SendLines(<line1>, <line2>)
+            \ repl.SendLines(<line1>, <line2>)
 endif
 
 if !exists(":ReplicaSendCell")
-    command ReplicaSendCell :call repl.SendCell()
+    command ReplicaSendCell repl.SendCell()
 endif
 
 if !exists(":ReplicaSendFile")
     command -nargs=? -complete=file ReplicaSendFile
-                \ :call repl.SendFile(<f-args>)
+                \ repl.SendFile(<f-args>)
 endif
 
 if !exists(":ReplicaRemoveCells")
-    command ReplicaRemoveCells :call repl.RemoveCells()
+    command ReplicaRemoveCells repl.RemoveCells()
 endif
 
 augroup delete_tmp_file
