@@ -171,16 +171,16 @@ endif
 
 if !exists(":ReplicaSendLines")
     command -range ReplicaSendLines
-            \ repl.SendLines(<line1>, <line2>)
+            \ silent repl.SendLines(<line1>, <line2>)
 endif
 
 if !exists(":ReplicaSendCell")
-    command ReplicaSendCell repl.SendCell()
+    command ReplicaSendCell silent repl.SendCell()
 endif
 
 if !exists(":ReplicaSendFile")
     command -nargs=? -complete=file ReplicaSendFile
-                \ repl.SendFile(<f-args>)
+                \ silent repl.SendFile(<f-args>)
 endif
 
 if !exists(":ReplicaRemoveCells")

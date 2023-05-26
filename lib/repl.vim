@@ -62,7 +62,7 @@ def ConsoleOpen()
             var start_cmd = "python " .. g:replica_python_options ..
                 \ $" -m jupyter console --kernel={b:kernel_name} "
                 \ .. b:jupyter_console_options
-            echom start_cmd
+            echo b:console_name .. " console opening..."
             setwinvar(win_getid(), 'start_cmd', start_cmd)
             win_execute(win_getid(), 'term_start(w:start_cmd,
                         \ {"term_name": b:console_name})' )
@@ -114,6 +114,7 @@ export def ConsoleShutoff()
     if ConsoleExists()
         exe "bw! " .. bufnr('^' .. b:console_name .. '$')
     endif
+    echo $"Console {b:console_name} shutoff."
 enddef
 
 
@@ -124,6 +125,7 @@ export def RemoveCells()
                 deletebufline('%', ii)
             endif
         endfor
+        echo "Cells removed."
     else
         echo "vim-replica: filetype not supported!"
     endif
