@@ -240,4 +240,4 @@ This README is a good start to get some insights on Replica, but you can find
 more info in `:h replica.txt`.
 
 ## License
-Vim license.
+BSD3-Clause.
