@@ -2,7 +2,7 @@ vim9script noclear
 
 # Vim plugin to get an outline of your scripts.
 # Maintainer:	Ubaldo Tiberi
-# License: Vim license
+# License: BSD3-Clause
 # GetLatestVimScripts: 6067 1 :AutoInstall: replica.vim
 
 if !has('vim9script') ||  v:version < 900
