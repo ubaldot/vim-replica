@@ -133,6 +133,12 @@ The temp file that is used when using the command |:ReplicaSendCell| and
 |:ReplicaSendFile|.
 Note: This dictionary shall not be changed by the user!
 
+                                                  *g:replica_display_range*
+Type: 'bool'
+Default: true
+
+Display the range of the current cell in the command line.
+
                                                   *g:replica_enable_highlight*
 Type: 'bool'
 Default: true

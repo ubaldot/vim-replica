@@ -23,7 +23,7 @@ export def GetExtremes(display_range: bool = false): list<number>
         line_out = line("$")
     endif
     # Display range only if some cell has been found
-    if (line_in != 1 || line_out != line("$")) && display_range
+    if (line_in != 1 || line_out != line("$")) && display_range && g:replica_display_range
         echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
     endif
     return [line_in, line_out]

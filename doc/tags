@@ -21,6 +21,7 @@ g:replica_cells_delimiters	replica.txt	/*g:replica_cells_delimiters*
 g:replica_console_height	replica.txt	/*g:replica_console_height*
 g:replica_console_position	replica.txt	/*g:replica_console_position*
 g:replica_console_width	replica.txt	/*g:replica_console_width*
+g:replica_display_range	replica.txt	/*g:replica_display_range*
 g:replica_enable_highlight	replica.txt	/*g:replica_enable_highlight*
 g:replica_jupyter_console_options	replica.txt	/*g:replica_jupyter_console_options*
 g:replica_kernels	replica.txt	/*g:replica_kernels*
