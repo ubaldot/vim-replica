@@ -90,6 +90,7 @@ nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ## Basic Configuration
 ```
 # Default values
+g:replica_display_range = false
 g:replica_enable_highlight = true
 g:replica_console_position = "L"
 g:replica_console_height = &lines
