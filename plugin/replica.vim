@@ -20,6 +20,10 @@ g:replica_loaded = true
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
+if !exists('g:replica_use_default_mapping')
+    g:replica_use_default_mapping = false
+endif
+
 if !exists('g:replica_display_range')
     g:replica_display_range = true
 endif
