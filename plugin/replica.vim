@@ -137,7 +137,7 @@ noremap <unique> <script> <Plug>ReplicaSendFile
 noremap <unique> <script> <Plug>ReplicaSendCell
             \ :vim9cmd <SID>repl.SendCell()
 
-if g:replica_use_default_mapping ==# true
+if g:replica_use_default_mapping == true
     if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
         nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
         # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
