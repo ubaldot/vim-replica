@@ -127,32 +127,38 @@ noremap <unique> <script> <Plug>ReplicaConsoleToggle
             \ :vim9cmd <SID>repl.ConsoleToggle()
 tnoremap <unique> <script> <Plug>ReplicaConsoleToggle
             \ :vim9cmd <SID>repl.ConsoleToggle()
-if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
-    nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-    tmap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
-endif
 
 noremap <unique> <script> <Plug>ReplicaSendLines
             \ :vim9cmd <SID>repl.SendLines(line('.'), line('.'))
-if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
-    nmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-    # imap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-    xmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-endif
 
 noremap <unique> <script> <Plug>ReplicaSendFile
             \ :vim9cmd <SID>repl.SendFile()
-if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
-    nmap <silent> <F5> <Plug>ReplicaSendFile<cr>
-    # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
-endif
 
 noremap <unique> <script> <Plug>ReplicaSendCell
             \ :vim9cmd <SID>repl.SendCell()
-if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
-    nmap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
-    # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+
+if g:replica_use_default_mapping ==# true
+    if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
+        nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+        # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+        tmap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+    endif
+
+    if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
+        nmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+        # imap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+        xmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+    endif
+
+    if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
+        nmap <silent> <F5> <Plug>ReplicaSendFile<cr>
+        # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
+    endif
+
+    if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
+        nmap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+        # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+    endif
 endif
 
 
