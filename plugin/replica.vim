@@ -32,6 +32,10 @@ if !exists('g:replica_enable_highlight')
     g:replica_enable_highlight = true
 endif
 
+if !exists('g:replica_use_default_mapping')
+    g:replica_use_default_mapping = false
+endif
+
 if !exists('g:replica_alt_highlight')
     g:replica_alt_highlight = false
 endif
