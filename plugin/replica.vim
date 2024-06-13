@@ -149,7 +149,7 @@ if g:replica_use_default_mapping == true
     if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
         nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
         # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-        tmap <F2> <c-w><Plug>ReplicaConsoleToggle<cr>
+        tmap <F2> <silent> <c-w><Plug>ReplicaConsoleToggle<cr>
     endif
 
     if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))

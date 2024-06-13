@@ -113,8 +113,8 @@ enddef
 export def ConsoleShutoff()
     if ConsoleExists()
         exe "bw! " .. bufnr('^' .. b:console_name .. '$')
+        echo $"Console {b:console_name} shutoff."
     endif
-    echo $"Console {b:console_name} shutoff."
 enddef
 
 
