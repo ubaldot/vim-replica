@@ -72,7 +72,7 @@ jobs:
           systeminfo
           echo "Vim command setup."
           $VIMPRG=${{ steps.vim.outputs.executable }}
-          & $VIMPRG --version
+          # & $VIMPRG --version
           cd test
           echo "Done!"
 
