@@ -57,14 +57,13 @@ def g:Test_replica_basic()
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the söeeå
-  sleep 1
+  sleep 2
   redraw!
   var bufnr = term_list()[0]
   var lastline = LastIpythonNonBlankLine(bufnr)
 
   var expected_prompt = '[1]'
   assert_true(lastline =~# expected_prompt)
-  # WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   Cleanup_python_testfile()
 enddef
