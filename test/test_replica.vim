@@ -39,7 +39,7 @@ def LastIpythonNonBlankLine(bufnrr: number): string
     var current_buf = bufnr()
     exe $'buffer {bufnrr}'
     var lnum = line('$')
-    var lval = getbufoneline(bufnrr, lnum)
+    var lval = getbufline(bufnrr, lnum)[0]
     exe $'buffer {current_buf}'
 
     while lnum > 0 && getbufline(bufnrr, lnum)[0] =~ '^\s*$'
@@ -56,12 +56,12 @@ def g:Test_replica_basic()
   exe $"edit {src_name}"
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  # TODO: Check how to remove the söeeå
+  # TODO: Check how to remove the sleep
   sleep 2
   redraw!
+
   var bufnr = term_list()[0]
   var lastline = LastIpythonNonBlankLine(bufnr)
-
   var expected_prompt = '[1]'
   assert_true(lastline =~# expected_prompt)
 
