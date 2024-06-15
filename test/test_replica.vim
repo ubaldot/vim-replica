@@ -48,6 +48,7 @@ def g:Test_replica_basic()
   # TODO: Check how to remove the söeeå
   sleep 1
   redraw!
+  sleep 1
 
   var expected_prompt = '[1]'
   WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# expected_prompt))

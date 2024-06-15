@@ -1,1 +1,2 @@
-Test_replica_basic(): pass
+command line..script /Users/ubaldot/.vim/plugins/vim-replica/test/runner.vim[49]..function <SNR>19_RunTests[20]..Test_replica_basic[15]..<SNR>21_WaitForAssert[2]..<SNR>21_WaitForCommon[10]..<lambda>2 line 1: Expected True but got false
+Test_replica_basic(): FAIL
