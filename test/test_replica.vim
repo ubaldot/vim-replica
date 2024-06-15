@@ -45,10 +45,10 @@ def g:Test_replica_basic()
   var ipython_banner_length = 6
 
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # TODO: Check how to remove the söeeå
   sleep 1
-
-  # TODO: Wait for ipython startup
   redraw!
+
   var expected_prompt = '[1]'
   WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# expected_prompt))
 
