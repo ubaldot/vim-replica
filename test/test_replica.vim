@@ -41,15 +41,17 @@ def g:Test_replica_basic()
   filetype plugin indent on
   exe $"edit {src_name}"
   ReplicaConsoleToggle
+  var bufnr = term_list()[0]
+  var ipython_banner_length = 6
 
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # TODO: Wait for ipython startup
-  sleep 1
-  var bufnr = term_list()[0]
-  var ipython_banner_length = 6
-  var last_line =  term_getline(bufnr, ipython_banner_length + 1)
-  # WaitForAssert(() => assert_true(last_line =~# '[1]'))
+  redraw!
+  # sleep 1
+  # var last_line =  term_getline(bufnr, ipython_banner_length + 1)
+  # echom 'last_line: ' .. last_line
+  WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# '[1]'))
 
   Cleanup_python_testfile()
 enddef
