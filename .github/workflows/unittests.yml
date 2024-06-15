@@ -69,8 +69,10 @@ jobs:
 
       - name: Run Tests
         run: |
-          # systeminfo
-          set VIMPRG=${{ steps.vim.outputs.executable }}
+          systeminfo
+          $VIMPRG=${{ steps.vim.outputs.executable }}
           $VIMPRG --version
-          cd test
+          Set-Location -Path "test"
+          # & ".\run_tests.bat"
+          # cd test
           run_tests.bat
