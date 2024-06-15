@@ -9,7 +9,7 @@ SET VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE --noplugin -N --not-a-term
 
 %VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S runner.vim
 
-echo TERMDEBUG unit test results
+echo REPLICA unit test results
 type results.txt
 
 findstr /I FAIL results.txt > nul 2>&1
