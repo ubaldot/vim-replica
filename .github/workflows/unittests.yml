@@ -69,7 +69,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          systeminfo
+          # systeminfo
           $VIMPRG=${{ steps.vim.outputs.executable }}
           $VIMPRG --version
           Set-Location -Path "test"
