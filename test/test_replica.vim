@@ -57,7 +57,7 @@ def g:Test_replica_basic()
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the sleep
-  sleep 2
+  sleep 3
   redraw!
 
   var bufnr = term_list()[0]

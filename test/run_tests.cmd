@@ -4,7 +4,8 @@ REM Script to run the unit-tests for the TERMDEBUG Vim plugin on MS-Windows
 
 SETLOCAL
 SET VIMPRG="vim.exe"
-SET VIM_CMD=%VIMPRG% -u NONE -U NONE -i NONE --noplugin -N --not-a-term
+SET VIMRC="vimrc_for_tests"
+SET VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE --noplugin -N --not-a-term
 
 %VIM_CMD% -c "vim9cmd g:TestName='test_termdebug.vim'" -S runner.vim
 
