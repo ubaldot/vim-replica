@@ -72,7 +72,7 @@ jobs:
           # systeminfo
           $VIMPRG=${{ steps.vim.outputs.executable }}
           & $VIMPRG --version
-          Set-Location -Path "test"
+          # Set-Location -Path "test"
           # & ".\run_tests.bat"
-          # cd test
-          run_tests.bat
+          cd test
+          .\run_tests.cmd
