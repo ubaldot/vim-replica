@@ -35,23 +35,36 @@ def Cleanup_python_testfile()
    delete(src_name)
 enddef
 
+def LastIpythonNonBlankLine(bufnrr: number): string
+    var current_buf = bufnr()
+    exe $'buffer {bufnrr}'
+    var lnum = line('$')
+    var lval = getbufoneline(bufnrr, lnum)
+    exe $'buffer {current_buf}'
+
+    while lnum > 0 && getbufline(bufnrr, lnum)[0] =~ '^\s*$'
+        lnum -= 1
+        lval = getbufline(bufnrr, lnum)[0]
+    endwhile
+    return lval
+enddef
+
+# Tests start here
 def g:Test_replica_basic()
   Generate_python_testfile()
 
-  filetype plugin indent on
   exe $"edit {src_name}"
   ReplicaConsoleToggle
-  var bufnr = term_list()[0]
-  var ipython_banner_length = 6
-
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the söeeå
   sleep 1
   redraw!
-  sleep 1
+  var bufnr = term_list()[0]
+  var lastline = LastIpythonNonBlankLine(bufnr)
 
   var expected_prompt = '[1]'
-  WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# expected_prompt))
+  assert_true(lastline =~# expected_prompt)
+  # WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   Cleanup_python_testfile()
 enddef
