@@ -1,9 +1,9 @@
 name: unit-tests
 on: [push, pull_request]
 jobs:
-  linux:
-    name: linux
-    runs-on: ubuntu-latest
+  unit_test:
+    name: unit_test
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         vim:
