@@ -71,10 +71,9 @@ jobs:
         run: |
           systeminfo
           echo "Vim command setup."
-          $VIMPRG=${{ steps.vim.outputs.executable }}
+          # $VIMPRG=${{ steps.vim.outputs.executable }}
           # & $VIMPRG --version
           cd test
           echo "Done!"
 
-          # TODO windows tests hang
-           # .\run_tests.cmd
+          .\run_tests.cmd
