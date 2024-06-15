@@ -51,7 +51,8 @@ def g:Test_replica_basic()
   # sleep 1
   # var last_line =  term_getline(bufnr, ipython_banner_length + 1)
   # echom 'last_line: ' .. last_line
-  WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# '[1]'))
+  var expected_prompt = '[1]'
+  WaitForAssert(() => assert_true(term_getline(bufnr, ipython_banner_length + 1) =~# expected_prompt))
 
   Cleanup_python_testfile()
 enddef
