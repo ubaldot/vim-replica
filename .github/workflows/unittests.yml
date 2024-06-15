@@ -74,6 +74,4 @@ jobs:
           # $VIMPRG=${{ steps.vim.outputs.executable }}
           # & $VIMPRG --version
           cd test
-          echo "Done!"
-
           .\run_tests.cmd

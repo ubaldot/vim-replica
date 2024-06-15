@@ -7,7 +7,7 @@ SET VIMPRG="vim.exe"
 SET VIMRC="vimrc_for_tests"
 SET VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE --noplugin -N --not-a-term
 
-%VIM_CMD% -c "vim9cmd g:TestName='test_termdebug.vim'" -S runner.vim
+%VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S runner.vim
 
 echo TERMDEBUG unit test results
 type results.txt
