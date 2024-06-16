@@ -71,6 +71,8 @@ jobs:
         run: |
           systeminfo
           echo "Vim command setup."
+          $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
+          & $Env:VIMPRG --version
           # $VIMPRG=${{ steps.vim.outputs.executable }}
           # & $VIMPRG --version
           cd test

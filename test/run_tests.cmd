@@ -1,6 +1,6 @@
 @echo off
 
-REM Script to run the unit-tests for the TERMDEBUG Vim plugin on MS-Windows
+REM Script to run the unit-tests for the REPLICA Vim plugin on MS-Windows
 
 SETLOCAL
 SET VIMPRG="vim.exe"
