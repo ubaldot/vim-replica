@@ -18,10 +18,9 @@ if [ -z "$VIM_PRG" ]; then
   fi
 fi
 
-touch VIMRC
+# Setup dummy VIMRC file
 echo "set runtimepath+=.." >> VIMRC
 echo "filetype plugin on" >> VIMRC
-# VIMRC="vimrc_for_tests"
 
 # VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term'
 VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term'
@@ -38,6 +37,7 @@ RunTestsInFile() {
   if ! [ -f results.txt ]; then
     echo "ERROR: Test results file 'results.txt' is not found."
 	if [ "$GITHUB" -eq 1 ]; then
+	   rm VIMRC
 	   exit 2
 	fi
   fi
@@ -47,6 +47,7 @@ RunTestsInFile() {
   if grep -qw FAIL results.txt; then
     echo "ERROR: Some test(s) in $testfile failed."
 	if [ "$GITHUB" -eq 1 ]; then
+	rm VIMRC
 	  exit 3
 	fi
   fi

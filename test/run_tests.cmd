@@ -7,6 +7,10 @@ SET "VIMPRG=vim.exe"
 SET "VIMRC=vimrc_for_tests"
 SET "VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE -N --not-a-term"
 
+REM Create a temporary vimrc with runtimepath setting
+echo set runtimepath^+=. > %VIMRC%
+echo filetype plugin on >> %VIMRC%
+
 REM Run Vim command with unit test configuration
 %VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S runner.vim
 
@@ -15,6 +19,7 @@ if %ERRORLEVEL% EQU 0 (
     echo Vim command executed successfully.
 ) else (
     echo ERROR: Vim command failed with exit code %ERRORLEVEL%.
+    del %VIMRC%
     exit /b 1
 )
 
@@ -26,10 +31,12 @@ REM Check for FAIL in results.txt
 findstr /I "FAIL" results.txt > nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo ERROR: Some test failed.
+    del %VIMRC%
     exit /b 1
 ) else (
     echo All tests passed.
 )
 
 REM Exit script with success
+del %VIMRC%
 exit /b 0
