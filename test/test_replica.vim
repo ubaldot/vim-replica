@@ -24,29 +24,12 @@ def Generate_python_testfile()
         # %%
 
         d = a -b
-
-        # %%
-        print('last_line')
   END
    writefile(lines, src_name)
 enddef
 
 def Cleanup_python_testfile()
    delete(src_name)
-enddef
-
-def LastIpythonNonBlankLine(bufnrr: number): string
-    var current_buf = bufnr()
-    exe $'buffer {bufnrr}'
-    var lnum = line('$')
-    var lval = getbufline(bufnrr, lnum)[0]
-    exe $'buffer {current_buf}'
-
-    while lnum > 0 && getbufline(bufnrr, lnum)[0] =~ '^\s*$'
-        lnum -= 1
-        lval = getbufline(bufnrr, lnum)[0]
-    endwhile
-    return lval
 enddef
 
 # Tests start here
@@ -57,6 +40,7 @@ def g:Test_replica_basic()
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the sleep
+  # It must be very generous otherwise the CI tests won't pass.
   sleep 4
   redraw!
 
@@ -64,9 +48,45 @@ def g:Test_replica_basic()
   var cursor = term_getcursor(bufnr)
   var lastline = term_getline(bufnr, cursor[0])
 
-  # var lastline = LastIpythonNonBlankLine(bufnr)
   var expected_prompt = '[1]'
   assert_true(lastline =~# expected_prompt)
+
+  # ReplicaSendCell
+  # {prompt_in_ipython_console: line_in_src_buffer}
+  var prompts_lines = {2: 4, 3: 7, 4: 9}
+
+  for [prompt, line] in items(prompts_lines)
+      ReplicaSendCell
+      sleep 2
+      redraw!
+      expected_prompt = prompt
+      cursor = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, cursor[0])
+      WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+      assert_true(line('.') == line)
+  endfor
+
+  # ReplicaSendLine
+  cursor(1, 1)
+  prompts_lines = {5: 2, 6: 3}
+
+  for [prompt, line] in items(prompts_lines)
+      ReplicaSendLine
+      sleep 1
+      redraw!
+      expected_prompt = prompt
+      cursor = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, cursor[0])
+      WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+      assert_true(line('.') == line)
+  endfor
+
+  # Double Toggle
+  ReplicaConsoleToggle
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+  ReplicaConsoleToggle
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   Cleanup_python_testfile()
 enddef

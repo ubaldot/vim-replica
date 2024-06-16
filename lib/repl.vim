@@ -93,7 +93,7 @@ def ConsoleClose()
     if IsFiletypeSupported()
         for win in ConsoleWinID()
             SaveConsoleWindowSize(win)
-            win_execute(win, "close")
+            win_execute(win, "close!")
         endfor
     endif
 enddef
