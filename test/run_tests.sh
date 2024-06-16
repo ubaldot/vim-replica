@@ -18,7 +18,10 @@ if [ -z "$VIM_PRG" ]; then
   fi
 fi
 
-VIMRC="vimrc_for_tests"
+touch VIMRC
+echo "set runtimepath+=.." >> VIMRC
+echo "filetype plugin on" >> VIMRC
+# VIMRC="vimrc_for_tests"
 
 # VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term'
 VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term'
@@ -62,6 +65,7 @@ echo "SUCCESS: All the tests passed."
 if [ "$GITHUB" -eq 1 ]; then
   exit 0
 fi
-# kill %- > /dev/null
 
+rm VIMRC
+# kill %- > /dev/null
 # vim: shiftwidth=2 softtabstop=2 noexpandtab

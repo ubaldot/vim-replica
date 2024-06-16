@@ -5,7 +5,7 @@ REM Script to run the unit-tests for the REPLICA Vim plugin on MS-Windows
 SETLOCAL
 SET "VIMPRG=vim.exe"
 SET "VIMRC=vimrc_for_tests"
-SET "VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE --noplugin -N --not-a-term"
+SET "VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE -N --not-a-term"
 
 REM Run Vim command with unit test configuration
 %VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S runner.vim
