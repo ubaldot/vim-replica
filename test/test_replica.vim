@@ -61,8 +61,10 @@ def g:Test_replica_basic()
   redraw!
 
   var bufnr = term_list()[0]
+  var cursor = term_getcursor(bufnr)
+  var lastline = term_getline(bufnr, cursor[0])
 
-  var lastline = LastIpythonNonBlankLine(bufnr)
+  # var lastline = LastIpythonNonBlankLine(bufnr)
   var expected_prompt = '[1]'
   assert_true(lastline =~# expected_prompt)
 
