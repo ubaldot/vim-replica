@@ -90,7 +90,7 @@ def g:Test_replica_basic()
 
   # Restart kernel
   ReplicaConsoleRestart
-  sleep 4
+  sleep 5
   redraw!
   bufnr = term_list()[0]
   term_cursor = term_getcursor(bufnr)
