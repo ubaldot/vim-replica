@@ -19,11 +19,13 @@ if [ -z "$VIM_PRG" ]; then
 fi
 
 # Setup dummy VIMRC file
-echo "set runtimepath+=.." >> VIMRC
-echo "filetype plugin on" >> VIMRC
+VIMRC="VIMRC"
+echo "set runtimepath+=.." > "$VIMRC"
+echo "filetype plugin on" >> "$VIMRC"
 
-# VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term'
-VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term'
+# Construct the VIM_CMD with correct variable substitution and quoting
+# VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term"
+VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term"
 
 # Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
 TESTS="test_replica.vim"
@@ -67,6 +69,6 @@ if [ "$GITHUB" -eq 1 ]; then
   exit 0
 fi
 
-rm VIMRC
+rm "$VIMRC"
 # kill %- > /dev/null
 # vim: shiftwidth=2 softtabstop=2 noexpandtab
