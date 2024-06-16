@@ -45,8 +45,8 @@ def g:Test_replica_basic()
   redraw!
 
   var bufnr = term_list()[0]
-  var cursor = term_getcursor(bufnr)
-  var lastline = term_getline(bufnr, cursor[0])
+  var term_cursor = term_getcursor(bufnr)
+  var lastline = term_getline(bufnr, term_cursor[0])
 
   var expected_prompt = '[1]'
   assert_true(lastline =~# expected_prompt)
@@ -60,8 +60,8 @@ def g:Test_replica_basic()
       sleep 2
       redraw!
       expected_prompt = prompt
-      cursor = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, cursor[0])
+      term_cursor = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, term_cursor[0])
       WaitForAssert(() => assert_true(lastline =~# expected_prompt))
       assert_true(line('.') == line)
   endfor
@@ -75,8 +75,8 @@ def g:Test_replica_basic()
       sleep 1
       redraw!
       expected_prompt = prompt
-      cursor = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, cursor[0])
+      term_cursor = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, term_cursor[0])
       WaitForAssert(() => assert_true(lastline =~# expected_prompt))
       assert_true(line('.') == line)
   endfor
@@ -87,6 +87,21 @@ def g:Test_replica_basic()
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+
+  # Restart kernel
+  ReplicaConsoleRestart
+  sleep 4
+  redraw!
+  bufnr = term_list()[0]
+  term_cursor = term_getcursor(bufnr)
+  lastline = term_getline(bufnr, term_cursor[0])
+  expected_prompt = '[1]'
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+
+  # Shutoff
+  ReplicaConsoleShutoff
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   Cleanup_python_testfile()
 enddef
