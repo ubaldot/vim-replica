@@ -10,9 +10,16 @@ SET "VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE -N --not-a-term"
 
 REM Create or overwrite the vimrc file with the initial setting
 echo set runtimepath+=. > "%VIMRC%"
-
-REM Append additional settings to the vimrc file
 echo filetype plugin on >> "%VIMRC%"
+
+REM Check if the vimrc file was created successfully
+if NOT EXIST "%VIMRC%" (
+    echo "ERROR: Failed to create %VIMRC%"
+    exit /b 1
+)
+
+REM Display the contents of VIMRC (for debugging purposes)
+type "%VIMRC%"
 
 REM Run Vim with the specified configuration and additional commands
 %VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S "runner.vim"
