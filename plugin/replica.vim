@@ -69,30 +69,30 @@ endif
 
 if !exists('g:replica_jupyter_console_options')
     g:replica_jupyter_console_options = {
-                \ "python": "",
-                \ "julia": ""}
+                python: "",
+                julia: ""}
 endif
 
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
-            \ "python": "python3",
-            \ "julia": "julia-1.8"}
+             python: "python3",
+             julia: "julia-1.8"}
 
 var replica_console_names_default = {
-            \ "python": "IPYTHON",
-            \ "julia": "JULIA"}
+            python: "IPYTHON",
+            julia: "JULIA"}
 
 var replica_cells_delimiters_default = {
-            \ "python": "# %%",
-            \ "julia": "# %%"}
+            python: "# %%",
+            julia: "# %%"}
 
 var replica_run_commands_default = {
-            \ "python": "run -i " .. g:replica_tmp_filename,
-            \ "julia": 'include("' .. g:replica_tmp_filename .. '")'}
+            python: "run -i " .. g:replica_tmp_filename,
+            julia: 'include("' .. g:replica_tmp_filename .. '")'}
 
 var replica_jupyter_console_options_default = {
-            \ "python": "",
-            \ "julia": ""}
+            python: "",
+            julia: ""}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
