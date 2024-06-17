@@ -96,7 +96,6 @@ def g:Test_replica_basic()
   ReplicaRemoveCells
   WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
-
   # Restart kernel
   ReplicaConsoleRestart
   sleep 5
@@ -105,6 +104,18 @@ def g:Test_replica_basic()
   term_cursor = term_getcursor(bufnr)
   lastline = term_getline(bufnr, term_cursor[0])
   expected_prompt = '[1]'
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+
+  # ReplicaSendFile
+  ReplicaSendFile
+  sleep 3
+  redraw!
+  term_cursor = term_getcursor(bufnr)
+  lastline = term_getline(bufnr, term_cursor[0])
+  expected_prompt = '[2]'
+  echom lastline
+  sleep 2
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
