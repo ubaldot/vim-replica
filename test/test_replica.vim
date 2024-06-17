@@ -37,6 +37,8 @@ def g:Test_replica_basic()
   Generate_python_testfile()
 
   exe $"edit {src_name}"
+
+  # Start console
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the sleep
@@ -84,9 +86,16 @@ def g:Test_replica_basic()
   # Double Toggle
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(1, winnr('$')))
+  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
   ReplicaConsoleToggle
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+
+  # Remove cells
+  ReplicaRemoveCells
+  WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
+
 
   # Restart kernel
   ReplicaConsoleRestart
@@ -101,6 +110,7 @@ def g:Test_replica_basic()
 
   # Shutoff
   ReplicaConsoleShutoff
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   Cleanup_python_testfile()
