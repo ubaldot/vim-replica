@@ -32,21 +32,6 @@ If you like this plugin you may also want to take a look at
 Replica is entirely written in _Vim9script_, hence you need at least Vim 9.0
 compiled with `python3` support.
 
-<!-- To figure out if your Vim is compatible, run `:echo has('python3')`. -->
-<!-- If the answer is `1` then you should be set. <br> -->
-<!-- If you are using Windows, please be sure that Python and Vim are both 32-
-or -->
-<!-- 64-bit.<br> -->
-
-<!-- Each REPL is a [jupyter
-console](https://github.com/jupyter/jupyter_console) -->
-<!-- initiated with a specific -->
-<!-- [kernel](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) running
-in a -->
-<!-- *terminal* buffer and for each *filetype* Replica provides you with one
--->
-<!-- available REPL to send text in. -->
-
 You also need [jupyter console](https://github.com/jupyter/jupyter_console)
 and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) of
 the languages you would like to use.<br><br> That is pretty much all.
@@ -101,13 +86,13 @@ g:replica_enable_highlight = true
 g:replica_console_position = "L"
 g:replica_console_height = &lines
 g:replica_console_width = floor(&columns/2)
-g:replica_kernels = {"python": "python3",
-                   \ "julia": "julia-1.8"}
-g:replica_cells_delimiters = { "python": "# %%",
-                             \ "julia": "# %%"}
+g:replica_kernels = {python: "python3",
+                   julia: "julia-1.8"}
+g:replica_cells_delimiters = { python: "# %%",
+                             julia: "# %%"}
 g:replica_jupyter_console_options = {
-                    \ "python": "",
-                    \ "julia": ""}
+                    python: "",
+                    julia: ""}
 ```
 
 ## Adding new languages
@@ -213,9 +198,9 @@ following:
 def ChangeTerminalDir()
     for ii in term_list()
         if bufname(ii) == "JULIA"
-           term_sendkeys(ii, 'cd("' .. getcwd() .. '")' .. "\n")
+           term_sendkeys(ii, $'cd {getcwd()}\n")
         else
-           term_sendkeys(ii, "cd " .. getcwd() .. "\n")
+           term_sendkeys(ii, $'cd {getcwd()}\n')
         endif
     endfor
 enddef
