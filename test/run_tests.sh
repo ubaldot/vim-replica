@@ -18,10 +18,14 @@ if [ -z "$VIM_PRG" ]; then
   fi
 fi
 
-VIMRC="vimrc_for_tests"
+# Setup dummy VIMRC file
+VIMRC="VIMRC"
+echo "set runtimepath+=.." > "$VIMRC"
+echo "filetype plugin on" >> "$VIMRC"
 
-# VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term'
-VIM_CMD='$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term'
+# Construct the VIM_CMD with correct variable substitution and quoting
+# VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term"
+VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term"
 
 # Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
 TESTS="test_replica.vim"
@@ -35,6 +39,7 @@ RunTestsInFile() {
   if ! [ -f results.txt ]; then
     echo "ERROR: Test results file 'results.txt' is not found."
 	if [ "$GITHUB" -eq 1 ]; then
+	   rm VIMRC
 	   exit 2
 	fi
   fi
@@ -44,6 +49,7 @@ RunTestsInFile() {
   if grep -qw FAIL results.txt; then
     echo "ERROR: Some test(s) in $testfile failed."
 	if [ "$GITHUB" -eq 1 ]; then
+	rm VIMRC
 	  exit 3
 	fi
   fi
@@ -62,6 +68,7 @@ echo "SUCCESS: All the tests passed."
 if [ "$GITHUB" -eq 1 ]; then
   exit 0
 fi
-# kill %- > /dev/null
 
+rm "$VIMRC"
+# kill %- > /dev/null
 # vim: shiftwidth=2 softtabstop=2 noexpandtab
