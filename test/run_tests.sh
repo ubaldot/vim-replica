@@ -19,6 +19,8 @@ if [ -z "$VIM_PRG" ]; then
 fi
 
 # Setup dummy VIMRC file
+# OBS: You can also run the following lines in the test file because it is
+# source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
 echo "set runtimepath+=.." > "$VIMRC"
 echo "filetype plugin on" >> "$VIMRC"
@@ -48,14 +50,13 @@ RunTestsInFile() {
 
   if grep -qw FAIL results.txt; then
     echo "ERROR: Some test(s) in $testfile failed."
-	if [ "$GITHUB" -eq 1 ]; then
-	rm VIMRC
-	  exit 3
-	fi
+		if [ "$GITHUB" -eq 1 ]; then
+			exit 3
+		fi
+	else
+		echo "SUCCESS: All the tests in $testfile passed."
+		echo
   fi
-
-  echo "SUCCESS: All the tests in $testfile passed."
-  echo
 }
 
 for testfile in $TESTS
