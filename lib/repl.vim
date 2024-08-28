@@ -5,14 +5,39 @@ import autoload "../lib/highlight.vim"
 # ---------------------------------------
 # State
 # ---------------------------------------
-# Init
 #
-var console_geometry = {"width": g:replica_console_width,
-            \ "height": g:replica_console_height}
+var console_geometry = {}
 
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
+
+def Init()
+  if !exists('g:replica_console_position')
+      g:replica_console_position = "L"
+  elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
+      echoerr "g:replica_console_position must be one of HJKL"
+  endif
+
+  if !exists('g:replica_console_width')
+      if index(["H", "L"], g:replica_console_position) >= 0
+          g:replica_console_width = &columns / 2
+      else
+          g:replica_console_width = &columns
+      endif
+  endif
+
+  if !exists('g:replica_console_height')
+      if index(["H", "L"], g:replica_console_position) >= 0
+          g:replica_console_height = &lines
+      else
+          g:replica_console_height = &lines / 4
+      endif
+  endif
+
+  console_geometry = {width: g:replica_console_width,
+    height: g:replica_console_height}
+enddef
 
 def ResizeConsoleWindow(console_win_id: number)
     win_execute(console_win_id, 'resize ' .. console_geometry["height"])
@@ -52,25 +77,29 @@ def IsFiletypeSupported(): bool
     return !empty(getbufvar('%', "console_name"))
 enddef
 
-
 def ConsoleOpen()
     # If console does not exist, then create one,
     # otherwise, if it is hidden, just display it.
     var console_win_id = 0
     if IsFiletypeSupported()
         if !ConsoleExists()
-            var start_cmd = "python " .. g:replica_python_options ..
-                \ $" -m jupyter console --kernel={b:kernel_name} "
-                \ .. b:jupyter_console_options
-            echo b:console_name .. " console opening..."
-            setwinvar(win_getid(), 'start_cmd', start_cmd)
-            win_execute(win_getid(), 'term_start(w:start_cmd,
-                        \ {"term_name": b:console_name})' )
-            # We give console terminal buffer b:console_name and
-            # b:kernel_name variables.
-            setbufvar(bufnr('$'), 'console_name', b:console_name)
-            setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
-            console_win_id = win_findbuf(bufnr('$'))[0]
+           # first start
+           if empty(console_geometry)
+             Init()
+           endif
+
+           var start_cmd = "python " .. g:replica_python_options ..
+               \ $" -m jupyter console --kernel={b:kernel_name} "
+               \ .. b:jupyter_console_options
+           echo b:console_name .. " console opening..."
+           setwinvar(win_getid(), 'start_cmd', start_cmd)
+           win_execute(win_getid(), 'term_start(w:start_cmd,
+                       \ {term_name: b:console_name})' )
+           # We give console terminal buffer b:console_name and
+           # b:kernel_name variables.
+           setbufvar(bufnr('$'), 'console_name', b:console_name)
+           setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
+           console_win_id = win_findbuf(bufnr('$'))[0]
         elseif empty(ConsoleWinID())
             win_execute(win_getid(), 'sbuffer '
                         \ .. bufnr('^' .. b:console_name .. '$'))
@@ -126,6 +155,7 @@ export def RemoveCells()
             endif
         endfor
         echo "Cells removed."
+
     else
         echo "vim-replica: filetype not supported!"
     endif

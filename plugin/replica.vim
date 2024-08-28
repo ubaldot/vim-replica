@@ -16,13 +16,11 @@ if exists('g:replica_loaded')
 endif
 g:replica_loaded = true
 
+# Other config parameters are handled in repl.Init()
+
 # TODO: think if you can avoid using it as a g: variable
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
-
-if !exists('g:replica_use_default_mapping')
-    g:replica_use_default_mapping = false
-endif
 
 if !exists('g:replica_display_range')
     g:replica_display_range = true
@@ -30,10 +28,6 @@ endif
 
 if !exists('g:replica_enable_highlight')
     g:replica_enable_highlight = true
-endif
-
-if !exists('g:replica_use_default_mapping')
-    g:replica_use_default_mapping = false
 endif
 
 if !exists('g:replica_alt_highlight')
@@ -44,27 +38,8 @@ if !exists('g:replica_python_options')
     g:replica_python_options = ""
 endif
 
-if !exists('g:replica_console_position')
-    g:replica_console_position = "L"
-elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
-    echoerr "g:replica_console_position must be one of HJKL"
-endif
-
-
-if !exists('g:replica_console_width')
-    if index(["H", "L"], g:replica_console_position) >= 0
-        g:replica_console_width = floor(&columns / 2)
-    else
-        g:replica_console_width = &columns
-    endif
-endif
-
-if !exists('g:replica_console_height')
-    if index(["H", "L"], g:replica_console_position) >= 0
-        g:replica_console_height = &lines
-    else
-        g:replica_console_height = 10
-    endif
+if !exists('g:replica_use_default_mapping')
+    g:replica_use_default_mapping = false
 endif
 
 if !exists('g:replica_jupyter_console_options')
@@ -111,8 +86,6 @@ g:replica_kernels = replica_kernels_default
 g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
-
-
 
 # TODO at the moment the term is started directly with
 # jupyter console ... but a user may want to do something before opening the
@@ -183,8 +156,7 @@ if !exists(":ReplicaConsoleRestart" )
 endif
 
 if !exists(":ReplicaConsoleShutoff")
-    command -nargs=? ReplicaConsoleShutoff
-                \ repl.ConsoleShutoff(<f-args>)
+    command ReplicaConsoleShutoff repl.ConsoleShutoff()
 endif
 
 if !exists(":ReplicaSendLines")
