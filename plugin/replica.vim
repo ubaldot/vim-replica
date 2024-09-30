@@ -105,39 +105,39 @@ import autoload "../lib/repl.vim"
 
 # TODO: make imap and tmap to work.
 noremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :vim9cmd <SID>repl.ConsoleToggle()
+            \ <ScriptCmd>repl.ConsoleToggle()<cr>
 tnoremap <unique> <script> <Plug>ReplicaConsoleToggle
-            \ :vim9cmd <SID>repl.ConsoleToggle()
+            \ <ScriptCmd>repl.ConsoleToggle()<cr>
 
 noremap <unique> <script> <Plug>ReplicaSendLines
-            \ :vim9cmd <SID>repl.SendLines(line('.'), line('.'))
+            \ <ScriptCmd>repl.SendLines(line('.'), line('.'))<cr>
 
 noremap <unique> <script> <Plug>ReplicaSendFile
-            \ :vim9cmd <SID>repl.SendFile()
+            \ <ScriptCmd>repl.SendFile()<cr>
 
 noremap <unique> <script> <Plug>ReplicaSendCell
-            \ :vim9cmd <SID>repl.SendCell()
+            \ <ScriptCmd>repl.SendCell()<cr>
 
 if g:replica_use_default_mapping == true
     if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
-        nmap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
+        nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle
         # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
-        tmap <F2> <silent> <c-w><Plug>ReplicaConsoleToggle<cr>
+        tnoremap <F2> <silent> <c-w><Plug>ReplicaConsoleToggle
     endif
 
     if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
-        nmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+        nnoremap <silent> <unique> <F9> <Plug>ReplicaSendLines
         # imap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
-        xmap <silent> <unique> <F9> <Plug>ReplicaSendLines<cr>
+        xnoremap <silent> <unique> <F9> :ReplicaSendLines<cr>j
     endif
 
     if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
-        nmap <silent> <F5> <Plug>ReplicaSendFile<cr>
+        nnoremap <silent> <F5> <Plug>ReplicaSendFile
         # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
     endif
 
     if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
-        nmap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
+        nnoremap <silent> <c-enter> <Plug>ReplicaSendCell
         # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
     endif
 endif
