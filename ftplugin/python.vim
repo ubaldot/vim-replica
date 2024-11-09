@@ -22,3 +22,5 @@ endif
 
 # # Why <buffer>? Read here:
 # https://vi.stackexchange.com/questions/8056/for-an-autocmd-in-a-ftplugin-should-i-use-pattern-matching-or-buffer
+#
+ftcommands_mappings.FtCommandsMappings()

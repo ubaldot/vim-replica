@@ -39,7 +39,7 @@ def g:Test_replica_basic()
   exe $"edit {src_name}"
 
   # Start console
-  ReplicaConsoleToggle
+  exe ":ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the sleep
   # It must be very generous otherwise the CI tests won't pass.
@@ -58,7 +58,7 @@ def g:Test_replica_basic()
   var prompts_lines = {2: 4, 3: 7, 4: 9}
 
   for [prompt, line] in items(prompts_lines)
-      ReplicaSendCell
+      exe ":ReplicaSendCell"
       sleep 2
       redraw!
       expected_prompt = prompt
@@ -73,7 +73,7 @@ def g:Test_replica_basic()
   prompts_lines = {5: 2, 6: 3}
 
   for [prompt, line] in items(prompts_lines)
-      ReplicaSendLine
+      exe ":ReplicaSendLine"
       sleep 1
       redraw!
       expected_prompt = prompt
@@ -84,20 +84,20 @@ def g:Test_replica_basic()
   endfor
 
   # Double Toggle
-  ReplicaConsoleToggle
+  exe ":ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  ReplicaConsoleToggle
+  exe ":ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
 
   # Remove cells
-  ReplicaRemoveCells
+  exe ":ReplicaRemoveCells"
   WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
   # Restart kernel
-  ReplicaConsoleRestart
+  exe ":ReplicaConsoleRestart"
   sleep 5
   redraw!
   bufnr = term_list()[0]
@@ -108,7 +108,7 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   # ReplicaSendFile
-  ReplicaSendFile
+  exe ":ReplicaSendFile"
   sleep 3
   redraw!
   term_cursor = term_getcursor(bufnr)
@@ -120,7 +120,7 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   # Shutoff
-  ReplicaConsoleShutoff
+  exe ":ReplicaConsoleShutoff"
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
