@@ -12,11 +12,19 @@ var console_geometry = {}
 # Functions for dealing with the console
 # ---------------------------------------
 
+def Echoerr(msg: string)
+  echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
+enddef
+
+def Echowarn(msg: string)
+  echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
+enddef
+
 def Init()
   if !exists('g:replica_console_position')
     g:replica_console_position = "L"
   elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
-    echoerr "g:replica_console_position must be one of HJKL"
+    Echoerr("'g:replica_console_position' must be one of 'HJKL'")
   endif
 
   if !exists('g:replica_console_width')
@@ -162,7 +170,7 @@ export def RemoveCells()
     echo "Cells removed."
 
   else
-    echo "vim-replica: filetype not supported!"
+    Echowarn("filetype not supported!")
   endif
 enddef
 
@@ -182,7 +190,7 @@ export def SendLines(firstline: number, lastline: number)
     # TODO: avoid the following when firstline and lastline are passed
     norm! j^
   else
-    echo "vim-replica: filetype not supported!"
+    Echowarn("filetype not supported!")
   endif
 enddef
 
@@ -205,7 +213,7 @@ export def SendCell()
     term_sendkeys(bufnr('^' .. b:console_name .. '$'),
           \ b:run_command .. "\n")
   else
-    echo "vim-replica: filetype not supported!"
+    Echowarn("filetype not supported!")
   endif
 enddef
 
@@ -229,7 +237,7 @@ export def SendFile(...filename: list<string>)
     term_sendkeys(bufnr('^' .. b:console_name .. '$'),
           \ b:run_command .. "\n")
   else
-    echo "vim-replica: filetype not supported!"
+    Echowarn("filetype not supported!")
   endif
 
   # Remove temp buffer

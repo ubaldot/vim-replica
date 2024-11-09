@@ -1,6 +1,7 @@
 vim9script
 
 import autoload "../lib/highlight.vim"
+import "../lib/ftcommands_mappings.vim"
 
 # The following variable won't change during run-time
 b:kernel_name = g:replica_kernels[&filetype]
