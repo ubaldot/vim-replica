@@ -43,7 +43,7 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
   # TODO: Check how to remove the sleep
   # It must be very generous otherwise the CI tests won't pass.
-  sleep 4
+  sleep 6
   redraw!
 
   var bufnr = term_list()[0]

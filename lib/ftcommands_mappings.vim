@@ -7,18 +7,18 @@ import autoload "../lib/repl.vim"
 #  ------------
 # TODO: make imap and tmap to work.
 export def FtCommandsMappings()
-  noremap   <Plug>ReplicaConsoleToggle
+  noremap <buffer> <Plug>ReplicaConsoleToggle
               \ <ScriptCmd>repl.ConsoleToggle()<cr>
-  tnoremap   <Plug>ReplicaConsoleToggle
+  tnoremap <buffer>  <Plug>ReplicaConsoleToggle
               \ <ScriptCmd>repl.ConsoleToggle()<cr>
 
-  noremap   <Plug>ReplicaSendLines
+  noremap <buffer> <Plug>ReplicaSendLines
               \ <ScriptCmd>repl.SendLines(line('.'), line('.'))<cr>
 
-  noremap   <Plug>ReplicaSendFile
+  noremap <buffer>  <Plug>ReplicaSendFile
               \ <ScriptCmd>repl.SendFile()<cr>
 
-  noremap   <Plug>ReplicaSendCell
+  noremap <buffer> <Plug>ReplicaSendCell
               \ <ScriptCmd>repl.SendCell()<cr>
 
   if g:replica_use_default_mapping == true
@@ -29,18 +29,18 @@ export def FtCommandsMappings()
       endif
 
       if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
-          nnoremap <silent>  <F9> <Plug>ReplicaSendLines
+          nnoremap <buffer>  <silent>  <F9> <Plug>ReplicaSendLines
           # imap <silent>  <F9> <Plug>ReplicaSendLines<cr>
-          xnoremap <silent>  <F9> :ReplicaSendLines<cr>j
+          xnoremap <buffer> <silent>  <F9> :ReplicaSendLines<cr>j
       endif
 
       if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
-          nnoremap <silent> <F5> <Plug>ReplicaSendFile
+          nnoremap <buffer> <silent> <F5> <Plug>ReplicaSendFile
           # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
       endif
 
       if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
-          nnoremap <silent> <c-enter> <Plug>ReplicaSendCell
+          nnoremap <buffer> <silent> <c-enter> <Plug>ReplicaSendCell
           # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
       endif
   endif
