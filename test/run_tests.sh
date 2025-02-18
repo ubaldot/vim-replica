@@ -27,7 +27,7 @@ echo "filetype plugin on" >> "$VIMRC"
 
 # Construct the VIM_CMD with correct variable substitution and quoting
 # VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term"
-VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE -N --not-a-term"
+VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
 
 # Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
 TESTS="test_replica.vim"

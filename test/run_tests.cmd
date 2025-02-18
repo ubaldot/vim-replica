@@ -6,7 +6,7 @@ SETLOCAL
 REM Define the paths and files
 SET "VIMPRG=vim.exe"
 SET "VIMRC=vimrc_for_tests"
-SET "VIM_CMD=%VIMPRG% -u %VIMRC% -U NONE -i NONE -N --not-a-term"
+SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N --not-a-term"
 
 REM Create or overwrite the vimrc file with the initial setting
 echo set runtimepath+=.. > "%VIMRC%"
@@ -22,7 +22,7 @@ REM Display the contents of VIMRC (for debugging purposes)
 type "%VIMRC%"
 
 REM Run Vim with the specified configuration and additional commands
-%VIM_CMD% -c "vim9cmd g:TestName='test_replica.vim'" -S "runner.vim"
+%VIM_CMD% -c "vim9cmd g:TestName = 'test_replica.vim'" -S "runner.vim"
 
 REM Check the exit code of Vim command
 if %ERRORLEVEL% EQU 0 (
