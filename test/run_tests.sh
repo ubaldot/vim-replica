@@ -23,6 +23,7 @@ fi
 # source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
 echo "set runtimepath+=.." > "$VIMRC"
+echo "set runtimepath+=../after" >> "$VIMRC"
 echo "filetype plugin on" >> "$VIMRC"
 
 # Construct the VIM_CMD with correct variable substitution and quoting
