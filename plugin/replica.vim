@@ -11,10 +11,13 @@ if !has('vim9script') ||  v:version < 900
     finish
 endif
 
-if exists('g:replica_loaded')
+if exists('g:replica_loaded') && g:replica_loaded
     finish
 endif
 g:replica_loaded = true
+
+import "../autoload/ftcommands_mappings.vim"
+import "../autoload/highlight.vim"
 
 # Other config parameters are handled in repl.Init()
 
@@ -98,6 +101,34 @@ g:replica_run_commands = replica_run_commands_default
 #             \ "julia": ""}
 
 
-augroup delete_tmp_file
+# The following variable won't change during run-time
+def SetBufferVars()
+  if index(keys(g:replica_kernels), &filetype) != -1
+    b:kernel_name = g:replica_kernels[&filetype]
+    b:console_name = g:replica_console_names[&filetype]
+    b:cells_delimiter = g:replica_cells_delimiters[&filetype]
+    b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
+    b:run_command = g:replica_run_commands[&filetype]
+
+    if g:replica_enable_highlight
+        augroup highlight_cells
+            autocmd! * <buffer>
+            autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer>
+                        \ highlight.HighlightCell()
+            autocmd CursorMoved,CursorMovedI <buffer>
+                        \ highlight.HighlightCell(true)
+        augroup END
+    endif
+
+    # Mappings are set only to buffer of allowed filetype
+    ftcommands_mappings.FtCommandsMappings()
+  endif
+enddef
+
+augroup REPLICA_SET_BUFFER_VARS
+    autocmd FileType * SetBufferVars()
+augroup END
+
+augroup REPLICA_DELETE_TMP_FILE
     autocmd VimLeave * delete(g:replica_tmp_filename)
 augroup END

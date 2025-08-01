@@ -1,6 +1,6 @@
 vim9script
 
-import autoload "../lib/highlight.vim"
+import "../autoload/highlight.vim"
 
 # ---------------------------------------
 # State
@@ -124,6 +124,10 @@ def ConsoleOpen()
     win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
     win_execute(console_win_id, 'setlocal nobuflisted winminheight
           \ winminwidth')
+    # TODO: remove in newer versions
+    if exists('+winfixbuf')
+      win_execute(console_win_id, 'setlocal winfixbuf')
+    endif
     # Set geometry
     ResizeConsoleWindow(console_win_id)
   endif
