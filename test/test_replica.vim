@@ -32,6 +32,23 @@ def Cleanup_python_testfile()
    delete(src_name)
 enddef
 
+def WaitPrompt(expected_prompt: string)
+  # Wait for Jupyter Console to be up and running
+  const bufnr = term_list()[0]
+  var term_cursor_pos = term_getcursor(bufnr)
+  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
+
+  var count = 0
+  const max_count = 15
+  while term_cursor !~ expected_prompt && count < max_count
+    redraw!
+    term_cursor_pos = term_getcursor(bufnr)
+    term_cursor = term_getline(bufnr, term_cursor_pos[0])
+    count += 1
+    sleep 1
+  endwhile
+enddef
+
 # Tests start here
 def g:Test_replica_basic()
   Generate_python_testfile()
@@ -41,30 +58,28 @@ def g:Test_replica_basic()
   # Start console
   exe ":ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  # TODO: Check how to remove the sleep
-  # It must be very generous otherwise the CI tests won't pass.
-  sleep 6
-  redraw!
 
   var bufnr = term_list()[0]
-  var term_cursor = term_getcursor(bufnr)
-  var lastline = term_getline(bufnr, term_cursor[0])
-
+  var term_cursor_pos = term_getcursor(bufnr)
+  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
   var expected_prompt = '[1]'
-  assert_true(lastline =~# expected_prompt)
+  WaitPrompt(expected_prompt)
+
+  term_cursor_pos = term_getcursor(bufnr)
+  var lastline = term_getline(bufnr, term_cursor_pos[0])
+  assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
   var prompts_lines = {2: 4, 3: 7, 4: 9}
 
   for [prompt, line] in items(prompts_lines)
-      exe ":ReplicaSendCell"
-      sleep 2
-      redraw!
       expected_prompt = prompt
-      term_cursor = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, term_cursor[0])
-      WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+      exe ":ReplicaSendCell"
+      WaitPrompt($'[{prompt}]')
+      term_cursor_pos = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, term_cursor_pos[0])
+      assert_true(lastline =~# expected_prompt)
       assert_true(line('.') == line)
   endfor
 
@@ -74,12 +89,11 @@ def g:Test_replica_basic()
 
   for [prompt, line] in items(prompts_lines)
       exe ":ReplicaSendLine"
-      sleep 1
-      redraw!
+      WaitPrompt($'[{prompt}]')
       expected_prompt = prompt
-      term_cursor = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, term_cursor[0])
-      WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+      term_cursor_pos = term_getcursor(bufnr)
+      lastline = term_getline(bufnr, term_cursor_pos[0])
+      assert_true(lastline =~# expected_prompt)
       assert_true(line('.') == line)
   endfor
 
@@ -98,24 +112,20 @@ def g:Test_replica_basic()
 
   # Restart kernel
   exe ":ReplicaConsoleRestart"
-  sleep 5
-  redraw!
-  bufnr = term_list()[0]
-  term_cursor = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor[0])
   expected_prompt = '[1]'
+  WaitPrompt(expected_prompt)
+  bufnr = term_list()[0]
+  term_cursor_pos = term_getcursor(bufnr)
+  lastline = term_getline(bufnr, term_cursor_pos[0])
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   # ReplicaSendFile
   exe ":ReplicaSendFile"
-  sleep 3
-  redraw!
-  term_cursor = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor[0])
   expected_prompt = '[2]'
-  echom lastline
-  sleep 2
+  WaitPrompt(expected_prompt)
+  term_cursor_pos = term_getcursor(bufnr)
+  lastline = term_getline(bufnr, term_cursor_pos[0])
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
