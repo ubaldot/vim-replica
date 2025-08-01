@@ -144,9 +144,11 @@ def g:Test_python_basic()
 enddef
 
 def g:Test_unsupported_filetypes()
+  # Test switching buffers of supported and unsupprted filetypes
 
-  const src_name = 'testfile.txt'
-  const lines =<< trim END
+  # Generate text file
+  const text_filename = 'text_testfile.txt'
+  const text_file_lines =<< trim END
       This is nothing, but just a simple text file used
       for the purpose of testing this plugin.
 
@@ -154,16 +156,59 @@ def g:Test_unsupported_filetypes()
       Bye.
   END
 
-  Generate_testfile(lines, src_name)
-  exe $"edit {src_name}"
+  Generate_testfile(text_file_lines, text_filename)
+  exe $"edit {text_filename}"
 
   # Start console and fail, since 'text' filetype is not supported
   assert_fails('ReplicaConsoleToggle', 'E492:')
-
   # Check that the buffer variables are not set
-  assert_true(empty(getbufvar(bufnr(), "kernel_name")))
-  assert_true(empty(getbufvar(bufnr(), "console_name")))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
+
+  # Generate python file
+  const python_filename = 'python_testfile.py'
+  const python_file_lines =<< trim END
+      a = 2
+      b = 3
+
+      c = a + b
+  END
+
+  Generate_testfile(python_file_lines, python_filename)
+
+  # Edit python file
+  exe $"edit {python_filename}"
+
+  # Check that the buffer variables are set
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitPrompt('[1]')
+
+  # switch buffer: python -> text
+  exe "bnext"
+
+  # Start console and fail, since 'text' filetype is not supported
+  assert_fails('ReplicaConsoleToggle', 'E492:')
+  # Check that the buffer variables are not set
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
+
+  # switch buffer: text -> python
+  exe "bnext"
+
+  # Check that the buffer variables are set
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+  # Close console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  exe "ReplicaConsoleShutoff"
 
   :%bw!
-  Cleanup_testfile(src_name)
+  Cleanup_testfile(python_filename)
+  Cleanup_testfile(text_filename)
 enddef
