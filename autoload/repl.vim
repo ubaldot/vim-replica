@@ -1,6 +1,6 @@
 vim9script
 
-import autoload "../lib/highlight.vim"
+import "../autoload/highlight.vim"
 
 # ---------------------------------------
 # State

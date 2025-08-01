@@ -16,8 +16,8 @@ if exists('g:replica_loaded') && g:replica_loaded
 endif
 g:replica_loaded = true
 
-import "../lib/ftcommands_mappings.vim"
-import "../lib/highlight.vim"
+import "../autoload/ftcommands_mappings.vim"
+import "../autoload/highlight.vim"
 
 # Other config parameters are handled in repl.Init()
 

@@ -1,6 +1,6 @@
 vim9script
 
-import autoload "../lib/repl.vim"
+import "../autoload/repl.vim"
 
 #  ------------
 #  Mappings
