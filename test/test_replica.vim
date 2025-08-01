@@ -39,7 +39,7 @@ def WaitPrompt(expected_prompt: string)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
 
   var count = 0
-  const max_count = 15
+  const max_count = 10
   while term_cursor !~ expected_prompt && count < max_count
     redraw!
     term_cursor_pos = term_getcursor(bufnr)
@@ -56,7 +56,7 @@ def g:Test_replica_basic()
   exe $"edit {src_name}"
 
   # Start console
-  exe ":ReplicaConsoleToggle"
+  exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   var bufnr = term_list()[0]
@@ -75,7 +75,7 @@ def g:Test_replica_basic()
 
   for [prompt, line] in items(prompts_lines)
       expected_prompt = prompt
-      exe ":ReplicaSendCell"
+      exe "ReplicaSendCell"
       WaitPrompt($'[{prompt}]')
       term_cursor_pos = term_getcursor(bufnr)
       lastline = term_getline(bufnr, term_cursor_pos[0])
@@ -88,7 +88,7 @@ def g:Test_replica_basic()
   prompts_lines = {5: 2, 6: 3}
 
   for [prompt, line] in items(prompts_lines)
-      exe ":ReplicaSendLine"
+      exe "ReplicaSendLine"
       WaitPrompt($'[{prompt}]')
       expected_prompt = prompt
       term_cursor_pos = term_getcursor(bufnr)
@@ -98,20 +98,20 @@ def g:Test_replica_basic()
   endfor
 
   # Double Toggle
-  exe ":ReplicaConsoleToggle"
+  exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  exe ":ReplicaConsoleToggle"
+  exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
 
   # Remove cells
-  exe ":ReplicaRemoveCells"
+  exe "ReplicaRemoveCells"
   WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
   # Restart kernel
-  exe ":ReplicaConsoleRestart"
+  exe "ReplicaConsoleRestart"
   expected_prompt = '[1]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
@@ -121,7 +121,7 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   # ReplicaSendFile
-  exe ":ReplicaSendFile"
+  exe "ReplicaSendFile"
   expected_prompt = '[2]'
   WaitPrompt(expected_prompt)
   term_cursor_pos = term_getcursor(bufnr)
@@ -130,7 +130,7 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
   # Shutoff
-  exe ":ReplicaConsoleShutoff"
+  exe "ReplicaConsoleShutoff"
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
