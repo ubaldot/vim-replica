@@ -120,6 +120,7 @@ def SetBufferVars()
         augroup END
     endif
 
+    # Mappings are set only to buffer of allowed filetype
     ftcommands_mappings.FtCommandsMappings()
   endif
 enddef

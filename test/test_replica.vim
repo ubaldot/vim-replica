@@ -3,6 +3,8 @@ vim9script
 # Test for the vim-replica plugin
 # Copied and adjusted from Vim distribution
 
+# OBS! Sometimes these tests fail!
+
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
@@ -11,24 +13,11 @@ if jupyter_console->empty()
   throw 'Skipped: jupyter_console is not found in $PATH'
 endif
 
-var src_name = 'testfile.py'
-
-def Generate_python_testfile()
-  var lines =<< trim END
-        a = 4
-        b = 5
-
-        # %%
-        c = a + b
-
-        # %%
-
-        d = a -b
-  END
+def Generate_testfile(lines: list<string>, src_name: string)
    writefile(lines, src_name)
 enddef
 
-def Cleanup_python_testfile()
+def Cleanup_testfile(src_name: string)
    delete(src_name)
 enddef
 
@@ -50,10 +39,26 @@ def WaitPrompt(expected_prompt: string)
 enddef
 
 # Tests start here
-def g:Test_replica_basic()
-  Generate_python_testfile()
+def g:Test_python_basic()
 
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+        a = 4
+        b = 5
+
+        # %%
+        c = a + b
+
+        # %%
+
+        d = a -b
+  END
+
+  Generate_testfile(lines, src_name)
   exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "kernel_name")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -134,5 +139,31 @@ def g:Test_replica_basic()
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  Cleanup_python_testfile()
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
+
+def g:Test_unsupported_filetypes()
+
+  const src_name = 'testfile.txt'
+  const lines =<< trim END
+      This is nothing, but just a simple text file used
+      for the purpose of testing this plugin.
+
+      Nothing more than that.
+      Bye.
+  END
+
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
+
+  # Start console and fail, since 'text' filetype is not supported
+  assert_fails('ReplicaConsoleToggle', 'E492:')
+
+  # Check that the buffer variables are not set
+  assert_true(empty(getbufvar(bufnr(), "kernel_name")))
+  assert_true(empty(getbufvar(bufnr(), "console_name")))
+
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
