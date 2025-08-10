@@ -11,10 +11,10 @@ if !has('vim9script') ||  v:version < 900
     finish
 endif
 
-if exists('g:replica_loaded') && g:replica_loaded
+if exists('g:loaded_replica') && g:loaded_replica
     finish
 endif
-g:replica_loaded = true
+g:loaded_replica = true
 
 import "../autoload/ftcommands_mappings.vim"
 import "../autoload/highlight.vim"
