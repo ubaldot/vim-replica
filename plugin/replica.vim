@@ -1,4 +1,4 @@
-vim9script noclear
+vim9script
 
 # Vim plugin to get an outline of your scripts.
 # Maintainer:	Ubaldo Tiberi
@@ -11,9 +11,6 @@ if !has('vim9script') ||  v:version < 900
     finish
 endif
 
-if exists('g:loaded_replica') && g:loaded_replica
-    finish
-endif
 g:loaded_replica = true
 
 import "../autoload/ftcommands_mappings.vim"
