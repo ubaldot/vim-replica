@@ -75,7 +75,7 @@ if exists('g:replica_kernels')
 endif
 
 if exists('g:replica_cells_delimiters')
-    extend(replica_delimiters_default, g:replica_cells_delimiters, "force")
+    extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
 endif
 
 if exists('g:replica_jupyter_console_options')
