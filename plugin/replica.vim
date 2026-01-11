@@ -16,6 +16,9 @@ g:loaded_replica = true
 import "../autoload/ftcommands_mappings.vim"
 import "../autoload/highlight.vim"
 
+# export const replica_path = expand('<sfile>:h:h')
+# echom replica_path
+
 # Other config parameters are handled in repl.Init()
 
 # TODO: think if you can avoid using it as a g: variable
