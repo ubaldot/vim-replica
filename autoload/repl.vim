@@ -13,10 +13,9 @@ const replica_path = expand('<sfile>:h:h')
 # ---------------------------------------
 #
 var console_geometry = {}
-var out_buf: string
-var prompt_action: string
-var ipython_prompt: string
-
+var ipython_prompt = '^In\s\[\d\+\]:\s$'
+# Needed for reconstructing the messages from the terminal
+var current_line = ''
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
@@ -54,10 +53,6 @@ def Init()
 
   console_geometry = {width: g:replica_console_width,
     height: g:replica_console_height}
-
-  out_buf = ''
-  prompt_action = ''
-  ipython_prompt = '^In\s\[\d\+\]:\s$'
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)
@@ -121,45 +116,42 @@ enddef
 # enddef
 
 def HandleLine(line: string)
-  echom 'line: ' .. line
   # For the variable_inspector
-  # if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+  if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
 
-  #   var payload = line[len('__VIM_PAYLOAD__') : -1]
-  #   var decoded = blob2str(base64_decode(payload))
+    var payload = line[len('__VIM_PAYLOAD__') : -1]
+    var decoded = blob2str(base64_decode(payload))
 
-  #   # Example: show in a scratch buffer
-  #   vnew
-  #   var buf = bufnr('$')
-  #   setbufvar(buf, '&buftype', 'nofile')
-  #   setbufvar(buf, '&swapfile', 0)
-  #   setbufline(buf, 1, decoded)
-  # endif
+    # Example: show in a scratch buffer
+    vnew
+    var buf = bufnr('$')
+    setbufvar(buf, '&buftype', 'nofile')
+    setbufvar(buf, '&swapfile', 0)
+    setbufline(buf, 1, decoded)
+  endif
 
-  # # Prompt is ready. Do something
-  # if line =~ ipython_prompt
-  #   if prompt_action == 'init'
-  #     SendInitScript($"{replica_path}/python/ipython_init.py")
-  #     prompt_action = ''
-  #   endif
-  # endif
+  # Prompt is ready. Do something
+  if line =~ ipython_prompt
+    SendInitScript($"{replica_path}/python/ipython_init.py")
+  endif
 enddef
 
 
-var current_line = ''
 def NormalizeBytes(msg: string): string
   var msg_cleaned = msg
     # 1. Drop ALL UTF-16 padding bytes
     ->substitute('\%x00', '', 'g')
-    # 2. Strip ANSI escapes
+    # 2. Strip ANSI escapes (from chat-gpt)
     ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 
   return msg_cleaned
 enddef
 
 def FeedChars(chars: string)
+  # Accumulate received chars into 'current_line' until \n or \r,
+  # (i.e. reconstruct line-by-line the messages from the terminal).
   for ch in chars
-    if ch == "\r" || ch == "\n" || current_line =~ "^In\s\[\d\+]\s:$"
+    if ch == "\r" || ch == "\n"
       HandleLine(current_line)
       current_line = ''
     else
@@ -171,9 +163,13 @@ enddef
 def ReplicaOutCb(_: channel, msg: string)
   FeedChars(NormalizeBytes(msg))
 
-  if current_line =~# ipython_prompt
+  # Process last line (the one not followed by \r or \n, which is generally
+  # the prompt)
+  if !empty(current_line)
+    if current_line =~# ipython_prompt
       HandleLine(current_line)
-      current_line = ''
+    endif
+    current_line = ''
   endif
 enddef
 
