@@ -57,7 +57,7 @@ def Init()
 
   out_buf = ''
   prompt_action = ''
-  ipython_prompt = 'In\s\[\d\+\]:\s$'
+  ipython_prompt = '^In\s\[\d\+\]:\s$'
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)
@@ -147,18 +147,19 @@ enddef
 
 
 var current_line = ''
-
 def NormalizeBytes(msg: string): string
-  # 1. Drop ALL UTF-16 padding bytes
-  var s = substitute(msg, "\x00", '', 'g')
+  var msg_cleaned = msg
+    # 1. Drop ALL UTF-16 padding bytes
+    ->substitute('\%x00', '', 'g')
+    # 2. Strip ANSI escapes
+    ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 
-  # 2. Strip ANSI escapes
-  return substitute(s, '\e\[[0-9;?]*[@-~]', '', 'g')
+  return msg_cleaned
 enddef
 
 def FeedChars(chars: string)
   for ch in chars
-    if ch == "\r"
+    if ch == "\r" || ch == "\n" || current_line =~ "^In\s\[\d\+]\s:$"
       HandleLine(current_line)
       current_line = ''
     else
@@ -169,6 +170,11 @@ enddef
 
 def ReplicaOutCb(_: channel, msg: string)
   FeedChars(NormalizeBytes(msg))
+
+  if current_line =~# ipython_prompt
+      HandleLine(current_line)
+      current_line = ''
+  endif
 enddef
 
 def ConsoleOpen()
