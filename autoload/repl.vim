@@ -121,91 +121,55 @@ enddef
 # enddef
 
 def HandleLine(line: string)
+  echom 'line: ' .. line
   # For the variable_inspector
-  if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+  # if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
 
-    var payload = line[len('__VIM_PAYLOAD__') : -1]
-    var decoded = blob2str(base64_decode(payload))
+  #   var payload = line[len('__VIM_PAYLOAD__') : -1]
+  #   var decoded = blob2str(base64_decode(payload))
 
-    # Example: show in a scratch buffer
-    vnew
-    var buf = bufnr('$')
-    setbufvar(buf, '&buftype', 'nofile')
-    setbufvar(buf, '&swapfile', 0)
-    setbufline(buf, 1, decoded)
-  endif
+  #   # Example: show in a scratch buffer
+  #   vnew
+  #   var buf = bufnr('$')
+  #   setbufvar(buf, '&buftype', 'nofile')
+  #   setbufvar(buf, '&swapfile', 0)
+  #   setbufline(buf, 1, decoded)
+  # endif
 
-  # Prompt is ready. Do something
-  if line =~ ipython_prompt
-    if prompt_action == 'init'
-      SendInitScript($"{replica_path}/python/ipython_init.py")
-      prompt_action = ''
-    endif
-  endif
+  # # Prompt is ready. Do something
+  # if line =~ ipython_prompt
+  #   if prompt_action == 'init'
+  #     SendInitScript($"{replica_path}/python/ipython_init.py")
+  #     prompt_action = ''
+  #   endif
+  # endif
 enddef
 
-var pending_cr = false
-def NormalizeStream(msg: string): string
-  var out = ''
-  var i = 0
 
-  while i < len(msg)
-    var ch = msg[i]
+var current_line = ''
 
-    # NUL = UTF-16 padding, ignore
-    if ch == "\x00"
-      i += 1
-      continue
-    endif
+def NormalizeBytes(msg: string): string
+  # 1. Drop ALL UTF-16 padding bytes
+  var s = substitute(msg, "\x00", '', 'g')
 
-    # CR = line terminator (may be split across chunks)
+  # 2. Strip ANSI escapes
+  return substitute(s, '\e\[[0-9;?]*[@-~]', '', 'g')
+enddef
+
+def FeedChars(chars: string)
+  for ch in chars
     if ch == "\r"
-      out ..= "\n"
-      pending_cr = false
-      i += 1
-      continue
+      HandleLine(current_line)
+      current_line = ''
+    else
+      current_line ..= ch
     endif
-
-    # Any printable character
-    out ..= ch
-    i += 1
-  endwhile
-
-  # Strip ANSI escapes last
-  return substitute(out, '\e\[[0-9;?]*[@-~]', '', 'g')
+  endfor
 enddef
 
-def ReplicaOutCb(job: channel, msg: string)
-  # stdout can send garbage, like
-  #
-  # In [1
-  # ]:
-  #
-  # Depending on the terminal, the OS, etc.
-  # We have to reconstruct the message line-by-line by capturing the actual \n
-
-  # Accumulate and get rid of the terminal garbage
-  # echom "msg: " .. msg
-  out_buf ..= NormalizeStream(msg)
-  # echom "msg_normalized: " .. out_buf
-
-  while true
-
-    var new_line_idx = stridx(out_buf, "\n")
-    if new_line_idx < 0
-      echom "entered here!"
-      break
-    endif
-
-    var line = out_buf[: new_line_idx - 1]->substitute('\%x00', '', 'g')
-    out_buf = out_buf[new_line_idx + 1 :]
-
-    echom "line: " .. line
-
-    HandleLine(line)
-  endwhile
+def ReplicaOutCb(_: channel, msg: string)
+  FeedChars(NormalizeBytes(msg))
 enddef
-
 
 def ConsoleOpen()
   # If console does not exist, then create one,
