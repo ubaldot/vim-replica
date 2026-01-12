@@ -121,7 +121,6 @@ enddef
 # enddef
 
 def HandleLine(line: string)
-  echom line
   # For the variable_inspector
   if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
 
@@ -145,81 +144,36 @@ def HandleLine(line: string)
   endif
 enddef
 
-# def NormalizeStream(msg: string): string
-#   # Remove terminal garbage such as ^[[09182l^M^@ and such
-#   var msg_normalized = msg
-#     # ->substitute('[\x0]', '', 'g')
-#     # ->substitute('\r\n', '\n', 'g')
-#     ->substitute('\r', '\n', 'g')
-#     ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
-
-#   # echom "msg_normalized: " .. msg_normalized
-#   return msg_normalized
-# enddef
-
+var pending_cr = false
 def NormalizeStream(msg: string): string
-  if msg =~ '\%x00'
-    return msg
-      # Strip ANSI escapes
-      ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
-      # Remove UTF-16 padding
-      ->substitute('\%x00', '', 'g')
-      # Windows console emits CR (UTF-16)
-      ->substitute('\r', '\n', 'g')
-  else
-    return msg
-      ->substitute('\r\n', '\n', 'g')
-      ->substitute('\r', '\n', 'g')
-      ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
-  endif
+  var out = ''
+  var i = 0
+
+  while i < len(msg)
+    var ch = msg[i]
+
+    # NUL = UTF-16 padding, ignore
+    if ch == "\x00"
+      i += 1
+      continue
+    endif
+
+    # CR = line terminator (may be split across chunks)
+    if ch == "\r"
+      out ..= "\n"
+      pending_cr = false
+      i += 1
+      continue
+    endif
+
+    # Any printable character
+    out ..= ch
+    i += 1
+  endwhile
+
+  # Strip ANSI escapes last
+  return substitute(out, '\e\[[0-9;?]*[@-~]', '', 'g')
 enddef
-# def ReplicaOutCb(job: channel, msg: string)
-#   # 1. Normalize and accumulate
-#   out_buf ..= NormalizeStream(msg)
-
-#   echom out_buf
-
-#   # 2. Process as long as something meaningful exists
-#   while true
-#   #   # ---- Payload start ----
-#   #   if !s:in_payload
-#   #     var idx = stridx(s:out_buf, '__VIM_PAYLOAD__')
-#   #     if idx >= 0
-#   #       s:out_buf = s:out_buf[idx + strlen('__VIM_PAYLOAD__') :]
-#   #       s:payload_buf = ''
-#   #       s:in_payload = true
-#   #       continue
-#   #     endif
-#   #   endif
-
-#   #   # ---- Payload end ----
-#   #   if s:in_payload
-#   #     var idx = stridx(s:out_buf, '__END__')
-#   #     if idx >= 0
-#   #       s:payload_buf ..= s:out_buf[: idx - 1]
-#   #       s:out_buf = s:out_buf[idx + strlen('__END__') :]
-#   #       s:in_payload = false
-#   #       HandlePayload(s:payload_buf)
-#   #       s:payload_buf = ''
-#   #       continue
-#   #     endif
-
-#   #     # Still inside payload, consume everything
-#   #     s:payload_buf ..= s:out_buf
-#   #     s:out_buf = ''
-#   #     break
-#   #   endif
-
-#     # ---- Prompt detection ----
-#     if out_buf =~ ipython_prompt
-#       HandlePromptReady()
-#       break
-#     endif
-
-#     # Nothing more to process
-#     break
-#   endwhile
-# enddef
 
 def ReplicaOutCb(job: channel, msg: string)
   # stdout can send garbage, like
@@ -231,8 +185,9 @@ def ReplicaOutCb(job: channel, msg: string)
   # We have to reconstruct the message line-by-line by capturing the actual \n
 
   # Accumulate and get rid of the terminal garbage
-  echom "msg: " .. msg
+  # echom "msg: " .. msg
   out_buf ..= NormalizeStream(msg)
+  # echom "msg_normalized: " .. out_buf
 
   while true
 
@@ -242,7 +197,7 @@ def ReplicaOutCb(job: channel, msg: string)
       break
     endif
 
-    var line = out_buf[: new_line_idx - 1]
+    var line = out_buf[: new_line_idx - 1]->substitute('\%x00', '', 'g')
     out_buf = out_buf[new_line_idx + 1 :]
 
     echom "line: " .. line
@@ -429,4 +384,35 @@ export def SendFile(...filename: list<string>)
     exe "bw! " .. fnameescape(filename[0])
     exe $"buffer {current_buffer}"
   endif
+enddef
+
+def WaitPrompt(expected_prompt: string)
+  # Wait for Jupyter Console to be up and running
+  const bufnr = term_list()[0]
+  var term_cursor_pos = term_getcursor(bufnr)
+  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
+
+  var count = 0
+  const max_count = 10
+  while term_cursor !~ expected_prompt && count < max_count
+    redraw!
+    term_cursor_pos = term_getcursor(bufnr)
+    term_cursor = term_getline(bufnr, term_cursor_pos[0])
+    count += 1
+    sleep 1
+  endwhile
+enddef
+
+def g:Test()
+  message clear
+  # Open the file safely
+  execute 'edit ' .. fnameescape('xxx.py')
+  var buf_nr = bufnr('$')
+  echom "bufnr" .. buf_nr
+  exe ":ReplicaConsoleToggle"
+  WaitPrompt('In [1]: ')
+  redraw!
+  exe ":ReplicaConsoleShutoff"
+  exe ":Redir messages"
+  exe $"bw! {buf_nr}"
 enddef
