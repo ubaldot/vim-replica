@@ -1,25 +1,22 @@
 vim9script
 
 import "../autoload/highlight.vim"
-import "../autoload/variable_inspector.vim"
 import "../plugin/replica.vim"
-
-# const replica_path = replica.replica_path
 
 const replica_path = expand('<sfile>:h:h')
 
 # ---------------------------------------
 # State
 # ---------------------------------------
-#
+
 var console_geometry = {}
 var ipython_prompt = '^In\s\[\d\+\]:\s$'
 
 enum PromptAction
-  idle,
-  init
+  Ready,
+  Init
 endenum
-var prompt_action: PromptAction.idle
+var prompt_action = PromptAction.Ready
 # Needed for reconstructing the messages from the terminal
 var current_line = ''
 # ---------------------------------------
@@ -125,7 +122,8 @@ def HandleLine(line: string)
   # For the variable_inspector
   if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
 
-    var payload = line[len('__VIM_PAYLOAD__') : -1]
+    var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
+    echom "payload: " .. payload
     var decoded = blob2str(base64_decode(payload))
 
     # Example: show in a scratch buffer
@@ -138,20 +136,33 @@ def HandleLine(line: string)
 
   # Prompt is ready. Do something
   if line =~ ipython_prompt
-    if prompt_action == PromptAction.init
+    if prompt_action == PromptAction.Init
       SendInitScript($"{replica_path}/python/ipython_init.py")
-      prompt_action = PromptAction.idle
+      echom "INITIALIZED"
+      prompt_action = PromptAction.Ready
     endif
   endif
 
+  echom $"line: {line}"
 enddef
 
+def DecodeStream(msg: string): string
+  # TODO: check if I can leave catch as-is
+  var msg_decoded = msg
+  try
+    msg_decoded = iconv(msg_decoded, 'utf-16le', &encoding)
+  catch
+    # Fallback to original message
+  endtry
+  return msg_decoded
+enddef
 
 def NormalizeBytes(msg: string): string
-  var msg_cleaned = msg
-    # 1. Drop ALL UTF-16 padding bytes
-    ->substitute('\%x00', '', 'g')
-    # 2. Strip ANSI escapes (from chat-gpt)
+  var msg_cleaned = DecodeStream(msg)
+    # Normalize line endings
+    ->substitute('\r\n', '\n', 'g')
+    ->substitute('\r', '\n', 'g')
+    # Strip ANSI escape sequences
     ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 
   return msg_cleaned
@@ -171,10 +182,11 @@ def FeedChars(chars: string)
 enddef
 
 def ReplicaOutCb(_: channel, msg: string)
+  # Reconstruct line-by-line by analyzing chars one-by-one.
   FeedChars(NormalizeBytes(msg))
 
-  # Process last line (the one not followed by \r or \n, which is generally
-  # the prompt)
+  # Process last line of the stdout, which is not followed by \r or \n
+  # (typically the prompt)
   if !empty(current_line)
     if current_line =~# ipython_prompt
       HandleLine(current_line)
@@ -198,7 +210,7 @@ def ConsoleOpen()
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
 
-      prompt_action = PromptAction.init
+      prompt_action = PromptAction.Init
 
       echo b:console_name .. " console opening..."
       setwinvar(win_getid(), 'start_cmd', start_cmd)
@@ -386,11 +398,10 @@ def g:Test()
   # Open the file safely
   execute 'edit ' .. fnameescape('xxx.py')
   var buf_nr = bufnr('$')
-  echom "bufnr" .. buf_nr
   exe ":ReplicaConsoleToggle"
   WaitPrompt('In [1]: ')
   redraw!
-  exe ":ReplicaConsoleShutoff"
+  # exe ":ReplicaConsoleShutoff"
   exe ":Redir messages"
-  exe $"bw! {buf_nr}"
+  # exe $"bw! {buf_nr}"
 enddef
