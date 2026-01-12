@@ -14,6 +14,12 @@ const replica_path = expand('<sfile>:h:h')
 #
 var console_geometry = {}
 var ipython_prompt = '^In\s\[\d\+\]:\s$'
+
+enum PromptAction
+  idle,
+  init
+endenum
+var prompt_action: PromptAction.idle
 # Needed for reconstructing the messages from the terminal
 var current_line = ''
 # ---------------------------------------
@@ -132,8 +138,12 @@ def HandleLine(line: string)
 
   # Prompt is ready. Do something
   if line =~ ipython_prompt
-    SendInitScript($"{replica_path}/python/ipython_init.py")
+    if prompt_action == PromptAction.init
+      SendInitScript($"{replica_path}/python/ipython_init.py")
+      prompt_action = PromptAction.idle
+    endif
   endif
+
 enddef
 
 
@@ -187,6 +197,8 @@ def ConsoleOpen()
       var start_cmd = "python " .. g:replica_python_options ..
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
+
+      prompt_action = PromptAction.init
 
       echo b:console_name .. " console opening..."
       setwinvar(win_getid(), 'start_cmd', start_cmd)
