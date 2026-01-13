@@ -19,6 +19,7 @@ endenum
 var prompt_action = PromptAction.Ready
 # Needed for reconstructing the messages from the terminal
 var current_line = ''
+var utf16_remainder = ''
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
@@ -121,6 +122,7 @@ enddef
 def HandleLine(line: string)
   # For the variable_inspector
   if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+    echom "entrato"
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     echom "payload: " .. payload
@@ -146,16 +148,37 @@ def HandleLine(line: string)
   echom $"line: {line}"
 enddef
 
+# def DecodeStream(msg: string): string
+#   # TODO: check if I can leave catch as-is
+#   var msg_decoded = msg
+#   try
+#     msg_decoded = iconv(msg_decoded, 'utf-16le', &encoding)
+#   catch
+#     # Fallback to original message
+#   endtry
+#   return msg_decoded
+# enddef
+
 def DecodeStream(msg: string): string
-  # TODO: check if I can leave catch as-is
-  var msg_decoded = msg
+  var data = utf16_remainder .. msg
+  utf16_remainder = ''
+
   try
-    msg_decoded = iconv(msg_decoded, 'utf-16le', &encoding)
+    return iconv(data, 'utf-16le', &encoding)
   catch
-    # Fallback to original message
+    # If odd length, keep last byte for next chunk
+    if strlen(data) % 2 == 1
+      utf16_remainder = data[-1]
+      data = data[: -2]
+    endif
+    try
+      return iconv(data, 'utf-16le', &encoding)
+    catch
+      return data
+    endtry
   endtry
-  return msg_decoded
 enddef
+
 
 def NormalizeBytes(msg: string): string
   var msg_cleaned = DecodeStream(msg)
