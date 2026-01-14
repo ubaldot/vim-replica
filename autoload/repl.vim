@@ -149,7 +149,7 @@ def HandleLine(line: string)
 enddef
 
 var raw_buf = ''
-def NormalizeBytes(msg: string): string
+def StripAnsiEscapeSequences(msg: string): string
     # Strip ANSI escape sequences
     return msg->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 enddef
@@ -165,7 +165,7 @@ def FeedCharsUTF16(bytes: string)
     if idx < 0
       break
     elseif idx == 0
-      # Blank line
+      # TODO: Check: lank line
       line16 = ''
     else
       # Extract one full UTF-16 line (without terminator)
@@ -176,8 +176,9 @@ def FeedCharsUTF16(bytes: string)
     raw_buf = raw_buf[idx + 2 :]
 
     try
-      HandleLine(iconv(line16, 'utf-16le', &encoding))
+      HandleLine(iconv(line16, 'utf-16le', 'utf-8'))
     catch
+      Echoerr("Cannot convert utf-16 string")
       continue
     endtry
   endwhile
@@ -185,9 +186,21 @@ enddef
 
 
 def ReplicaOutCb(_: channel, msg: string)
-  FeedCharsUTF16(NormalizeBytes(msg))
-enddef
+  FeedCharsUTF16(StripAnsiEscapeSequences(msg))
 
+  # TODO: issues may occur if:
+  #   A. A chunk from terminal match ipython_prompt AND
+  #   B. HandleLine() do something with that
+  # Nevertheless, this is a very unlikely case.
+  if !empty(raw_buf) && raw_buf =~# ipython_prompt
+    try
+      HandleLine(iconv(raw_buf, 'utf-16le', 'utf-8'))
+      raw_buf = ''
+    catch
+      Echoerr("Cannot convert utf-16 string")
+    endtry
+  endif
+enddef
 
 def ConsoleOpen()
   # If console does not exist, then create one,
