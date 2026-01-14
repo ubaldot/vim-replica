@@ -1,18 +1,22 @@
 vim9script
 
 const replica_path = expand('<sfile>:h:h')
-
 const ipython_prompt = '^In\s\[\d\+\]:\s$'
 
+# For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
 var payload_accum: string
+
+# To decide what to do when a prompt is ready
 export enum PromptAction
   Ready,
-  Init
+  Initialize
 endenum
 export var prompt_action: PromptAction
-# Bytes accumulator from terminal
+
+# Accumulator for bytes coming from the terminal
 export var raw_buf: string
+
 # TODO: Fix this
 var is_utf16 = true
 
@@ -97,7 +101,7 @@ def HandleLine(line: string)
 
   # Prompt is ready. Do something
   if line =~ ipython_prompt
-    if prompt_action == PromptAction.Init
+    if prompt_action == PromptAction.Initialize
       SendInitScript($"{replica_path}/python/ipython_init.py")
       prompt_action = PromptAction.Ready
     endif
@@ -176,10 +180,10 @@ export def ReplicaOutCb(_: channel, msg: string)
   endif
 enddef
 
-export def VimInspect(variable: string)
+export def VimInspect(variable: string = '')
   if !empty(variable)
-    term_sendkeys(bufnr($'^{b:console_name}$'), $"vim_inspect('{variable}')\n")
+    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect('{variable}')\n")
   else
-    echom "TBD"
+    term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
   endif
 enddef

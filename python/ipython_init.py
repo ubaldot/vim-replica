@@ -1,12 +1,13 @@
 import io
 import contextlib
 import base64
+from IPython import get_ipython
 
 _VIM_SENTINEL_START = "__VIM_PAYLOAD__"
 _VIM_SENTINEL_END = "__END__"
 
 
-def vim_inspect(expr):
+def __vim_inspect(expr):
     """
     Evaluate `expr` in the current REPL and send its textual
     representation to Vim via stdout using a sentinel + base64 frame.
@@ -41,6 +42,28 @@ def vim_inspect(expr):
 
         except Exception as e:
             print(f"[vim_inspect error] {e!r}")
+
+    payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
+    print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
+
+
+def __vim_whos():
+    """
+    Run `%whos` in the current IPython session and send its textual
+    output to Vim via stdout using a sentinel + base64 frame.
+    """
+    ip = get_ipython()
+    if ip is None:
+        print("[vim_whos error] Not running inside IPython")
+        return
+
+    buf = io.StringIO()
+
+    with contextlib.redirect_stdout(buf):
+        try:
+            ip.run_line_magic("whos", "")
+        except Exception as e:
+            print(f"[vim_whos error] {e!r}")
 
     payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
     print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")

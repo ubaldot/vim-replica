@@ -4,7 +4,6 @@ import "../autoload/highlight.vim"
 import "../autoload/variable_explorer.vim"
 import "../plugin/replica.vim"
 
-
 # ---------------------------------------
 # State
 # ---------------------------------------
@@ -46,8 +45,12 @@ def Init()
     endif
   endif
 
-  console_geometry = {width: g:replica_console_width,
-    height: g:replica_console_height}
+  if empty(console_geometry)
+    console_geometry = {
+      width: g:replica_console_width,
+      height: g:replica_console_height
+    }
+  endif
 
   # variable explorer variables init
   variable_explorer.Init()
@@ -73,16 +76,17 @@ enddef
 def ConsoleExists(): bool
   # Check if exists a console of a given filetype (i.e.calling buffer ft)
   if exists("b:console_name")
-    return bufexists(bufnr('^' .. b:console_name .. '$'))
+    return bufexists(bufnr($'^{b:console_name}$'))
   else
     return false
   endif
 enddef
 
+
 def ConsoleWinID(): list<number>
   # Return the windows ID where a console of a specific ft is displayed.
   if ConsoleExists()
-    return win_findbuf(bufnr('^' .. b:console_name .. '$'))
+    return win_findbuf(bufnr($'^{b:console_name}$'))
   else
     return []
   endif
@@ -97,23 +101,19 @@ def IsFiletypeSupported(): bool
 enddef
 
 
-
 def ConsoleOpen()
   # If console does not exist, then create one,
   # otherwise, if it is hidden, just display it.
   var console_win_id = 0
   if IsFiletypeSupported()
     if !ConsoleExists()
-      # first start
-      if empty(console_geometry)
-        Init()
-      endif
+      Init()
 
       var start_cmd = "python " .. g:replica_python_options ..
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
 
-      variable_explorer.prompt_action = variable_explorer.PromptAction.Init
+      variable_explorer.prompt_action = variable_explorer.PromptAction.Initialize
 
       echo b:console_name .. " console opening..."
       setwinvar(win_getid(), 'start_cmd', start_cmd)
@@ -127,7 +127,7 @@ def ConsoleOpen()
 
     elseif empty(ConsoleWinID())
       win_execute(win_getid(), 'sbuffer '
-            \ .. bufnr('^' .. b:console_name .. '$'))
+            \ .. bufnr($'^{b:console_name}$'))
       console_win_id = win_findbuf(bufnr('^'
             \ .. b:console_name .. '$'))[0]
     endif
@@ -158,7 +158,6 @@ enddef
 
 
 # TODO: implement a full screen console feature?
-#
 export def ConsoleToggle()
   if empty(ConsoleWinID())
     ConsoleOpen()
@@ -170,7 +169,7 @@ enddef
 
 export def ConsoleShutoff()
   if ConsoleExists()
-    exe "bw! " .. bufnr('^' .. b:console_name .. '$')
+    exe "bw! " .. bufnr($'^{b:console_name}$')
     echo $"Console {b:console_name} shutoff."
   endif
 enddef
@@ -201,7 +200,7 @@ export def SendLines(firstline: number, lastline: number)
 
     # Actual implementation
     for line in getline(firstline, lastline)
-      term_sendkeys(bufnr('^' .. b:console_name .. '$'), line .. "\n")
+      term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
     endfor
     # TODO: avoid the following when firstline and lastline are passed
     norm! j^
@@ -227,7 +226,7 @@ export def SendCell()
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
     echom getline(1, 5)
-    term_sendkeys(bufnr('^' .. b:console_name .. '$'),
+    term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command .. "\n")
   else
     Echowarn("filetype not supported!")
@@ -235,7 +234,7 @@ export def SendCell()
 enddef
 
 
-
+# TODO: list<string> ?
 export def SendFile(...filename: list<string>)
   # TODO: too many Ex commands.
   const current_buffer = bufnr()
@@ -252,8 +251,9 @@ export def SendFile(...filename: list<string>)
     # Write tmp file
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(getline(1, '$'), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr('^' .. b:console_name .. '$'),
+    term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command .. "\n")
+    # TODO: b:run_command?
   else
     Echowarn("filetype not supported!")
   endif
@@ -266,6 +266,9 @@ export def SendFile(...filename: list<string>)
   endif
 enddef
 
+# =========================================
+#               TEST
+#  =======================================
 def WaitPrompt(expected_prompt: string)
   # Wait for Jupyter Console to be up and running
   const bufnr = term_list()[0]
