@@ -121,10 +121,88 @@ enddef
   # endwhile
 # enddef
 
+
+var collecting_payload = false
+var payload_accum = ''
+
 def HandleLine(line: string)
+  # Single line payload
+  if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+    echom "entrato"
+
+    var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
+    echom "payload: " .. payload
+    var decoded = blob2str(base64_decode(payload))
+
+    # Example: show in a scratch buffer
+    vnew
+    var buf = bufnr('$')
+    setbufvar(buf, '&buftype', 'nofile')
+    setbufvar(buf, '&swapfile', 0)
+    setbufline(buf, 1, decoded)
+  endif
+
+  # Multi-line payload
+  if line =~# '^__VIM_PAYLOAD__'
+    collecting_payload = true
+    payload_accum = ''
+
+    # strip the prefix if the first line contains it
+    var part = substitute(line, '^__VIM_PAYLOAD__', '', '')
+    payload_accum ..= part
+    return
+  endif
+
+  # Inside the payload block
+  if collecting_payload
+    # Check if this line ends the payload
+    if line =~# '__END__$'
+      # strip the suffix
+      var part = substitute(line, '__END__$', '', '')
+      payload_accum ..= part
+
+      # Decode final payload
+      try
+        var decoded = blob2str(base64_decode(payload_accum))
+
+        # Example: show in scratch buffer
+        vnew
+        var buf = bufnr('$')
+        setbufvar(buf, '&buftype', 'nofile')
+        setbufvar(buf, '&swapfile', 0)
+        setbufline(buf, 1, decoded)
+      catch
+        echom "[vim-replica] ERROR: invalid base64 payload"
+      endtry
+
+      collecting_payload = false
+      payload_accum = ''
+
+      return
+    endif
+
+    # No end yet, accumulate:
+    payload_accum ..= line
+    return
+  endif
+
+  # Prompt is ready. Do something
+  if line =~ ipython_prompt
+    if prompt_action == PromptAction.Init
+      SendInitScript($"{replica_path}/python/ipython_init.py")
+      echom "INITIALIZED"
+      prompt_action = PromptAction.Ready
+    endif
+  endif
+  # Non-payload line (normal processing)
+  echom "line: " .. line
+enddef
+
+
+def HandleLineOLD(line: string)
   # For the variable_inspector
   echom "line: " .. line
-  if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+  if line =~ '^__VIM_PAYLOAD__' && line =! '__END__$'
     echom "entrato"
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
