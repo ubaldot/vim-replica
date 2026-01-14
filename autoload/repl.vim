@@ -17,9 +17,10 @@ enum PromptAction
   Init
 endenum
 var prompt_action = PromptAction.Ready
-# Needed for reconstructing the messages from the terminal
-var current_line = ''
-var utf16_remainder = ''
+# Bytes accumulator from terminal
+var raw_buf = ''
+var is_utf16 = true
+
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
@@ -57,6 +58,7 @@ def Init()
 
   console_geometry = {width: g:replica_console_width,
     height: g:replica_console_height}
+
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)
@@ -148,56 +150,71 @@ def HandleLine(line: string)
   echom $"line: {line}"
 enddef
 
-var raw_buf = ''
 def StripAnsiEscapeSequences(msg: string): string
     # Strip ANSI escape sequences
     return msg->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 enddef
 
-def FeedCharsUTF16(bytes: string)
-  var line16 = ''
+def FeedChars(bytes: string)
+  var line = ''
+  var nbytes = is_utf16 ? 2 : 1
+
+  # Accumulate bytes as they appear on the terminal stdout
   raw_buf ..= bytes
 
   while true
-    var idx = match(raw_buf, "\x0D\x00\|\x0A\x00")
+    # OBS! If \r\n is received, then you get an extra blank line as result.
+    var idx = is_utf16
+      ? match(raw_buf, "\x0D\x00\|\x0A\x00")
+      : match(raw_buf, "\r\|\n")
+
     # echom "raw_buf: " .. raw_buf
     # echom "idx: " .. idx
     if idx < 0
       break
     elseif idx == 0
-      # TODO: Check: lank line
-      line16 = ''
+      line = ''
     else
       # Extract one full UTF-16 line (without terminator)
-      line16 = raw_buf[: idx - 1]
+      line = raw_buf[: idx - 1]
     endif
 
-    # Leftovers
-    raw_buf = raw_buf[idx + 2 :]
-
     try
-      HandleLine(iconv(line16, 'utf-16le', 'utf-8'))
+      if is_utf16
+        HandleLine(StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8')))
+      else
+        HandleLine(StripAnsiEscapeSequences(line))
+      endif
     catch
-      Echoerr("Cannot convert utf-16 string")
+      echom "[vim-replica]: Cannot convert utf-16 string"
       continue
     endtry
+
+    # Leftovers
+    raw_buf = raw_buf[idx + nbytes :]
+
   endwhile
 enddef
 
 
 def ReplicaOutCb(_: channel, msg: string)
-  FeedCharsUTF16(StripAnsiEscapeSequences(msg))
-
-  # TODO: issues may occur if:
+  # OBS! Issues may occur if:
+  #
   #   A. A chunk from terminal match ipython_prompt AND
   #   B. HandleLine() do something with that
+  #
   # Nevertheless, this is a very unlikely case.
-  if !empty(raw_buf) && raw_buf =~# ipython_prompt
+
+  FeedChars(msg)
+
+  # Handle Leftovers in the raw_buf, which is generally the prompt
+  var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf
+  if !empty(tail) && StripAnsiEscapeSequences(tail) =~# ipython_prompt
     try
-      HandleLine(iconv(raw_buf, 'utf-16le', 'utf-8'))
+      HandleLine(StripAnsiEscapeSequences(tail))
       raw_buf = ''
     catch
-      Echoerr("Cannot convert utf-16 string")
+      echom "[vim-replica]: Cannot convert utf-16 string"
     endtry
   endif
 enddef
