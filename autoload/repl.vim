@@ -123,6 +123,7 @@ enddef
 
 def HandleLine(line: string)
   # For the variable_inspector
+  echom "line: " .. line
   if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
     echom "entrato"
 
@@ -147,7 +148,7 @@ def HandleLine(line: string)
     endif
   endif
 
-  echom $"line: {line}"
+   echom $"line: {line}"
 enddef
 
 def StripAnsiEscapeSequences(msg: string): string
