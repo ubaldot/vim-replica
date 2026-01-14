@@ -1,6 +1,7 @@
 vim9script
 
 import "../autoload/repl.vim"
+import "../autoload/variable_explorer.vim"
 
 #  ------------
 #  Mappings
@@ -78,5 +79,10 @@ export def FtCommandsMappings()
 
   if !exists(":ReplicaRemoveCells")
       command -buffer ReplicaRemoveCells repl.RemoveCells()
+  endif
+
+  # TODO: fix -complete with %whos
+  if !exists(":ReplicaInspect")
+      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<f-args>)
   endif
 enddef
