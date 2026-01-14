@@ -148,75 +148,46 @@ def HandleLine(line: string)
   echom $"line: {line}"
 enddef
 
-# def DecodeStream(msg: string): string
-#   # TODO: check if I can leave catch as-is
-#   var msg_decoded = msg
-#   try
-#     msg_decoded = iconv(msg_decoded, 'utf-16le', &encoding)
-#   catch
-#     # Fallback to original message
-#   endtry
-#   return msg_decoded
-# enddef
-
-def DecodeStream(msg: string): string
-  var data = utf16_remainder .. msg
-  utf16_remainder = ''
-
-  try
-    return iconv(data, 'utf-16le', &encoding)
-  catch
-    # If odd length, keep last byte for next chunk
-    if strlen(data) % 2 == 1
-      utf16_remainder = data[-1]
-      data = data[: -2]
-    endif
-    try
-      return iconv(data, 'utf-16le', &encoding)
-    catch
-      return data
-    endtry
-  endtry
-enddef
-
-
+var raw_buf = ''
 def NormalizeBytes(msg: string): string
-  var msg_cleaned = DecodeStream(msg)
-    # Normalize line endings
-    ->substitute('\r\n', '\n', 'g')
-    ->substitute('\r', '\n', 'g')
     # Strip ANSI escape sequences
-    ->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
-
-  return msg_cleaned
+    return msg->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
 enddef
 
-def FeedChars(chars: string)
-  # Accumulate received chars into 'current_line' until \n or \r,
-  # (i.e. reconstruct line-by-line the messages from the terminal).
-  for ch in chars
-    if ch == "\r" || ch == "\n"
-      HandleLine(current_line)
-      current_line = ''
+def FeedCharsUTF16(bytes: string)
+  var line16 = ''
+  raw_buf ..= bytes
+
+  while true
+    var idx = match(raw_buf, "\x0D\x00\|\x0A\x00")
+    # echom "raw_buf: " .. raw_buf
+    # echom "idx: " .. idx
+    if idx < 0
+      break
+    elseif idx == 0
+      # Blank line
+      line16 = ''
     else
-      current_line ..= ch
+      # Extract one full UTF-16 line (without terminator)
+      line16 = raw_buf[: idx - 1]
     endif
-  endfor
+
+    # Leftovers
+    raw_buf = raw_buf[idx + 2 :]
+
+    try
+      HandleLine(iconv(line16, 'utf-16le', &encoding))
+    catch
+      continue
+    endtry
+  endwhile
 enddef
+
 
 def ReplicaOutCb(_: channel, msg: string)
-  # Reconstruct line-by-line by analyzing chars one-by-one.
-  FeedChars(NormalizeBytes(msg))
-
-  # Process last line of the stdout, which is not followed by \r or \n
-  # (typically the prompt)
-  if !empty(current_line)
-    if current_line =~# ipython_prompt
-      HandleLine(current_line)
-    endif
-    current_line = ''
-  endif
+  FeedCharsUTF16(NormalizeBytes(msg))
 enddef
+
 
 def ConsoleOpen()
   # If console does not exist, then create one,
@@ -424,7 +395,7 @@ def g:Test()
   exe ":ReplicaConsoleToggle"
   WaitPrompt('In [1]: ')
   redraw!
-  # exe ":ReplicaConsoleShutoff"
+  exe ":ReplicaConsoleShutoff"
   exe ":Redir messages"
-  # exe $"bw! {buf_nr}"
+  exe $"bw! {buf_nr}"
 enddef
