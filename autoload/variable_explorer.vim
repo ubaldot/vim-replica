@@ -1,5 +1,7 @@
 vim9script
 
+import "../autoload/repl.vim"
+
 const replica_path = expand('<sfile>:h:h')
 const ipython_prompt = '^In\s\[\d\+\]:\s$'
 
@@ -44,8 +46,10 @@ def DisplayVariable(decoded_value: list<string>)
 enddef
 
 def HandleLine(line: string)
+
   # Single line payload
-  if line =~ '^__VIM_PAYLOAD__' && line =~ '__END__$'
+  if line =~ '__VIM_PAYLOAD__' && line =~ '__END__$'
+    echom "line: " .. line
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     echom "payload: " .. payload
@@ -56,12 +60,9 @@ def HandleLine(line: string)
 
   # Multi-line payload
   if line =~# '^__VIM_PAYLOAD__'
-    collecting_payload = true
-    payload_accum = ''
-
     # strip the prefix if the first line contains it
-    var part = substitute(line, '^__VIM_PAYLOAD__', '', '')
-    payload_accum ..= part
+    payload_accum ..= line->substitute('^__VIM_PAYLOAD__', '', '')
+    collecting_payload = true
     return
   endif
 
@@ -70,20 +71,22 @@ def HandleLine(line: string)
     # Check if this line ends the payload
     if line =~# '__END__$'
       # strip the suffix
-      var part = substitute(line, '__END__$', '', '')
-      payload_accum ..= part
+      #
+      payload_accum ..= line->substitute('__END__$', '', '')
 
       # Decode final payload
       try
         var decoded = blob2str(base64_decode(payload_accum))
         DisplayVariable(decoded)
+        echom "payload_accum: " .. payload_accum
       catch
-        echom "[vim-replica] ERROR: invalid base64 payload"
+        # teardown
+        echom "payload_accum_error: " .. payload_accum
+        repl.Echoerr("invalid base64 payload")
+      finally
+        # Reset all script variables
+        Init()
       endtry
-
-      collecting_payload = false
-      payload_accum = ''
-
       return
     endif
 
@@ -94,13 +97,15 @@ def HandleLine(line: string)
 
   # Prompt is ready. Do something
   if line =~ ipython_prompt
-    echom "A"
     if prompt_action == PromptAction.Initialize
-      echom "B"
       SendInitScript($"{replica_path}/python/ipython_init.py")
-      echom "E"
       prompt_action = PromptAction.Ready
+      payload_accum = ''
     endif
+  endif
+
+  if empty(line)
+    payload_accum = ''
   endif
   # Non-payload line (normal processing)
   echom "line: " .. line
@@ -109,7 +114,7 @@ enddef
 
 def StripAnsiEscapeSequences(msg: string): string
     # Strip ANSI escape sequences
-    return msg->substitute('\e\[[0-9;?]*[@-~]', '', 'g')
+    return msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
 enddef
 
 def FeedChars(bytes: string)
@@ -143,7 +148,8 @@ def FeedChars(bytes: string)
         HandleLine(StripAnsiEscapeSequences(line))
       endif
     catch
-      echom "[vim-replica]: Cannot convert utf-16 string"
+      raw_buf = ''
+      repl.Echoerr("Cannot convert utf-16 string")
       break
     endtry
 
@@ -168,11 +174,11 @@ export def ReplicaOutCb(_: channel, msg: string)
   var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf
   if !empty(tail) && StripAnsiEscapeSequences(tail) =~# ipython_prompt
     try
-      echom "tail_stripped" .. StripAnsiEscapeSequences(tail)
       HandleLine(StripAnsiEscapeSequences(tail))
       raw_buf = ''
     catch
-      echom "[vim-replica]: Cannot convert prompt utf-16 string"
+      Init()
+      repl.Echoerr("Cannot convert prompt utf-16 string")
     endtry
   endif
 enddef

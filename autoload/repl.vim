@@ -2,7 +2,6 @@ vim9script
 
 import "../autoload/highlight.vim"
 import "../autoload/variable_explorer.vim"
-import "../plugin/replica.vim"
 
 # ---------------------------------------
 # State
@@ -14,11 +13,11 @@ var console_geometry = {}
 # Functions for dealing with the console
 # ---------------------------------------
 
-def Echoerr(msg: string)
+export def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
 
-def Echowarn(msg: string)
+export def Echowarn(msg: string)
   echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
 
