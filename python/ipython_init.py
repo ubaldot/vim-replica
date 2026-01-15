@@ -1,13 +1,15 @@
 import io
 import contextlib
 import base64
+import sys
 from IPython import get_ipython
+from IPython.core.interactiveshell import InteractiveShell
 
 _VIM_SENTINEL_START = "__VIM_PAYLOAD__"
 _VIM_SENTINEL_END = "__END__"
 
 
-def __vim_inspect(expr):
+def __vim_inspect(expr: str):
     """
     Evaluate `expr` in the current REPL and send its textual
     representation to Vim via stdout using a sentinel + base64 frame.
@@ -19,15 +21,8 @@ def __vim_inspect(expr):
             obj = eval(expr, globals())
 
             # Optional deps
-            try:
-                import pandas as pd
-            except ImportError:
-                pd = None
-
-            try:
-                import numpy as np
-            except ImportError:
-                np = None
+            np = sys.modules.get("numpy")
+            pd = sys.modules.get("pandas")
 
             if pd is not None and isinstance(obj, pd.DataFrame):
                 print(obj.to_string())
@@ -52,7 +47,7 @@ def __vim_whos():
     Run `%whos` in the current IPython session and send its textual
     output to Vim via stdout using a sentinel + base64 frame.
     """
-    ip = get_ipython()
+    ip: InteractiveShell | None = get_ipython()
     if ip is None:
         print("[vim_whos error] Not running inside IPython")
         return

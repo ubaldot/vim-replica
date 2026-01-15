@@ -28,16 +28,9 @@ export def Init()
 enddef
 
 def SendInitScript(filename: string)
-  const current_buffer = bufnr()
-  exe ":edit " ..  fnameescape(filename)
-  delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-  writefile(getline(1, '$'), g:replica_tmp_filename, "a")
-  echom getline(1, 5)
+  writefile(readfile(filename), g:replica_tmp_filename, "a")
   term_sendkeys(bufnr('^' .. b:console_name .. '$'),
-        \ b:run_command .. "\n")
-  exe ":bprev"
-  exe "bw! " .. fnameescape(filename)
-  exe $"buffer {current_buffer}"
+        \ b:run_command(g:replica_tmp_filename) .. "\n")
   echom "vim-replica interface initialized"
 enddef
 
@@ -101,8 +94,11 @@ def HandleLine(line: string)
 
   # Prompt is ready. Do something
   if line =~ ipython_prompt
+    echom "A"
     if prompt_action == PromptAction.Initialize
+      echom "B"
       SendInitScript($"{replica_path}/python/ipython_init.py")
+      echom "E"
       prompt_action = PromptAction.Ready
     endif
   endif
@@ -172,10 +168,11 @@ export def ReplicaOutCb(_: channel, msg: string)
   var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf
   if !empty(tail) && StripAnsiEscapeSequences(tail) =~# ipython_prompt
     try
+      echom "tail_stripped" .. StripAnsiEscapeSequences(tail)
       HandleLine(StripAnsiEscapeSequences(tail))
       raw_buf = ''
     catch
-      echom "[vim-replica]: Cannot convert utf-16 string"
+      echom "[vim-replica]: Cannot convert prompt utf-16 string"
     endtry
   endif
 enddef

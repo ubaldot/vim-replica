@@ -227,7 +227,7 @@ export def SendCell()
     writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
     echom getline(1, 5)
     term_sendkeys(bufnr($'^{b:console_name}$'),
-          \ b:run_command .. "\n")
+          \ b:run_command(g:replica_tmp_filename) .. "\n")
   else
     Echowarn("filetype not supported!")
   endif
@@ -252,8 +252,8 @@ export def SendFile(...filename: list<string>)
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(getline(1, '$'), g:replica_tmp_filename, "a")
     term_sendkeys(bufnr($'^{b:console_name}$'),
-          \ b:run_command .. "\n")
-    # TODO: b:run_command?
+          \ b:run_command(g:replica_tmp_filename) .. "\n")
+    # TODO: b:run_command(g:replica_tmp_filename)?
   else
     Echowarn("filetype not supported!")
   endif

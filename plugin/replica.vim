@@ -65,8 +65,8 @@ var replica_cells_delimiters_default = {
             julia: "# %%"}
 
 var replica_run_commands_default = {
-            python: "run -i " .. g:replica_tmp_filename,
-            julia: 'include("' .. g:replica_tmp_filename .. '")'}
+            python: (filename) => $"run -i {filename}",
+            julia: (filename) => $"include({filename})" }
 
 var replica_jupyter_console_options_default = {
             python: "",
