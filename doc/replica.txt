@@ -225,7 +225,7 @@ Default: { "python": "",
 The command started for launching a jupyter console is
 
 >
-    var start_cmd = $"python " .. g:replica_python_options ..
+    var start_cmd = $"python " .. g:replica_jupyter_console_options ..
         \ " -m jupyter console --kernel={b:kernel_name} "
         \ .. b:jupyter_console_options
 <
@@ -239,8 +239,8 @@ See jupyter console --help for possible options.
 
 
                                            *g:replica_cells_delimiters*
-  Type: 'dict'<'filetype', 'string'>
-  Default: { "python": "# %%",
+Type: 'dict'<'filetype', 'string'>
+Default: { "python": "# %%",
             \ "julia": "# %%"}
 
 Associates 'filetype' to cell delimiters.
@@ -251,9 +251,15 @@ For example:
     g:replica_cells_delimiters['python': "#%%"]
 <
 
+                                                     *g:replica_use_utf16*
+Type: bool
+Default: None
+
+Set to true if the terminal inside Vim emits utf-16 encoded characters.
+
                                                      *g:replica_names*
-  Type: 'dict'<'filetype', 'string'>
-  Default:{ "python": "IPYTHON",
+Type: 'dict'<'filetype', 'string'>
+Default:{ "python": "IPYTHON",
             \ "julia": "JULIA"}
 
 
@@ -261,8 +267,8 @@ Associates 'filetype' to 'terminal' buffer names.
 Note: this dictionary shall not be changed by the user!
 
                                                      *g:replica_run_commands*
-  Type: 'dict'<'filetype', 'string'>
-  Default:{ "python": "run -i " .. |g:replica_tmp_filename|,
+Type: 'dict'<'filetype', 'string'>
+Default:{ "python": "run -i " .. |g:replica_tmp_filename|,
             \ "julia": 'include("' .. |g:replica_tmp_filename| .. '")'}
 
 Associates 'filetype' to commands that are run in the REPL when using
@@ -383,7 +389,7 @@ LICENSE                                                    *ReplicaLicense*
 
 BSD 3-Clause License
 
-Copyright (c) 2023, Ubaldo Tiberi.
+Copyright (c) 2025, Ubaldo Tiberi.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

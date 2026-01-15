@@ -29,9 +29,20 @@ def __vim_inspect(expr: str):
             elif pd is not None and isinstance(obj, pd.Series):
                 print(obj.to_string())
             elif np is not None and isinstance(obj, np.ndarray):
-                # print(repr(obj))
-                for row in obj:
-                    print("\t".join(map(str, row)))
+                # Only display 2D or 3D ndarray
+                arr = np.asarray(obj)
+
+                if arr.ndim == 2:
+                    for row in arr:
+                        print("\t".join(map(str, row)))
+
+                elif arr.ndim == 3:
+                    for i, mat in enumerate(arr):
+                        if i > 0:
+                            print()  # separate slices
+                        for row in mat:
+                            print("\t".join(map(str, row)))
+
             else:
                 print(repr(obj))
 

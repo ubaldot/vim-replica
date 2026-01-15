@@ -18,15 +18,27 @@ export var prompt_action: PromptAction
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
-
-# TODO: Fix this
 var is_utf16 = true
+
+def IsWSL(): bool
+  return has('unix')
+    && filereadable('/proc/sys/kernel/osrelease')
+    && readfile('/proc/sys/kernel/osrelease')[0] =~? 'microsoft'
+enddef
 
 export def Init()
   raw_buf = ''
   collecting_payload = false
   payload_accum = ''
   prompt_action = PromptAction.Ready
+
+  if !exists('g:replica_use_utf16')
+    if has("win32") && !IsWSL()
+      is_utf16 = true
+    endif
+  else
+    is_utf16 = g:replica_use_utf16
+  endif
 enddef
 
 def SendInitScript(filename: string)
@@ -49,10 +61,9 @@ def HandleLine(line: string)
 
   # Single line payload
   if line =~ '__VIM_PAYLOAD__' && line =~ '__END__$'
-    echom "line: " .. line
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-    echom "payload: " .. payload
+    # echom "payload: " .. payload
     var decoded = blob2str(base64_decode(payload))
 
     DisplayVariable(decoded)
@@ -78,14 +89,13 @@ def HandleLine(line: string)
       try
         var decoded = blob2str(base64_decode(payload_accum))
         DisplayVariable(decoded)
-        echom "payload_accum: " .. payload_accum
       catch
         # teardown
-        echom "payload_accum_error: " .. payload_accum
         repl.Echoerr("invalid base64 payload")
       finally
         # Reset all script variables
-        Init()
+        payload_accum = ''
+        collecting_payload = false
       endtry
       return
     endif
@@ -105,7 +115,7 @@ def HandleLine(line: string)
   endif
 
   # Non-payload line (normal processing)
-  echom "line: " .. line
+  # echom "line: " .. line
 enddef
 
 
