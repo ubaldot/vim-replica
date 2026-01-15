@@ -38,7 +38,7 @@ enddef
 
 def DisplayVariable(decoded_value: list<string>)
     # Example: show in a scratch buffer
-    vnew
+    tabnew
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
     setbufvar(buf, '&swapfile', 0)
@@ -104,9 +104,6 @@ def HandleLine(line: string)
     endif
   endif
 
-  if empty(line)
-    payload_accum = ''
-  endif
   # Non-payload line (normal processing)
   echom "line: " .. line
 enddef
