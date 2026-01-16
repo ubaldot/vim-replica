@@ -14,7 +14,6 @@ export enum PromptAction
   Initialize
 endenum
 export var prompt_action: PromptAction
-var console_prompt: string
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
@@ -39,7 +38,6 @@ export def Init()
   else
     is_utf16 = g:replica_use_utf16
   endif
-  console_prompt = g:replica_console_prompts[&filetype]
 enddef
 
 def SendInitScript(filename: string)
@@ -107,7 +105,7 @@ def HandleLine(line: string)
   endif
 
   # Prompt is ready. Do something
-  if line =~ console_prompt
+  if line =~ b:console_prompt
     if prompt_action == PromptAction.Initialize
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
       prompt_action = PromptAction.Ready
@@ -168,7 +166,7 @@ def FeedChars(bytes: string)
 enddef
 
 
-export def ReplicaOutCb(_: channel, msg: string)
+export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
   # OBS! Issues may occur if:
   #
   #   A. A chunk from terminal match console_prompt AND
@@ -177,7 +175,6 @@ export def ReplicaOutCb(_: channel, msg: string)
   # Nevertheless, this is a very unlikely case.
 
   FeedChars(msg)
-  echom "bufname: " .. bufname()
 
   # Handle Leftovers in the raw_buf, which is generally the prompt
   var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf

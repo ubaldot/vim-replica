@@ -117,11 +117,14 @@ def ConsoleOpen()
       echo b:console_name .. " console opening..."
       setwinvar(win_getid(), 'start_cmd', start_cmd)
       win_execute(win_getid(), 'term_start(w:start_cmd,
-            \ {term_name: b:console_name, out_cb: variable_explorer.ReplicaOutCb})' )
+            \ {term_name: b:console_name,
+            \ out_cb: (ch, msg) => variable_explorer.ReplicaOutCb(b:console_prompt, ch, msg)})'
+      )
       # We give console terminal buffer b:console_name and
       # b:kernel_name variables.
       setbufvar(bufnr('$'), 'console_name', b:console_name)
       setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
+      setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
       console_win_id = win_findbuf(bufnr('$'))[0]
 
     elseif empty(ConsoleWinID())

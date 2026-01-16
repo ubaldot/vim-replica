@@ -118,6 +118,7 @@ def SetBufferVars()
     b:cells_delimiter = g:replica_cells_delimiters[&filetype]
     b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
     b:run_command = g:replica_run_commands[&filetype]
+    b:console_prompt = g:replica_console_prompts[&filetype]
 
     if g:replica_enable_highlight
         augroup highlight_cells
