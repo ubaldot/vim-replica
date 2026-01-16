@@ -8,7 +8,7 @@ const replica_path = expand('<sfile>:h:h')
 var collecting_payload: bool
 var payload_accum: string
 
-# To decide what to do when a prompt is ready
+# To decide what to do when a console_prompt is ready
 export enum PromptAction
   Ready,
   Initialize
@@ -60,7 +60,7 @@ def DisplayVariable(decoded_value: list<string>)
     setbufline(buf, 1, decoded_value)
 enddef
 
-def HandleLine(line: string)
+def HandleLine(line: string, console_prompt: string)
 
   # Single line payload
   if line =~ '__VIM_PAYLOAD__' && line =~ '__END__$'
@@ -109,7 +109,7 @@ def HandleLine(line: string)
   endif
 
   # Prompt is ready. Do something
-  if line =~ b:console_prompt
+  if line =~ console_prompt
     if prompt_action == PromptAction.Initialize
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
       prompt_action = PromptAction.Ready
@@ -127,7 +127,7 @@ def StripAnsiEscapeSequences(msg: string): string
     return msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
 enddef
 
-def FeedChars(bytes: string)
+def FeedChars(bytes: string, console_prompt: string)
   var line = ''
   var nbytes = is_utf16 ? 2 : 1
 
@@ -153,9 +153,9 @@ def FeedChars(bytes: string)
 
     try
       if is_utf16
-        HandleLine(StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8')))
+        HandleLine(StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8')), console_prompt)
       else
-        HandleLine(StripAnsiEscapeSequences(line))
+        HandleLine(StripAnsiEscapeSequences(line), console_prompt)
       endif
     catch
       raw_buf = ''
@@ -177,14 +177,20 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
   #   B. HandleLine() do something with that
   #
   # Nevertheless, this is a very unlikely case.
+  #
+  # OBS! All the functions called by this callback, shall not use any b:
+  # variable. This, because this function is randomly called (for example
+  # when there is a screen redraw or when there is a window resize).
+  # For example, if the focus goes to a buffer that has no
+  # e.g. b:console_prompt, and this function is invoked, then you get an error.
 
-  FeedChars(msg)
+  FeedChars(msg, console_prompt)
 
   # Handle Leftovers in the raw_buf, which is generally the prompt
   var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf
   if !empty(tail) && StripAnsiEscapeSequences(tail) =~# console_prompt
     try
-      HandleLine(StripAnsiEscapeSequences(tail))
+      HandleLine(StripAnsiEscapeSequences(tail), console_prompt)
       raw_buf = ''
     catch
       Init()
