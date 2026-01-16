@@ -102,7 +102,6 @@ enddef
 
 def ConsoleOpen()
   # If console does not exist, then create one,
-  # otherwise, if it is hidden, just display it.
   var console_win_id = 0
   if IsFiletypeSupported()
     if !ConsoleExists()
@@ -173,6 +172,7 @@ export def ConsoleShutoff()
   if ConsoleExists()
     exe "bw! " .. bufnr($'^{b:console_name}$')
     echo $"Console {b:console_name} shutoff."
+    variable_explorer.Init()
   endif
 enddef
 

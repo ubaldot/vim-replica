@@ -17,7 +17,7 @@ export var prompt_action: PromptAction
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
-var is_utf16 = true
+var is_utf16: bool
 
 def IsWSL(): bool
   return has('unix')
@@ -49,10 +49,14 @@ enddef
 
 def DisplayVariable(decoded_value: list<string>)
     # Example: show in a scratch buffer
+    var bufvars = getbufvar('%', '')
     tabnew
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
     setbufvar(buf, '&swapfile', 0)
+    setbufvar(buf, 'console_prompt', get(bufvars, 'console_prompt', ''))
+    setbufvar(buf, 'console_name', get(bufvars, 'console_name', ''))
+    setbufvar(buf, 'kernel', get(bufvars, 'kernel_name', ''))
     setbufline(buf, 1, decoded_value)
 enddef
 
@@ -62,7 +66,7 @@ def HandleLine(line: string)
   if line =~ '__VIM_PAYLOAD__' && line =~ '__END__$'
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-    # echom "payload: " .. payload
+    echom "payload: " .. payload
     var decoded = blob2str(base64_decode(payload))
 
     DisplayVariable(decoded)
@@ -155,7 +159,7 @@ def FeedChars(bytes: string)
       endif
     catch
       raw_buf = ''
-      repl.Echoerr("Cannot convert utf-16 string")
+      repl.Echoerr("Cannot convert utf-16 string (raw buf)")
       break
     endtry
 
