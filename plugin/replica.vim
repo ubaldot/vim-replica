@@ -72,6 +72,10 @@ var replica_jupyter_console_options_default = {
             python: "",
             julia: ""}
 
+var replica_console_prompts_default = {
+            python: '^In\s\[\d\+\]:\s$',
+            julia: '^julia>$'}
+
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
     extend(replica_kernels_default, g:replica_kernels, "force")
@@ -85,10 +89,15 @@ if exists('g:replica_jupyter_console_options')
     extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
 endif
 
+if exists('g:replica_console_prompts')
+    extend(replica_console_prompts_default, g:replica_console_prompts, "force")
+endif
+
 g:replica_kernels = replica_kernels_default
 g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
+g:replica_console_prompts = replica_console_prompts_default
 
 # TODO at the moment the term is started directly with
 # jupyter console ... but a user may want to do something before opening the
@@ -121,7 +130,8 @@ def SetBufferVars()
     endif
 
     # Mappings are set only to buffer of allowed filetype
-    ftcommands_mappings.FtCommandsMappings()
+    ftcommands_mappings.InstallCommands()
+    ftcommands_mappings.InstallMappings()
   endif
 enddef
 

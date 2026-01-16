@@ -7,7 +7,7 @@ import "../autoload/variable_explorer.vim"
 #  Mappings
 #  ------------
 # TODO: make imap and tmap to work.
-export def FtCommandsMappings()
+export def InstallMappings()
   noremap <buffer> <Plug>ReplicaConsoleToggle
               \ <ScriptCmd>repl.ConsoleToggle()<cr>
   tnoremap <buffer>  <Plug>ReplicaConsoleToggle
@@ -45,11 +45,13 @@ export def FtCommandsMappings()
           # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
       endif
   endif
+enddef
 
 
 # -----------------------------
 #  Commands
 # -----------------------------
+export def InstallCommands()
   if !exists(":ReplicaConsoleToggle")
       command -buffer ReplicaConsoleToggle silent repl.ConsoleToggle()
   endif

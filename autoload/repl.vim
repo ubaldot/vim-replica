@@ -224,7 +224,6 @@ export def SendCell()
     # Write tmp file
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
     writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
-    echom getline(1, 5)
     term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command(g:replica_tmp_filename) .. "\n")
   else
@@ -234,12 +233,9 @@ enddef
 
 
 # TODO: list<string> ?
-export def SendFile(...filename: list<string>)
+export def SendFile(filename: string)
   # TODO: too many Ex commands.
   const current_buffer = bufnr()
-  if !empty(filename)
-    exe ":edit " ..  fnameescape(filename[0])
-  endif
 
   if IsFiletypeSupported()
     # If there are open terminals with different names than IPYTHON,
@@ -249,19 +245,11 @@ export def SendFile(...filename: list<string>)
     endif
     # Write tmp file
     delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-    writefile(getline(1, '$'), g:replica_tmp_filename, "a")
+    writefile(readfile(filename), g:replica_tmp_filename, "a")
     term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command(g:replica_tmp_filename) .. "\n")
-    # TODO: b:run_command(g:replica_tmp_filename)?
   else
     Echowarn("filetype not supported!")
-  endif
-
-  # Remove temp buffer
-  if !empty(filename)
-    exe ":bprev"
-    exe "bw! " .. fnameescape(filename[0])
-    exe $"buffer {current_buffer}"
   endif
 enddef
 
