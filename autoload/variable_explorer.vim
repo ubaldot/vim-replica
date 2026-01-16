@@ -7,6 +7,7 @@ const replica_path = expand('<sfile>:h:h')
 # For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
 var payload_accum: string
+var variable_to_inspect: string
 
 # To decide what to do when a console_prompt is ready
 export enum PromptAction
@@ -29,6 +30,7 @@ export def Init()
   raw_buf = ''
   collecting_payload = false
   payload_accum = ''
+  variable_to_inspect = ''
   prompt_action = PromptAction.Ready
 
   if !exists('g:replica_use_utf16')
@@ -54,6 +56,9 @@ def DisplayVariable(decoded_value: list<string>)
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
     setbufvar(buf, '&swapfile', 0)
+
+    exe $"file {variable_to_inspect}"
+
     setbufvar(buf, 'console_prompt', get(bufvars, 'console_prompt', ''))
     setbufvar(buf, 'console_name', get(bufvars, 'console_name', ''))
     setbufvar(buf, 'kernel', get(bufvars, 'kernel_name', ''))
@@ -201,8 +206,12 @@ enddef
 
 export def VimInspect(variable: string = '')
   if !empty(variable)
-    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect('{variable}')\n")
+    # TODO
+    # var variable_single_quoted = variable->substitute('"', "'", 'g')
+    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable}\")\n")
+    variable_to_inspect = variable
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
+    variable_to_inspect = 'Vars'
   endif
 enddef

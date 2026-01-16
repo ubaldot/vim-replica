@@ -85,6 +85,6 @@ export def InstallCommands()
 
   # TODO: fix -complete with %whos
   if !exists(":ReplicaInspect")
-      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<f-args>)
+      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<q-args>)
   endif
 enddef
