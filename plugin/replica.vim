@@ -13,8 +13,8 @@ endif
 
 g:loaded_replica = true
 
-import "../autoload/ftcommands_mappings.vim"
-import "../autoload/highlight.vim"
+import "../lib/ftcommands_mappings.vim"
+import "../lib/highlight.vim"
 
 # export const replica_path = expand('<sfile>:h:h')
 # echom replica_path
