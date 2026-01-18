@@ -111,7 +111,7 @@ def ConsoleOpen()
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
 
-      variable_explorer.prompt_action = variable_explorer.PromptAction.Initialize
+      variable_explorer.prompt_action =  variable_explorer.PromptAction.Initialize
 
       echo b:console_name .. " console opening..."
       setwinvar(win_getid(), 'start_cmd', start_cmd)

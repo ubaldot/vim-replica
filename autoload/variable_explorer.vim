@@ -206,12 +206,13 @@ enddef
 
 export def VimInspect(variable: string = '')
   if !empty(variable)
-    # TODO
-    # var variable_single_quoted = variable->substitute('"', "'", 'g')
-    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable}\")\n")
-    variable_to_inspect = variable
+    var variable_single_quoted = variable->substitute('"', "'", 'g')
+    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
+    variable_to_inspect = variable_single_quoted
+    # TODO send command to clean screen, possibly an ansi escape sequence
+    term_sendkeys(bufnr($'^{b:console_name}$'), "\n<c-d>")
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
-    variable_to_inspect = 'Vars'
+    variable_to_inspect = 'Variable exploriable explorer'
   endif
 enddef
