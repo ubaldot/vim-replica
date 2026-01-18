@@ -84,25 +84,28 @@ def DisplayVariable(decoded_value: list<string>)
   setbufvar(buf, '&modifiable', false)
   setbufvar(buf, '&bufhidden', 'wipe')
   setbufvar(buf, '&winfixbuf', true)
+  setwinvar(win_getid(), '&statusline', 'Variable explorer')
 
-  nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
+  nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+
+  # Reset all script variables
+  Init()
 enddef
 
 
 def HandleLine(line: string, console_prompt: string)
 
   # Single line payload
-  if line =~ '__VIM_PAYLOAD__' && line =~ '__END__$'
+  if line =~# '^__VIM_PAYLOAD__' && line =~# '__END__$'
 
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-    # echom "payload: " .. payload
     var decoded = blob2str(base64_decode(payload))
 
     DisplayVariable(decoded)
   endif
 
   # Multi-line payload
-  if line =~# '^__VIM_PAYLOAD__'
+  if line =~# '^__VIM_PAYLOAD__' && line !~# '__END__$'
     # strip the prefix if the first line contains it
     payload_accum ..= line->substitute('^__VIM_PAYLOAD__', '', '')
     collecting_payload = true
@@ -114,7 +117,6 @@ def HandleLine(line: string, console_prompt: string)
     # Check if this line ends the payload
     if line =~# '__END__$'
       # strip the suffix
-      #
       payload_accum ..= line->substitute('__END__$', '', '')
 
       # Decode final payload
@@ -122,10 +124,9 @@ def HandleLine(line: string, console_prompt: string)
         var decoded = blob2str(base64_decode(payload_accum))
         DisplayVariable(decoded)
       catch
-        # teardown
         repl.Echoerr("invalid base64 payload")
       finally
-        # Reset all script variables
+        # Reset all relevant script variables
         payload_accum = ''
         collecting_payload = false
       endtry
@@ -138,7 +139,7 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Prompt is ready. Do something
-  if line =~ console_prompt
+  if line =~# console_prompt
     if prompt_action == PromptAction.Initialize
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
       prompt_action = PromptAction.Ready
@@ -230,22 +231,32 @@ enddef
 
 
 export def VimInspect(variable: string = '')
-  # The aim of the follo
+  const whos_buf_name = 'Workspace'
+
+
+  # TODO: attempt to have a 'live' update but 'close' close too many
   # The following relying on that the variable explorer buffer has
   # &bufhidden = 'wipe'. It closes existing variable explorers
-  # if bufnr(variable) != -1
-  #   for w in win_findbuf(bufnr(variable_to_inspect))
-  #     win_execute(w, 'close')
-  #   endfor
+  # if !empty(win_findbuf(bufnr(variable)))
+    # var variable_explored_winid = win_findbuf(bufnr(variable))[0]
+    # echom variable_explored_winid
+    # win_execute(variable_explored_winid, 'close')
   # endif
 
+  # if !empty(win_findbuf(bufnr(whos_buf_name)))
+  #   var whos_winid = win_findbuf(bufnr(whos_buf_name))[0]
+  #   win_execute(whos_winid, 'close')
+  # endif
+
+  # :tabonly secure that there is only one tab for variable explorer
+  # tabonly
   if !empty(variable)
     var variable_single_quoted = variable->substitute('"', "'", 'g')
     term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
     variable_to_inspect = variable_single_quoted
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
-    variable_to_inspect = 'Variable explorer'
+    variable_to_inspect = whos_buf_name
   endif
 
   # Clean up IPYTHON console
