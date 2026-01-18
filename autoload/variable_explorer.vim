@@ -49,13 +49,30 @@ def SendInitScript(filename: string)
   echom "vim-replica interface initialized"
 enddef
 
+def WipeVariableExplorer()
+  # TODO: too complex. One should
+  # Remove all tabs containing an instance of the variable explorer
+  for t in gettabinfo()
+    for w in win_findbuf(bufnr(variable_to_inspect))
+      if index(t.windows, w) != -1
+        exe $"tabclose {t.tabnr}"
+        exe $"bwipe {bufnr(variable_to_inspect)}"
+        break
+      endif
+    endfor
+  endfor
+enddef
+
 def DisplayVariable(decoded_value: list<string>)
-    # Example: show in a scratch buffer
+  # Example: show in a scratch buffer
+  if !empty(win_findbuf(variable_to_inspect))
+    win_gotoid(win_findbuf(variable_to_inspect))
+  else
     var bufvars = getbufvar('%', '')
     tabnew
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
-    setbufvar(buf, '&swapfile', 0)
+    setbufvar(buf, '&swapfile', false)
 
     exe $"file {variable_to_inspect}"
 
@@ -63,7 +80,15 @@ def DisplayVariable(decoded_value: list<string>)
     setbufvar(buf, 'console_name', get(bufvars, 'console_name', ''))
     setbufvar(buf, 'kernel', get(bufvars, 'kernel_name', ''))
     setbufline(buf, 1, decoded_value)
+
+    setbufvar(buf, '&modifiable', false)
+    setbufvar(buf, '&bufhidden', 'wipe')
+    setbufvar(buf, '&winfixbuf', true)
+
+    nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
+  endif
 enddef
+
 
 def HandleLine(line: string, console_prompt: string)
 
@@ -209,10 +234,10 @@ export def VimInspect(variable: string = '')
     var variable_single_quoted = variable->substitute('"', "'", 'g')
     term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
     variable_to_inspect = variable_single_quoted
-    # TODO send command to clean screen, possibly an ansi escape sequence
-    term_sendkeys(bufnr($'^{b:console_name}$'), "\n<c-d>")
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
-    variable_to_inspect = 'Variable exploriable explorer'
+    variable_to_inspect = 'Variable explorer'
   endif
+  # Clean up IPYTHON console
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
 enddef
