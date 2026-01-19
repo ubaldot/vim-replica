@@ -75,7 +75,7 @@ enddef
 def ConsoleExists(): bool
   # Check if exists a console of a given filetype (i.e.calling buffer ft)
   if exists("b:console_name")
-    return bufexists(bufnr($'^{b:console_name}$'))
+    return bufexists(bufnr($"^{escape(b:console_name, '[]\.^$*~')}$"))
   else
     return false
   endif
@@ -93,12 +93,15 @@ enddef
 
 
 def IsFiletypeSupported(): bool
-  # Use has_hey maybe is more clear?
+  # has_hey() maybe is more clear?
   # No, because if we are on a console it would return false.
   # Terminal buffers have no filetype.
   return !empty(getbufvar('%', "console_name"))
 enddef
 
+def ReplicaOutCbWrapper(prompt: string, ch: channel, msg: string)
+  variable_explorer.ReplicaOutCb(prompt, ch, msg)
+enddef
 
 def ConsoleOpen()
   # If console does not exist, then create one,
@@ -111,35 +114,41 @@ def ConsoleOpen()
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
 
+      # Send scripts to enable __vim_inspect() to the repl
       variable_explorer.prompt_action =  variable_explorer.PromptAction.Initialize
 
       echo b:console_name .. " console opening..."
-      setwinvar(win_getid(), 'start_cmd', start_cmd)
-      win_execute(win_getid(), 'term_start(w:start_cmd,
+      var prompt = b:console_prompt
+      # setwinvar(win_getid(), 'start_cmd', start_cmd)
+      # win_execute(win_getid(), 'term_start(w:start_cmd,
+      #       \ {term_name: b:console_name,
+      #       \ out_cb: function("ReplicaOutCbWrapper", [prompt])})'
+      # )
+      term_start(start_cmd,
             \ {term_name: b:console_name,
-            \ out_cb: (ch, msg) => variable_explorer.ReplicaOutCb(b:console_prompt, ch, msg)})'
-      )
-      # We give console terminal buffer b:console_name and
-      # b:kernel_name variables.
-      setbufvar(bufnr('$'), 'console_name', b:console_name)
-      setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
-      setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
-      console_win_id = win_findbuf(bufnr('$'))[0]
+            \ out_cb: function("ReplicaOutCbWrapper", [prompt])})
 
+
+    console_win_id = win_findbuf(bufnr('$'))[0]
     elseif empty(ConsoleWinID())
-      win_execute(win_getid(), 'sbuffer '
-            \ .. bufnr($'^{b:console_name}$'))
+      exe 'sbuffer ' .. bufnr($'^{b:console_name}$')
       console_win_id = win_findbuf(bufnr('^'
             \ .. b:console_name .. '$'))[0]
     endif
 
     # Set few options
-    win_execute(console_win_id, 'wincmd ' .. g:replica_console_position)
-    win_execute(console_win_id, 'setlocal nobuflisted winminheight
-          \ winminwidth')
-    win_execute(console_win_id, 'setlocal winfixbuf')
+    exe 'wincmd ' .. g:replica_console_position
+    setlocal nobuflisted winminheight winminwidth winfixbuf
     # Set geometry
     ResizeConsoleWindow(console_win_id)
+
+    # Cursor back to the editor
+    wincmd p
+    # We give console terminal buffer b:console_name and
+    # b:kernel_name variables.
+    setbufvar(bufnr('$'), 'console_name', b:console_name)
+    setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
+    setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
   endif
 enddef
 
@@ -169,7 +178,8 @@ export def ConsoleShutoff()
   if ConsoleExists()
     exe "bw! " .. bufnr($'^{b:console_name}$')
     echo $"Console {b:console_name} shutoff."
-    variable_explorer.Init()
+
+    # Reset script variables
     Init()
   endif
 enddef
@@ -223,7 +233,7 @@ export def SendCell()
     # Jump to the next cell
     cursor(line_out, getcurpos()[2])
     # Write tmp file
-    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
+    delete(g:replica_tmp_filename) # Delete tmp file if any
     writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
     term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command(g:replica_tmp_filename) .. "\n")
@@ -233,10 +243,7 @@ export def SendCell()
 enddef
 
 
-# TODO: list<string> ?
-export def SendFile(filename: string)
-  # TODO: too many Ex commands.
-  const current_buffer = bufnr()
+export def SendFile(filename: string = '')
 
   if IsFiletypeSupported()
     # If there are open terminals with different names than IPYTHON,
@@ -245,8 +252,9 @@ export def SendFile(filename: string)
       ConsoleOpen()
     endif
     # Write tmp file
-    delete(fnameescape(g:replica_tmp_filename)) # Delete tmp file if any
-    writefile(readfile(filename), g:replica_tmp_filename, "a")
+    var fname = empty(filename) ? expand('%:p') : filename
+    delete(g:replica_tmp_filename) # Delete tmp file if any
+    writefile(readfile(fname), g:replica_tmp_filename, "a")
     term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command(g:replica_tmp_filename) .. "\n")
   else
@@ -257,32 +265,32 @@ enddef
 # =========================================
 #               TEST
 #  =======================================
-def WaitPrompt(expected_prompt: string)
-  # Wait for Jupyter Console to be up and running
-  const bufnr = term_list()[0]
-  var term_cursor_pos = term_getcursor(bufnr)
-  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
+# def WaitPrompt(expected_prompt: string)
+#   # Wait for Jupyter Console to be up and running
+#   const bufnr = term_list()[0]
+#   var term_cursor_pos = term_getcursor(bufnr)
+#   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
 
-  var count = 0
-  const max_count = 10
-  while term_cursor !~ expected_prompt && count < max_count
-    redraw!
-    term_cursor_pos = term_getcursor(bufnr)
-    term_cursor = term_getline(bufnr, term_cursor_pos[0])
-    count += 1
-    sleep 1
-  endwhile
-enddef
+#   var count = 0
+#   const max_count = 10
+#   while term_cursor !~ expected_prompt && count < max_count
+#     redraw!
+#     term_cursor_pos = term_getcursor(bufnr)
+#     term_cursor = term_getline(bufnr, term_cursor_pos[0])
+#     count += 1
+#     sleep 1
+#   endwhile
+# enddef
 
-def g:Test()
-  message clear
-  # Open the file safely
-  execute 'edit ' .. fnameescape('xxx.py')
-  var buf_nr = bufnr('$')
-  exe ":ReplicaConsoleToggle"
-  WaitPrompt('In [1]: ')
-  redraw!
-  exe ":ReplicaConsoleShutoff"
-  exe ":Redir messages"
-  exe $"bw! {buf_nr}"
-enddef
+# def g:Test()
+#   message clear
+#   # Open the file safely
+#   execute 'edit ' .. fnameescape('xxx.py')
+#   var buf_nr = bufnr('$')
+#   exe ":ReplicaConsoleToggle"
+#   WaitPrompt('In [1]: ')
+#   redraw!
+#   exe ":ReplicaConsoleShutoff"
+#   exe ":Redir messages"
+#   exe $"bw! {buf_nr}"
+# enddef

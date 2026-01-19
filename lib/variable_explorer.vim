@@ -36,6 +36,8 @@ export def Init()
   if !exists('g:replica_use_utf16')
     if has("win32") && !IsWSL()
       is_utf16 = true
+    else
+      is_utf16 = false
     endif
   else
     is_utf16 = g:replica_use_utf16
@@ -49,26 +51,26 @@ def SendInitScript(filename: string)
   echom "vim-replica interface initialized"
 enddef
 
-def WipeVariableExplorer()
-  # TODO: too complex. One should
-  # Remove all tabs containing an instance of the variable explorer
-  for t in gettabinfo()
-    for w in win_findbuf(bufnr(variable_to_inspect))
-      if index(t.windows, w) != -1
-        exe $"tabclose {t.tabnr}"
-        exe $"bwipe {bufnr(variable_to_inspect)}"
-        break
-      endif
-    endfor
-  endfor
-enddef
+# def WipeVariableExplorer()
+#   # TODO: too complex. One should
+#   # Remove all tabs containing an instance of the variable explorer
+#   for t in gettabinfo()
+#     for w in win_findbuf(bufnr(variable_to_inspect))
+#       if index(t.windows, w) != -1
+#         exe $"tabclose {t.tabnr}"
+#         exe $"bwipe {bufnr(variable_to_inspect)}"
+#         break
+#       endif
+#     endfor
+#   endfor
+# enddef
 
 def DisplayVariable(decoded_value: list<string>)
   # Example: show in a scratch buffer
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  var bufvars = getbufvar('%', '')
+  # var bufvars = getbufvar('%', '')
   tabnew
   var buf = bufnr('$')
   setbufvar(buf, '&buftype', 'nofile')
@@ -76,9 +78,6 @@ def DisplayVariable(decoded_value: list<string>)
 
   exe $"file {variable_to_inspect}"
 
-  setbufvar(buf, 'console_prompt', get(bufvars, 'console_prompt', ''))
-  setbufvar(buf, 'console_name', get(bufvars, 'console_name', ''))
-  setbufvar(buf, 'kernel', get(bufvars, 'kernel_name', ''))
   setbufline(buf, 1, decoded_value)
 
   setbufvar(buf, '&modifiable', false)
@@ -88,7 +87,8 @@ def DisplayVariable(decoded_value: list<string>)
 
   nnoremap <buffer> <silent> <esc> <cmd>close<cr>
 
-  # Reset all script variables
+  # This is the end-point. We can reset all script variables for the next
+  # round.
   Init()
 enddef
 
@@ -170,8 +170,6 @@ def FeedChars(bytes: string, console_prompt: string)
       ? match(raw_buf, "\x0D\x00\|\x0A\x00")
       : match(raw_buf, "\r\|\n")
 
-    # echom "raw_buf: " .. raw_buf
-    # echom "idx: " .. idx
     if idx < 0
       break
     elseif idx == 0
@@ -223,6 +221,7 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
       HandleLine(StripAnsiEscapeSequences(tail), console_prompt)
       raw_buf = ''
     catch
+      # Reset all script variables
       Init()
       repl.Echoerr("Cannot convert prompt utf-16 string")
     endtry
@@ -232,7 +231,6 @@ enddef
 
 export def VimInspect(variable: string = '')
   const whos_buf_name = 'Workspace'
-
 
   # TODO: attempt to have a 'live' update but 'close' close too many
   # The following relying on that the variable explorer buffer has
@@ -259,6 +257,6 @@ export def VimInspect(variable: string = '')
     variable_to_inspect = whos_buf_name
   endif
 
-  # Clean up IPYTHON console
+  # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
 enddef
