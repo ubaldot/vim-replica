@@ -252,9 +252,12 @@ export def SendFile(filename: string = '')
       ConsoleOpen()
     endif
     # Write tmp file
-    var fname = empty(filename) ? expand('%:p') : filename
     delete(g:replica_tmp_filename) # Delete tmp file if any
-    writefile(readfile(fname), g:replica_tmp_filename, "a")
+    if empty(filename)
+      writefile(getline(1, '$'), g:replica_tmp_filename, "a")
+    else
+      writefile(readfile(filename), g:replica_tmp_filename, "a")
+    endif
     term_sendkeys(bufnr($'^{b:console_name}$'),
           \ b:run_command(g:replica_tmp_filename) .. "\n")
   else
