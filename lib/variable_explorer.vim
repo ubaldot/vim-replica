@@ -70,8 +70,9 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  # var bufvars = getbufvar('%', '')
-  tabnew
+  # TODO: let user choose if he wants tabs or vnew
+  # tabnew
+  vnew
   var buf = bufnr('$')
   setbufvar(buf, '&buftype', 'nofile')
   setbufvar(buf, '&swapfile', false)
@@ -83,7 +84,7 @@ def DisplayVariable(decoded_value: list<string>)
   setbufvar(buf, '&modifiable', false)
   setbufvar(buf, '&bufhidden', 'wipe')
   setbufvar(buf, '&winfixbuf', true)
-  setwinvar(win_getid(), '&statusline', 'Variable explorer')
+  setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
 
   nnoremap <buffer> <silent> <esc> <cmd>close<cr>
 
