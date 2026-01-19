@@ -70,24 +70,31 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  # TODO: let user choose if he wants tabs or vnew
-  # tabnew
-  vnew
-  var buf = bufnr('$')
-  setbufvar(buf, '&buftype', 'nofile')
-  setbufvar(buf, '&swapfile', false)
+  if bufexists(variable_to_inspect)
+    var buf = bufnr(variable_to_inspect)
+    setbufvar(buf, '&modifiable', true)
+    deletebufline(buf, 1, "$")
+    setbufline(buf, 1, decoded_value)
+    setbufvar(buf, '&modifiable', false)
+  else
+    # TODO: let user choose if he wants tabs or vnew
+    # tabnew
+    vnew
+    var buf = bufnr('$')
+    setbufvar(buf, '&buftype', 'nofile')
+    setbufvar(buf, '&swapfile', false)
 
-  exe $"file {variable_to_inspect}"
+    exe $"file {variable_to_inspect}"
 
-  setbufline(buf, 1, decoded_value)
+    setbufline(buf, 1, decoded_value)
 
-  setbufvar(buf, '&modifiable', false)
-  setbufvar(buf, '&bufhidden', 'wipe')
-  setbufvar(buf, '&winfixbuf', true)
-  setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+    setbufvar(buf, '&modifiable', false)
+    setbufvar(buf, '&bufhidden', 'wipe')
+    setbufvar(buf, '&winfixbuf', true)
+    setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
 
-  nnoremap <buffer> <silent> <esc> <cmd>close<cr>
-
+    nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+  endif
   # This is the end-point. We can reset all script variables for the next
   # round.
   Init()
