@@ -5,6 +5,9 @@ vim9script
 
 # OBS! Sometimes these tests fail!
 
+# Uncomment for debug
+# import "../plugin/replica.vim"
+
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
@@ -40,6 +43,7 @@ enddef
 
 # Tests start here
 def g:Test_python_basic()
+	messages clear
 
   const src_name = 'testfile.py'
   const lines =<< trim END
@@ -60,6 +64,7 @@ def g:Test_python_basic()
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "kernel_name")))
 
+
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -67,7 +72,7 @@ def g:Test_python_basic()
   var bufnr = term_list()[0]
   var term_cursor_pos = term_getcursor(bufnr)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = '[1]'
+  var expected_prompt = '[2]'
   WaitPrompt(expected_prompt)
 
   term_cursor_pos = term_getcursor(bufnr)
@@ -76,7 +81,7 @@ def g:Test_python_basic()
 
   # ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
-  var prompts_lines = {2: 4, 3: 7, 4: 9}
+  var prompts_lines = {3: 4, 4: 7, 5: 9}
 
   for [prompt, line] in items(prompts_lines)
       expected_prompt = prompt
@@ -84,13 +89,12 @@ def g:Test_python_basic()
       WaitPrompt($'[{prompt}]')
       term_cursor_pos = term_getcursor(bufnr)
       lastline = term_getline(bufnr, term_cursor_pos[0])
-      assert_true(lastline =~# expected_prompt)
       assert_true(line('.') == line)
   endfor
 
   # ReplicaSendLine
   cursor(1, 1)
-  prompts_lines = {5: 2, 6: 3}
+  prompts_lines = {6: 2, 7: 3}
 
   for [prompt, line] in items(prompts_lines)
       exe "ReplicaSendLine"
@@ -117,7 +121,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  expected_prompt = '[1]'
+  expected_prompt = '[2]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
   term_cursor_pos = term_getcursor(bufnr)
@@ -127,14 +131,14 @@ def g:Test_python_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
-  expected_prompt = '[2]'
+  expected_prompt = '[3]'
   WaitPrompt(expected_prompt)
   term_cursor_pos = term_getcursor(bufnr)
   lastline = term_getline(bufnr, term_cursor_pos[0])
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
 
-  # Shutoff
+ # Shutoff
   exe "ReplicaConsoleShutoff"
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))

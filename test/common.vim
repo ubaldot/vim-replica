@@ -1,4 +1,4 @@
-vim9scrip
+vim9script
 # Common routines used for running the unit tests
 
 
