@@ -6,9 +6,9 @@ vim9script
 # GetLatestVimScripts: 6067 1 :AutoInstall: replica.vim
 
 if !has('vim9script') ||  v:version < 900
-    # Needs Vim version 9.0 and above
-    echo "You need at least Vim 9.0"
-    finish
+  # Needs Vim version 9.0 and above
+  echo "You need at least Vim 9.0"
+  finish
 endif
 
 g:loaded_replica = true
@@ -26,71 +26,71 @@ import "../lib/highlight.vim"
 g:replica_tmp_filename = tempname()
 
 if !exists('g:replica_display_range')
-    g:replica_display_range = true
+  g:replica_display_range = true
 endif
 
 if !exists('g:replica_enable_highlight')
-    g:replica_enable_highlight = true
+  g:replica_enable_highlight = true
 endif
 
 if !exists('g:replica_alt_highlight')
-    g:replica_alt_highlight = false
+  g:replica_alt_highlight = false
 endif
 
 if !exists('g:replica_python_options')
-    g:replica_python_options = ""
+  g:replica_python_options = ""
 endif
 
 if !exists('g:replica_use_default_mapping')
-    g:replica_use_default_mapping = false
+  g:replica_use_default_mapping = false
 endif
 
 if !exists('g:replica_jupyter_console_options')
-    g:replica_jupyter_console_options = {
-                python: "",
-                julia: ""}
+  g:replica_jupyter_console_options = {
+    python: "",
+    julia: ""}
 endif
 
 # Dicts. Keys must be Vim filetypes
 var replica_kernels_default = {
-             python: "python3",
-             julia: "julia-1.8"}
+  python: "python3",
+  julia: "julia-1.8"}
 
 var replica_console_names_default = {
-            python: "IPYTHON",
-            julia: "JULIA"}
+  python: "IPYTHON",
+  julia: "JULIA"}
 
 var replica_cells_delimiters_default = {
-            python: "# %%",
-            julia: "# %%"}
+  python: "# %%",
+  julia: "# %%"}
 
 var replica_run_commands_default = {
-            python: (filename) => $"run -i {filename}",
-            julia: (filename) => $"include({filename})" }
+  python: (filename) => $"run -i {filename}",
+  julia: (filename) => $"include({filename})" }
 
 var replica_jupyter_console_options_default = {
-            python: "",
-            julia: ""}
+  python: "",
+  julia: ""}
 
 var replica_console_prompts_default = {
-            python: '^In\s\[\d\+\]:\s$',
-            julia: '^julia>$'}
+  python: '^In\s\[\d\+\]:\s$',
+  julia: '^julia>$'}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
-    extend(replica_kernels_default, g:replica_kernels, "force")
+  extend(replica_kernels_default, g:replica_kernels, "force")
 endif
 
 if exists('g:replica_cells_delimiters')
-    extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
+  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
 endif
 
 if exists('g:replica_jupyter_console_options')
-    extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
+  extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
 endif
 
 if exists('g:replica_console_prompts')
-    extend(replica_console_prompts_default, g:replica_console_prompts, "force")
+  extend(replica_console_prompts_default, g:replica_console_prompts, "force")
 endif
 
 g:replica_kernels = replica_kernels_default
@@ -112,34 +112,35 @@ g:replica_console_prompts = replica_console_prompts_default
 
 # The following variable won't change during run-time
 def SetBufferVars()
-  if index(keys(g:replica_kernels), &filetype) != -1
-    b:kernel_name = g:replica_kernels[&filetype]
-    b:console_name = g:replica_console_names[&filetype]
-    b:cells_delimiter = g:replica_cells_delimiters[&filetype]
-    b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
-    b:run_command = g:replica_run_commands[&filetype]
-    b:console_prompt = g:replica_console_prompts[&filetype]
+  b:kernel_name = g:replica_kernels[&filetype]
+  b:console_name = g:replica_console_names[&filetype]
+  b:cells_delimiter = g:replica_cells_delimiters[&filetype]
+  b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
+  b:run_command = g:replica_run_commands[&filetype]
+  b:console_prompt = g:replica_console_prompts[&filetype]
 
-    if g:replica_enable_highlight
-        augroup highlight_cells
-            autocmd! * <buffer>
-            autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer>
-                        \ highlight.HighlightCell()
-            autocmd CursorMoved,CursorMovedI <buffer>
-                        \ highlight.HighlightCell(true)
-        augroup END
-    endif
-
-    # Mappings are set only to buffer of allowed filetype
-    ftcommands_mappings.InstallCommands()
-    ftcommands_mappings.InstallMappings()
+  if g:replica_enable_highlight
+    augroup highlight_cells
+      autocmd! * <buffer>
+      autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer>
+            \ highlight.HighlightCell()
+      autocmd CursorMoved,CursorMovedI <buffer>
+            \ highlight.HighlightCell(true)
+    augroup END
   endif
+
+  # Mappings are set only to buffer of allowed filetype
+  ftcommands_mappings.InstallCommands()
+  ftcommands_mappings.InstallMappings()
 enddef
 
 augroup REPLICA_SET_BUFFER_VARS
-    autocmd FileType * SetBufferVars()
+  autocmd!
+  for val in keys(g:replica_kernels)
+    exe $"autocmd FileType {val} SetBufferVars()"
+  endfor
 augroup END
 
 augroup REPLICA_DELETE_TMP_FILE
-    autocmd VimLeave * delete(g:replica_tmp_filename)
+  autocmd VimLeave * delete(g:replica_tmp_filename)
 augroup END
