@@ -51,7 +51,7 @@ enddef
 # -----------------------------
 #  Commands
 # -----------------------------
-export def InstallCommands()
+export def InstallConsoleCommands()
   if !exists(":ReplicaConsoleToggle")
       command -buffer ReplicaConsoleToggle silent repl.ConsoleToggle()
   endif
@@ -65,6 +65,13 @@ export def InstallCommands()
       command -buffer ReplicaConsoleShutoff repl.ConsoleShutoff()
   endif
 
+  # TODO: fix -complete with %whos
+  if !exists(":ReplicaInspect")
+      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<q-args>)
+  endif
+enddef
+
+export def InstallSendCommands()
   if !exists(":ReplicaSendLines")
       command -buffer -range ReplicaSendLines
               \ silent repl.SendLines(<line1>, <line2>)
@@ -81,10 +88,5 @@ export def InstallCommands()
 
   if !exists(":ReplicaRemoveCells")
       command -buffer ReplicaRemoveCells repl.RemoveCells()
-  endif
-
-  # TODO: fix -complete with %whos
-  if !exists(":ReplicaInspect")
-      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<q-args>)
   endif
 enddef

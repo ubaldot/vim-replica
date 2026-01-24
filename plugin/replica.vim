@@ -130,7 +130,8 @@ def SetBufferVars()
   endif
 
   # Mappings are set only to buffer of allowed filetype
-  ftcommands_mappings.InstallCommands()
+  ftcommands_mappings.InstallConsoleCommands()
+  ftcommands_mappings.InstallSendCommands()
   ftcommands_mappings.InstallMappings()
 enddef
 

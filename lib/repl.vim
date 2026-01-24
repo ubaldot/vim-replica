@@ -2,6 +2,7 @@ vim9script
 
 import "../lib/highlight.vim"
 import "../lib/variable_explorer.vim"
+import "../lib/ftcommands_mappings.vim"
 
 # ---------------------------------------
 # State
@@ -118,18 +119,17 @@ def ConsoleOpen()
       variable_explorer.prompt_action =  variable_explorer.PromptAction.Initialize
 
       echo b:console_name .. " console opening..."
+
+      # I have to explicitly call the feedback through a FuncRef otherwise
+      # 'prompt' variable is lost
       var prompt = b:console_prompt
-      # setwinvar(win_getid(), 'start_cmd', start_cmd)
-      # win_execute(win_getid(), 'term_start(w:start_cmd,
-      #       \ {term_name: b:console_name,
-      #       \ out_cb: function("ReplicaOutCbWrapper", [prompt])})'
-      # )
       term_start(start_cmd,
-            \ {term_name: b:console_name,
-            \ out_cb: function("ReplicaOutCbWrapper", [prompt])})
+        {term_name: b:console_name,
+          out_cb: function("ReplicaOutCbWrapper", [prompt])})
 
+      ftcommands_mappings.InstallConsoleCommands()
 
-    console_win_id = win_findbuf(bufnr('$'))[0]
+      console_win_id = win_findbuf(bufnr('$'))[0]
     elseif empty(ConsoleWinID())
       exe 'sbuffer ' .. bufnr($'^{b:console_name}$')
       console_win_id = win_findbuf(bufnr('^'
