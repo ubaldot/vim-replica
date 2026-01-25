@@ -14,11 +14,13 @@ export enum PromptAction
   Ready,
   Initialize
 endenum
-export var prompt_action: PromptAction
+export var prompt_action: PromptAction = PromptAction.Ready
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
-var is_utf16: bool
+var is_utf16: bool = false
+var encoding_detected: bool
+const RAW_BUF_MAX_LEN_DETECTION = 100
 
 def IsWSL(): bool
   return has('unix')
@@ -31,15 +33,10 @@ export def Init()
   collecting_payload = false
   payload_accum = ''
   variable_to_inspect = ''
+  encoding_detected = false
   prompt_action = PromptAction.Ready
 
-  if !exists('g:replica_use_utf16')
-    if has("win32") && !IsWSL()
-      is_utf16 = true
-    else
-      is_utf16 = false
-    endif
-  else
+  if exists('g:replica_use_utf16')
     is_utf16 = g:replica_use_utf16
   endif
 enddef
@@ -157,34 +154,80 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line (normal processing)
-  # echom "line: " .. line
+  echom "line: " .. line
 enddef
 
 
 def StripAnsiEscapeSequences(msg: string): string
-    # Strip ANSI escape sequences
-    return msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
+  # Strip ANSI escape sequences
+  return msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
-  var line = ''
-  var nbytes = is_utf16 ? 2 : 1
-
   # Accumulate bytes as they appear on the terminal stdout
   raw_buf ..= bytes
+  # echom "raw_buf: " .. raw_buf
+
+  # UTF-8 OR UTF-16 auto-detection
+  if !encoding_detected
+    if raw_buf =~# "\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
+      is_utf16 = true
+    elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
+      is_utf16 = false
+    else
+      return
+    endif
+    encoding_detected = true
+  endif
+
+  var line = ''
+  var nbytes = -1
+  var idx = -1
 
   while true
     # OBS! If \r\n is received, then you get an extra blank line as result.
-    var idx = is_utf16
-      ? match(raw_buf, "\x0D\x00\|\x0A\x00")
-      : match(raw_buf, "\r\|\n")
+    # var idx = is_utf16
+    #   ? match(raw_buf, "\x0D\x00\|\x0A\x00")
+    #   : match(raw_buf, "\x0D\|\x0A")
+    if is_utf16
+      # First, check for CR+LF (\r\n)
+      var crlf_idx = match(raw_buf, "\x0D\x00\x0A\x00")
+      if crlf_idx >= 0
+        idx = crlf_idx
+        nbytes = 4  # 2 bytes for \r + 2 bytes for \n
+      else
+        # Then check for single CR or LF
+        var crlf_single_idx = match(raw_buf, "\x0D\x00\|\x0A\x00")
+        if crlf_single_idx >= 0
+          idx = crlf_single_idx
+          nbytes = 2  # single UTF-16 character
+        else
+          idx = -1  # no line ending found
+        endif
+      endif
+    else
+      # UTF-8: check \r\n first
+      var crlf_idx = match(raw_buf, "\r\n")
+      if crlf_idx >= 0
+        idx = crlf_idx
+        nbytes = 2
+      else
+        var crlf_single_idx = match(raw_buf, "\r\|\n")
+        if crlf_single_idx >= 0
+          idx = crlf_single_idx
+          nbytes = 1
+        else
+          idx = -1
+        endif
+      endif
+    endif
 
     if idx < 0
       break
     elseif idx == 0
       line = ''
     else
-      # Extract one full UTF-16 line (without terminator)
+      # Extract one full line (without terminator)
       line = raw_buf[: idx - 1]
     endif
 
@@ -196,7 +239,7 @@ def FeedChars(bytes: string, console_prompt: string)
       endif
     catch
       raw_buf = ''
-      repl.Echoerr("Cannot convert utf-16 string (raw buf)")
+      repl.Echoerr($"Cannot convert {is_utf16 ? "utf-16le" : "utf-8"} string (raw buf)")
       break
     endtry
 
@@ -245,9 +288,9 @@ export def VimInspect(variable: string = '')
   # The following relying on that the variable explorer buffer has
   # &bufhidden = 'wipe'. It closes existing variable explorers
   # if !empty(win_findbuf(bufnr(variable)))
-    # var variable_explored_winid = win_findbuf(bufnr(variable))[0]
-    # echom variable_explored_winid
-    # win_execute(variable_explored_winid, 'close')
+  # var variable_explored_winid = win_findbuf(bufnr(variable))[0]
+  # echom variable_explored_winid
+  # win_execute(variable_explored_winid, 'close')
   # endif
 
   # if !empty(win_findbuf(bufnr(whos_buf_name)))
