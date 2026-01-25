@@ -8,7 +8,7 @@ jobs:
       matrix:
         vim:
           - nightly
-          - v9.1.1942
+          - v9.1.2035
         os: [ubuntu-latest, macos-latest]
 
     steps:
@@ -46,7 +46,7 @@ jobs:
       matrix:
         vim:
           - nightly
-          - v9.1.1942
+          - v9.1.2035
 
     steps:
       - name: Setup Python
