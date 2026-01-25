@@ -154,13 +154,18 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line (normal processing)
-  echom "line: " .. line
+  # echom "line: " .. line
 enddef
 
 
 def StripAnsiEscapeSequences(msg: string): string
   # Strip ANSI escape sequences
-  return msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
+  var tmp = msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
+    # Normalize CR
+    ->substitute('\r\n\|\r', "\n", 'g')
+    # Remove BS
+    ->substitute('\%x08', '', 'g')
+  return tmp
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
@@ -175,6 +180,7 @@ def FeedChars(bytes: string, console_prompt: string)
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = false
     else
+      # We cannot say anything yet
       return
     endif
     encoding_detected = true
@@ -185,10 +191,6 @@ def FeedChars(bytes: string, console_prompt: string)
   var idx = -1
 
   while true
-    # OBS! If \r\n is received, then you get an extra blank line as result.
-    # var idx = is_utf16
-    #   ? match(raw_buf, "\x0D\x00\|\x0A\x00")
-    #   : match(raw_buf, "\x0D\|\x0A")
     if is_utf16
       # First, check for CR+LF (\r\n)
       var crlf_idx = match(raw_buf, "\x0D\x00\x0A\x00")
@@ -232,11 +234,11 @@ def FeedChars(bytes: string, console_prompt: string)
     endif
 
     try
-      if is_utf16
-        HandleLine(StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8')), console_prompt)
-      else
-        HandleLine(StripAnsiEscapeSequences(line), console_prompt)
-      endif
+      var clean_line = is_utf16
+        ? StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8'))
+        : StripAnsiEscapeSequences(line)
+
+      HandleLine(clean_line, console_prompt)
     catch
       raw_buf = ''
       repl.Echoerr($"Cannot convert {is_utf16 ? "utf-16le" : "utf-8"} string (raw buf)")
@@ -267,10 +269,13 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
   FeedChars(msg, console_prompt)
 
   # Handle Leftovers in the raw_buf, which is generally the prompt
-  var tail = is_utf16 ? iconv(raw_buf, 'utf-16le', 'utf-8') : raw_buf
-  if !empty(tail) && StripAnsiEscapeSequences(tail) =~# console_prompt
+  var clean_tail = is_utf16
+    ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
+    : StripAnsiEscapeSequences(raw_buf)
+
+  if !empty(clean_tail) && clean_tail =~# console_prompt
     try
-      HandleLine(StripAnsiEscapeSequences(tail), console_prompt)
+      HandleLine(clean_tail, console_prompt)
       raw_buf = ''
     catch
       # Reset all script variables
