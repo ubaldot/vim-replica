@@ -154,7 +154,7 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line (normal processing)
-  echom "line: " .. line
+  # echom "line: " .. line
 enddef
 
 
