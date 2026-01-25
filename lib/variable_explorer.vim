@@ -154,7 +154,7 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line (normal processing)
-  # echom "line: " .. line
+  echom "line: " .. line
 enddef
 
 
@@ -169,69 +169,66 @@ def StripAnsiEscapeSequences(msg: string): string
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
-  # Accumulate bytes as they appear on the terminal stdout
   raw_buf ..= bytes
-  # echom "raw_buf: " .. raw_buf
 
-  # UTF-8 OR UTF-16 auto-detection
+  # Decode encoring
   if !encoding_detected
     if raw_buf =~# "\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = true
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = false
     else
-      # We cannot say anything yet
       return
     endif
     encoding_detected = true
   endif
 
-  var line = ''
-  var nbytes = -1
-  var idx = -1
-
+  # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
   while true
+    var idx = -1
+    var nbytes = -1
+
+    # UTF-16LE case
     if is_utf16
-      # First, check for CR+LF (\r\n)
-      var crlf_idx = match(raw_buf, "\x0D\x00\x0A\x00")
-      if crlf_idx >= 0
-        idx = crlf_idx
-        nbytes = 4  # 2 bytes for \r + 2 bytes for \n
-      else
-        # Then check for single CR or LF
-        var crlf_single_idx = match(raw_buf, "\x0D\x00\|\x0A\x00")
-        if crlf_single_idx >= 0
-          idx = crlf_single_idx
-          nbytes = 2  # single UTF-16 character
-        else
-          idx = -1  # no line ending found
-        endif
+      if len(raw_buf) < 2
+        break
       endif
-    else
-      # UTF-8: check \r\n first
-      var crlf_idx = match(raw_buf, "\r\n")
-      if crlf_idx >= 0
-        idx = crlf_idx
+
+      var idx_cr = match(raw_buf, "\x0D\x00")
+      var idx_lf = match(raw_buf, "\x0A\x00")
+
+      if idx_cr >= 0 && idx_lf == idx_cr + 2
+        idx = idx_cr
+        nbytes = 4
+      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+        idx = idx_cr
         nbytes = 2
-      else
-        var crlf_single_idx = match(raw_buf, "\r\|\n")
-        if crlf_single_idx >= 0
-          idx = crlf_single_idx
-          nbytes = 1
-        else
-          idx = -1
-        endif
+      elseif idx_lf >= 0
+        idx = idx_lf
+        nbytes = 2
+      endif
+    # UTF-8 case
+    else
+      var idx_cr = match(raw_buf, "\r")
+      var idx_lf = match(raw_buf, "\n")
+
+      if idx_cr >= 0 && idx_lf == idx_cr + 1
+        idx = idx_cr
+        nbytes = 2
+      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+        idx = idx_cr
+        nbytes = 1
+      elseif idx_lf >= 0
+        idx = idx_lf
+        nbytes = 1
       endif
     endif
 
     if idx < 0
       break
-    elseif idx == 0
-      line = ''
-    else
-      # Extract one full line (without terminator)
-      line = raw_buf[: idx - 1]
     endif
+
+    var line = idx > 0 ? raw_buf[: idx - 1] : ''
 
     try
       var clean_line = is_utf16
@@ -241,13 +238,11 @@ def FeedChars(bytes: string, console_prompt: string)
       HandleLine(clean_line, console_prompt)
     catch
       raw_buf = ''
-      repl.Echoerr($"Cannot convert {is_utf16 ? "utf-16le" : "utf-8"} string (raw buf)")
+      repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       break
     endtry
 
-    # Leftovers
     raw_buf = raw_buf[idx + nbytes :]
-
   endwhile
 enddef
 
@@ -265,6 +260,8 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
   # when there is a screen redraw or when there is a window resize).
   # For example, if the focus goes to a buffer that has no
   # e.g. b:console_prompt, and this function is invoked, then you get an error.
+  #
+  # OBS! UTF-16BE encoding is not supported
 
   FeedChars(msg, console_prompt)
 
@@ -298,10 +295,6 @@ export def VimInspect(variable: string = '')
   # win_execute(variable_explored_winid, 'close')
   # endif
 
-  # if !empty(win_findbuf(bufnr(whos_buf_name)))
-  #   var whos_winid = win_findbuf(bufnr(whos_buf_name))[0]
-  #   win_execute(whos_winid, 'close')
-  # endif
 
   # :tabonly secure that there is only one tab for variable explorer
   # tabonly
