@@ -1,4 +1,3 @@
 Test_python_basic(): pass
 Test_unsupported_filetypes(): pass
-command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 62: Expected ['Variable           Type             Data/Info', '\[- occurs 45 times]', 'A                  ndarray          2x3: 6 elems, type `int64`, 48 bytes', 'a                  float            3.99', 'df                 DataFrame              a  b  c\\nrow1  1  2  3\\nrow2  4  5  6'] but got ['Variable           Type             Data/Info', '\[- occurs 45 times]', 'A                  ndarray          2x3: 6 elems, type `int64`, 48 bytes', 'a                  float            3.99', 'df                 DataFrame        Shape: (2, 3)']
-Test_variable_explorer_basic(): FAIL
+Test_variable_explorer_basic(): pass
