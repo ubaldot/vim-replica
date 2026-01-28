@@ -259,12 +259,13 @@ def g:Test_variable_explorer_basic()
   # Send current buffer
   exe "ReplicaSendFile"
 
-  # test %whos
+  # --- test %whos
   # OBS! The way %whos display variables, may change with the kernel
   # versions, so you cannot really test it reliably. At most, you can check
   # that a split window happened
 
   exe "ReplicaInspect"
+  assert_true(empty(v:errmsg))
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
