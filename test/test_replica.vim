@@ -216,3 +216,163 @@ def g:Test_unsupported_filetypes()
   Cleanup_testfile(python_filename)
   Cleanup_testfile(text_filename)
 enddef
+
+def g:Test_variable_explorer_basic()
+	messages clear
+
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+    import numpy as np
+    import pandas as pd
+
+    # Test single variable
+    a = 3.99
+
+    # Test numpy array
+    A = np.array([[1, 2, 3], [4, 5, 6]])
+
+    # Test pandas dataframe
+    df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
+  END
+
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "kernel_name")))
+
+
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  var bufnr = term_list()[0]
+  var term_cursor_pos = term_getcursor(bufnr)
+  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
+  var expected_prompt = '[2]'
+  WaitPrompt(expected_prompt)
+
+  term_cursor_pos = term_getcursor(bufnr)
+  var lastline = term_getline(bufnr, term_cursor_pos[0])
+  assert_match(expected_prompt, lastline)
+
+  # Send current buffer
+  exe "ReplicaSendFile"
+
+  # test %whos
+    var expected_variable_explorer =<< END
+Variable           Type             Data/Info
+---------------------------------------------
+A                  ndarray          2x3: 6 elems, type `int64`, 48 bytes
+a                  float            3.99
+df                 DataFrame        Shape: (2, 3)
+END
+
+  exe "ReplicaInspect"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  var buf_name = 'Workspace'
+  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+ ->filter("v:val =~ '\\(ndarray\\|float\\|DataFrame\\|^Variable\\|^----\\)'")
+
+  assert_equal(actual_variable_explorer, expected_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # Test float
+  expected_variable_explorer = ['3.99']
+  buf_name = 'a'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(actual_variable_explorer, expected_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # Test np.ndarray
+  expected_variable_explorer =<< END
+1	2	3
+4	5	6
+END
+  buf_name = 'A'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(actual_variable_explorer, expected_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # TODO: Test np.ndarray slice DOES NOT WORK
+#   expected_variable_explorer =<< END
+# 1	2	3
+# 4	5	6
+# END
+#   exe "ReplicaInspect A"
+#   WaitForAssert(() => assert_equal(3, winnr('$')))
+
+#   buf_name = 'A'
+#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+#   echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+#   echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+#   # Test <esc> mapping
+#   exe "norm \<esc>"
+#   echom WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # Test pd.DataFrame
+  expected_variable_explorer =<< END
+      a  b  c
+row1  1  2  3
+row2  4  5  6
+END
+
+  buf_name = 'df'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(actual_variable_explorer, expected_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # Test pd.DataFrame slice (= pd.Series)
+  expected_variable_explorer =<< END
+row1    1
+row2    4
+END
+  buf_name = "df['a']"
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(actual_variable_explorer, expected_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # Shutoff
+  wincmd p
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  :%bw!
+  Cleanup_testfile(src_name)
+
+enddef
