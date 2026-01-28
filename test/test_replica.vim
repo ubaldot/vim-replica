@@ -71,7 +71,7 @@ def g:Test_python_basic()
 
   # var term_cursor_pos = term_getcursor(bufnr)
   # var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = '\[2\]'
+  var expected_prompt = 'In \[2\]'
   WaitPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
@@ -82,30 +82,30 @@ def g:Test_python_basic()
   # ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
   # var prompts_lines = {3: 4, 4: 7, 5: 9}
-  var lines_prompts = {4: '\[3\]', 7: '\[4\]', 9: '\[5\]'}
+  var lines_prompts = {4: 'In \[3\]', 7: 'In \[4\]', 9: 'In \[5\]'}
 
   for [line, prompt] in items(lines_prompts)
       expected_prompt = prompt
       exe "ReplicaSendCell"
-      WaitPrompt($'[{prompt}]')
+      WaitPrompt(prompt)
       term_cursor_pos = term_getcursor(bufnr)
       lastline = term_getline(bufnr, term_cursor_pos[0])
       echom assert_true(lastline =~# expected_prompt)
-      echom assert_true(line('.') == line)
+      echom assert_true(line('.') == str2nr(line))
   endfor
 
   # ReplicaSendLine
   cursor(1, 1)
-  prompts_lines = {6: 2, 7: 3}
+  lines_prompts = {2: 'In \[6\]', 3: 'In \[7\]'}
 
-  for [prompt, line] in items(prompts_lines)
+  for [line, prompt] in items(lines_prompts)
       exe "ReplicaSendLine"
-      WaitPrompt($'[{prompt}]')
+      WaitPrompt(prompt)
       expected_prompt = prompt
       term_cursor_pos = term_getcursor(bufnr)
       lastline = term_getline(bufnr, term_cursor_pos[0])
       echom assert_true(lastline =~# expected_prompt)
-      echom assert_true(line('.') == line)
+      echom assert_true(line('.') == str2nr(line))
   endfor
 
   # Double Toggle
@@ -243,7 +243,6 @@ def g:Test_variable_explorer_basic()
 
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "kernel_name")))
-
 
   # Start console
   exe "ReplicaConsoleToggle"
