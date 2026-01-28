@@ -1,3 +1,28 @@
-Test_python_basic(): pass
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 35: Pattern '[2]' does not match ''
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 47: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 47: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 47: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 61: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic line 61: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic[71]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>7 line 1: Expected True but got false
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic[86]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>11 line 1: Pattern '[2]' does not match ''
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_python_basic[95]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>13 line 1: Pattern '[3]' does not match ''
+Test_python_basic(): FAIL
 Test_unsupported_filetypes(): pass
-Test_variable_explorer_basic(): pass
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 37: Pattern '[2]' does not match ''
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic[46]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>27 line 1: Expected 3 but got 2
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 50: Expected ['import numpy as np', 'import pandas as pd', '', '# Test single variable', 'a = 3.99', '', '# Test numpy array', 'A = np.array([[1, 2, 3], [4, 5, 6]])', '', '# Test pandas dataframe', 'df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])'] but got ['3.99']
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 51: Expected '' but got 'Variable explorer: a'
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic[81]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>29 line 1: Expected 3 but got 2
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 85: Expected ['import numpy as np', 'import pandas as pd', '', '# Test single variable', 'a = 3.99', '', '# Test numpy array', 'A = np.array([[1, 2, 3], [4, 5, 6]])', '', '# Test pandas dataframe', 'df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])'] but got ['1\t2\t3', '4\t5\t6']
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 86: Expected '' but got 'Variable explorer: A'
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic[97]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>31 line 1: Expected 3 but got 2
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 100: Expected ['1\t2\t3'] but got []
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 101: Expected 'Variable explorer: A[0, :]' but got ''
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic[116]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>33 line 1: Expected 3 but got 2
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 120: Expected [] but got ['      a  b  c', 'row1  1  2  3', 'row2  4  5  6']
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 121: Expected '' but got 'Variable explorer: df'
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic[134]..<SNR>27_WaitForAssert[2]..<SNR>27_WaitForCommon[10]..<lambda>35 line 1: Expected 3 but got 2
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 138: Expected [] but got ['row1    1', 'row2    4']
+command line..script C:\Users\yt75534\vimfiles\pack\minpac\start\vim-replica\test\runner.vim[48]..function <SNR>25_RunTests[20]..Test_variable_explorer_basic line 139: Expected '' but got 'Variable explorer: df[''a'']'
+Test_variable_explorer_basic(): FAIL

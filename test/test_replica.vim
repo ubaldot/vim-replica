@@ -32,7 +32,7 @@ def WaitPrompt(expected_prompt: string)
 
   var count = 0
   const max_count = 10
-  while expected_prompt !~ term_cursor && count < max_count
+  while (term_cursor !~ expected_prompt) && count < max_count
     redraw!
     term_cursor_pos = term_getcursor(bufnr)
     term_cursor = term_getline(bufnr, term_cursor_pos[0])
@@ -71,7 +71,7 @@ def g:Test_python_basic()
 
   # var term_cursor_pos = term_getcursor(bufnr)
   # var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = '[2]'
+  var expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
@@ -81,9 +81,10 @@ def g:Test_python_basic()
 
   # ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
-  var prompts_lines = {3: 4, 4: 7, 5: 9}
+  # var prompts_lines = {3: 4, 4: 7, 5: 9}
+  var lines_prompts = {4: '\[3\]', 7: '\[4\]', 9: '\[5\]'}
 
-  for [prompt, line] in items(prompts_lines)
+  for [line, prompt] in items(lines_prompts)
       expected_prompt = prompt
       exe "ReplicaSendCell"
       WaitPrompt($'[{prompt}]')
@@ -122,7 +123,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  expected_prompt = '[2]'
+  expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
   term_cursor_pos = term_getcursor(bufnr)
@@ -132,7 +133,7 @@ def g:Test_python_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
-  expected_prompt = '[3]'
+  expected_prompt = '\[3\]'
   WaitPrompt(expected_prompt)
   term_cursor_pos = term_getcursor(bufnr)
   lastline = term_getline(bufnr, term_cursor_pos[0])
@@ -251,7 +252,7 @@ def g:Test_variable_explorer_basic()
   var bufnr = term_list()[0]
   var term_cursor_pos = term_getcursor(bufnr)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = '[2]'
+  var expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
 
   term_cursor_pos = term_getcursor(bufnr)
