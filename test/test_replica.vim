@@ -6,7 +6,7 @@ vim9script
 # OBS! Sometimes these tests fail!
 
 # Uncomment for debug
-# import "../plugin/replica.vim"
+import "../plugin/replica.vim"
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
@@ -218,7 +218,7 @@ def g:Test_unsupported_filetypes()
 enddef
 
 def g:Test_variable_explorer_basic()
-	messages clear
+	# messages clear
 
   const src_name = 'testfile.py'
   const lines =<< trim END
@@ -260,37 +260,32 @@ def g:Test_variable_explorer_basic()
   exe "ReplicaSendFile"
 
   # test %whos
-    var expected_variable_explorer =<< END
-Variable           Type             Data/Info
----------------------------------------------
-A                  ndarray          2x3: 6 elems, type `int64`, 48 bytes
-a                  float            3.99
-df                 DataFrame        Shape: (2, 3)
-END
+  # OBS! The way %whos display variables, may change with the kernel
+  # versions, so you cannot really test it reliably. At most, you can check
+  # that a split window happened
 
   exe "ReplicaInspect"
   WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
   var buf_name = 'Workspace'
-  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
- ->filter("v:val =~ '\\(ndarray\\|float\\|DataFrame\\|^Variable\\|^----\\)'")
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
-  assert_equal(actual_variable_explorer, expected_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Test float
-  expected_variable_explorer = ['3.99']
+  var expected_variable_explorer = ['3.99']
   buf_name = 'a'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(actual_variable_explorer, expected_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -304,10 +299,11 @@ END
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(actual_variable_explorer, expected_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -340,10 +336,11 @@ END
   buf_name = 'df'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(actual_variable_explorer, expected_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -357,10 +354,11 @@ END
   buf_name = "df['a']"
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(actual_variable_explorer, expected_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
