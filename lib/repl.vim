@@ -240,9 +240,9 @@ export def SendCell()
       writefile(getline(line_in, line_out), g:replica_tmp_filename)
       term_sendkeys(bufnr($'^{b:console_name}$'),
             \ b:run_command(g:replica_tmp_filename) .. "\n")
-    else
-      Echowarn("filetype not supported!")
     endif
+  else
+    Echowarn("filetype not supported!")
   endif
 enddef
 
