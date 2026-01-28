@@ -196,7 +196,6 @@ export def RemoveCells()
       endif
     endfor
     echo "Cells removed."
-
   else
     Echowarn("filetype not supported!")
   endif
@@ -217,9 +216,9 @@ export def SendLines(firstline: number, lastline: number)
       endfor
       # TODO: avoid the following when firstline and lastline are passed
       norm! j^
-    else
-      Echowarn("filetype not supported!")
     endif
+  else
+    Echowarn("filetype not supported!")
   endif
 enddef
 
@@ -263,9 +262,9 @@ export def SendFile(filename: string = '')
       endif
       term_sendkeys(bufnr($'^{b:console_name}$'),
             \ b:run_command(g:replica_tmp_filename) .. "\n")
-    else
-      Echowarn("filetype not supported!")
     endif
+  else
+    Echowarn("filetype not supported!")
   endif
 enddef
 
