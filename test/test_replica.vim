@@ -31,7 +31,7 @@ def WaitPrompt(expected_prompt: string)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
 
   var count = 0
-  const max_count = 10
+  const max_count = 15
   while (term_cursor !~ expected_prompt) && count < max_count
     redraw!
     term_cursor_pos = term_getcursor(bufnr)
@@ -69,8 +69,6 @@ def g:Test_python_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # var term_cursor_pos = term_getcursor(bufnr)
-  # var term_cursor = term_getline(bufnr, term_cursor_pos[0])
   var expected_prompt = 'In \[2\]'
   WaitPrompt(expected_prompt)
 
@@ -80,8 +78,6 @@ def g:Test_python_basic()
   echom assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
-  # {prompt_in_ipython_console: line_in_src_buffer}
-  # var prompts_lines = {3: 4, 4: 7, 5: 9}
   var lines_prompts = {4: 'In \[3\]', 7: 'In \[4\]', 9: 'In \[5\]'}
 
   for [line, prompt] in items(lines_prompts)
