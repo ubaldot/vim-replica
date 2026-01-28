@@ -32,7 +32,7 @@ def WaitPrompt(expected_prompt: string)
 
   var count = 0
   const max_count = 10
-  while term_cursor !~ expected_prompt && count < max_count
+  while expected_prompt !~ term_cursor && count < max_count
     redraw!
     term_cursor_pos = term_getcursor(bufnr)
     term_cursor = term_getline(bufnr, term_cursor_pos[0])
