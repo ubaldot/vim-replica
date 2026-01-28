@@ -10,11 +10,12 @@ var payload_accum: string
 var variable_to_inspect: string
 
 # To decide what to do when a console_prompt is ready
-export enum PromptAction
+export enum On_Msg_Received
   Ready,
-  Initialize
+  InitializeConsole,
+  DisplayVariable,
 endenum
-export var prompt_action: PromptAction = PromptAction.Ready
+export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
@@ -34,7 +35,7 @@ export def Init()
   payload_accum = ''
   variable_to_inspect = ''
   encoding_detected = false
-  prompt_action = PromptAction.Ready
+  on_msg_received = On_Msg_Received.Ready
 
   if exists('g:replica_use_utf16')
     is_utf16 = g:replica_use_utf16
@@ -47,20 +48,6 @@ def SendInitScript(filename: string)
         \ b:run_command(g:replica_tmp_filename) .. "\n")
   echom "vim-replica interface initialized"
 enddef
-
-# def WipeVariableExplorer()
-#   # TODO: too complex. One should
-#   # Remove all tabs containing an instance of the variable explorer
-#   for t in gettabinfo()
-#     for w in win_findbuf(bufnr(variable_to_inspect))
-#       if index(t.windows, w) != -1
-#         exe $"tabclose {t.tabnr}"
-#         exe $"bwipe {bufnr(variable_to_inspect)}"
-#         break
-#       endif
-#     endfor
-#   endfor
-# enddef
 
 def DisplayVariable(decoded_value: list<string>)
   # Example: show in a scratch buffer
@@ -106,7 +93,10 @@ def HandleLine(line: string, console_prompt: string)
     var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     var decoded = blob2str(base64_decode(payload))
 
-    DisplayVariable(decoded)
+    if on_msg_received == On_Msg_Received.DisplayVariable
+      DisplayVariable(decoded)
+      on_msg_received = On_Msg_Received.Ready
+    endif
   endif
 
   # Multi-line payload
@@ -127,7 +117,10 @@ def HandleLine(line: string, console_prompt: string)
       # Decode final payload
       try
         var decoded = blob2str(base64_decode(payload_accum))
-        DisplayVariable(decoded)
+        if on_msg_received == On_Msg_Received.DisplayVariable
+          DisplayVariable(decoded)
+          on_msg_received = On_Msg_Received.Ready
+        endif
       catch
         repl.Echoerr("invalid base64 payload")
       finally
@@ -145,9 +138,9 @@ def HandleLine(line: string, console_prompt: string)
 
   # Prompt is ready. Do something
   if line =~# console_prompt
-    if prompt_action == PromptAction.Initialize
+    if on_msg_received == On_Msg_Received.InitializeConsole
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
-      prompt_action = PromptAction.Ready
+      on_msg_received = On_Msg_Received.Ready
       payload_accum = ''
     endif
   endif
@@ -282,7 +275,10 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
 enddef
 
 
-export def VimInspect(variable: string = '')
+export def VimInspect(
+    variable: string = '',
+    action: any = On_Msg_Received.Ready
+  )
   const whos_buf_name = 'Workspace'
 
   # TODO: attempt to have a 'live' update but 'close' close too many
@@ -301,9 +297,11 @@ export def VimInspect(variable: string = '')
     var variable_single_quoted = variable->substitute('"', "'", 'g')
     term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
     variable_to_inspect = variable_single_quoted
+    on_msg_received = On_Msg_Received.DisplayVariable
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
     variable_to_inspect = whos_buf_name
+    on_msg_received = On_Msg_Received.DisplayVariable
   endif
 
   # Clean up console

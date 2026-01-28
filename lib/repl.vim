@@ -116,7 +116,7 @@ def ConsoleOpen()
             \ .. b:jupyter_console_options
 
       # Send scripts to enable __vim_inspect() to the repl
-      variable_explorer.prompt_action =  variable_explorer.PromptAction.Initialize
+      variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
 
       echo b:console_name .. " console opening..."
 
@@ -176,8 +176,11 @@ enddef
 
 export def ConsoleShutoff()
   if ConsoleExists()
-    exe "bw! " .. bufnr($'^{b:console_name}$')
-    echo $"Console {b:console_name} shutoff."
+    var console_name = b:console_name
+    exe "bw! " .. bufnr($'^{console_name}$')
+    # When the console is closed the focused buffer can be of any type and
+    # therefore it may not have b:console_name.
+    echo $"Console {console_name} shutoff."
 
     # Reset script variables
     Init()

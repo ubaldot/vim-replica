@@ -67,7 +67,11 @@ export def InstallConsoleCommands()
 
   # TODO: fix -complete with %whos
   if !exists(":ReplicaInspect")
-      command -buffer -nargs=? ReplicaInspect variable_explorer.VimInspect(<q-args>)
+      command -buffer -nargs=?
+            \ ReplicaInspect variable_explorer.VimInspect(
+              \ <q-args>,
+              \ variable_explorer.On_Msg_Received.DisplayVariable
+            \ )
   endif
 enddef
 
