@@ -267,20 +267,20 @@ def g:Test_variable_explorer_basic()
   # versions, so you cannot really test it reliably. At most, you can check
   # that a split window happened
 
-  # exe "ReplicaInspect"
-  # WaitForAssert(() => assert_equal(3, winnr('$')))
-  # redraw
-
-  # var buf_name = 'Workspace'
-  # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
-
-  # # Test <esc> mapping
-  # exe "norm \<esc>"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
+  exe "ReplicaInspect"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
+  
+  var buf_name = 'Workspace'
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test float
   var expected_variable_explorer = ['3.99']
-  var buf_name = 'a'
+  buf_name = 'a'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -374,5 +374,4 @@ END
 
   :%bw!
   Cleanup_testfile(src_name)
-
 enddef
