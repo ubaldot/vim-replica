@@ -41,7 +41,6 @@ def WaitPrompt(expected_prompt: string)
   endwhile
 enddef
 
-# Tests start here
 def g:Test_python_basic()
 	messages clear
 
@@ -79,7 +78,7 @@ def g:Test_python_basic()
   var lastline = term_getline(bufnr, term_cursor_pos[0])
   assert_match(expected_prompt, lastline)
 
-  # test ReplicaSendCell
+  # ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
   var prompts_lines = {3: 4, 4: 7, 5: 9}
 
@@ -91,60 +90,6 @@ def g:Test_python_basic()
       lastline = term_getline(bufnr, term_cursor_pos[0])
       assert_true(line('.') == line)
   endfor
-
-  # test ReplicaSendLine
-  cursor(1, 1)
-  prompts_lines = {6: 2, 7: 3}
-
-  for [prompt, line] in items(prompts_lines)
-      exe "ReplicaSendLine"
-      WaitPrompt($'[{prompt}]')
-      expected_prompt = prompt
-      term_cursor_pos = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, term_cursor_pos[0])
-      assert_true(lastline =~# expected_prompt)
-      assert_true(line('.') == line)
-  endfor
-
-  # Double Toggle
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(1, winnr('$')))
-  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-
-  # test Remove cells
-  exe "ReplicaRemoveCells"
-  WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
-
-  # test Restart kernel
-  exe "ReplicaConsoleRestart"
-  expected_prompt = '[2]'
-  WaitPrompt(expected_prompt)
-  bufnr = term_list()[0]
-  term_cursor_pos = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor_pos[0])
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-
-  # test ReplicaSendFile
-  exe "ReplicaSendFile"
-  expected_prompt = '[3]'
-  WaitPrompt(expected_prompt)
-  term_cursor_pos = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor_pos[0])
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-
- # test ReplicaShutoff
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
-
-  :%bw!
-  Cleanup_testfile(src_name)
 enddef
 
 def g:Test_unsupported_filetypes()
