@@ -60,9 +60,11 @@ def DisplayVariable(decoded_value: list<string>)
     deletebufline(buf, 1, "$")
     setbufline(buf, 1, decoded_value)
     setbufvar(buf, '&modifiable', false)
+    echom "Foo"
   else
     # TODO: let user choose if he wants tabs or vnew
     # tabnew
+    echom "Bar"
     vnew
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
@@ -277,7 +279,7 @@ enddef
 
 export def VimInspect(
     variable: string = '',
-    action: any = On_Msg_Received.Ready
+    action: On_Msg_Received = On_Msg_Received.Ready
   )
   const whos_buf_name = 'Workspace'
 
