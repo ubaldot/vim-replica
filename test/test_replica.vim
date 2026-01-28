@@ -261,26 +261,9 @@ def g:Test_variable_explorer_basic()
   # Send current buffer
   exe "ReplicaSendFile"
 
-  # --- test %whos
-  #  TODO: test won't pass on Windows
-  # OBS! The way %whos display variables, may change with the kernel
-  # versions, so you cannot really test it reliably. At most, you can check
-  # that a split window happened
-
-  exe "ReplicaInspect"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
-  redraw
-
-  var buf_name = 'Workspace'
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
-
-  # Test <esc> mapping
-  exe "norm \<esc>"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
   # -- Test float
   var expected_variable_explorer = ['3.99']
-  buf_name = 'a'
+  var buf_name = 'a'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -292,6 +275,23 @@ def g:Test_variable_explorer_basic()
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # --- test %whos
+  #  TODO: test won't pass on Windows
+  # OBS! The way %whos display variables, may change with the kernel
+  # versions, so you cannot really test it reliably. At most, you can check
+  # that a split window happened
+
+  # exe "ReplicaInspect"
+  # WaitForAssert(() => assert_equal(3, winnr('$')))
+  # redraw
+
+  # buf_name = 'Workspace'
+  # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+
+  # # Test <esc> mapping
+  # exe "norm \<esc>"
+  # WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test np.ndarray
   expected_variable_explorer = [
