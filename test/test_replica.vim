@@ -63,7 +63,6 @@ def g:Test_python_basic()
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "kernel_name")))
 
-
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -78,7 +77,7 @@ def g:Test_python_basic()
   var lastline = term_getline(bufnr, term_cursor_pos[0])
   assert_match(expected_prompt, lastline)
 
-  # ReplicaSendCell
+  # test ReplicaSendCell
   # {prompt_in_ipython_console: line_in_src_buffer}
   var prompts_lines = {3: 4, 4: 7, 5: 9}
 
@@ -131,10 +130,11 @@ def g:Test_unsupported_filetypes()
   # Check that the buffer variables are set
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitPrompt('[1]')
+  WaitPrompt('[2]')
 
   # switch buffer: python -> text
   exe "bnext"
@@ -205,6 +205,7 @@ def g:Test_variable_explorer_basic()
   exe "ReplicaSendFile"
 
   # --- test %whos
+  #  TODO: test won't pass on Windows
   # OBS! The way %whos display variables, may change with the kernel
   # versions, so you cannot really test it reliably. At most, you can check
   # that a split window happened
@@ -226,7 +227,7 @@ def g:Test_variable_explorer_basic()
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
-  
+
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   echom assert_equal(actual_variable_explorer, expected_variable_explorer)
   echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
