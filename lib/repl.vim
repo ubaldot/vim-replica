@@ -206,16 +206,17 @@ export def SendLines(firstline: number, lastline: number)
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
-    endif
+    else
 
-    # Actual implementation
-    for line in getline(firstline, lastline)
-      term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
-    endfor
-    # TODO: avoid the following when firstline and lastline are passed
-    norm! j^
-  else
-    Echowarn("filetype not supported!")
+      # Actual implementation
+      for line in getline(firstline, lastline)
+        term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
+      endfor
+      # TODO: avoid the following when firstline and lastline are passed
+      norm! j^
+    else
+      Echowarn("filetype not supported!")
+    endif
   endif
 enddef
 
@@ -225,20 +226,20 @@ export def SendCell()
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
+    else
+      # Get beginning and end of the cell
+      var extremes = highlight.GetExtremes()
+      var line_in = extremes[0]
+      var line_out = extremes[1]
+      # Jump to the next cell
+      cursor(line_out, getcurpos()[2])
+      # Overwrite tmp file
+      writefile(getline(line_in, line_out), g:replica_tmp_filename)
+      term_sendkeys(bufnr($'^{b:console_name}$'),
+            \ b:run_command(g:replica_tmp_filename) .. "\n")
+    else
+      Echowarn("filetype not supported!")
     endif
-    # Get beginning and end of the cell
-    var extremes = highlight.GetExtremes()
-    var line_in = extremes[0]
-    var line_out = extremes[1]
-    # Jump to the next cell
-    cursor(line_out, getcurpos()[2])
-    # Write tmp file
-    delete(g:replica_tmp_filename) # Delete tmp file if any
-    writefile(getline(line_in, line_out), g:replica_tmp_filename, "a")
-    term_sendkeys(bufnr($'^{b:console_name}$'),
-          \ b:run_command(g:replica_tmp_filename) .. "\n")
-  else
-    Echowarn("filetype not supported!")
   endif
 enddef
 
@@ -250,18 +251,18 @@ export def SendFile(filename: string = '')
     # JULIA, etc. it will open its own
     if !ConsoleExists()
       ConsoleOpen()
-    endif
-    # Write tmp file
-    delete(g:replica_tmp_filename) # Delete tmp file if any
-    if empty(filename)
-      writefile(getline(1, '$'), g:replica_tmp_filename, "a")
     else
-      writefile(readfile(filename), g:replica_tmp_filename, "a")
+      # Write tmp file
+      if empty(filename)
+        writefile(getline(1, '$'), g:replica_tmp_filename)
+      else
+        writefile(readfile(filename), g:replica_tmp_filename)
+      endif
+      term_sendkeys(bufnr($'^{b:console_name}$'),
+            \ b:run_command(g:replica_tmp_filename) .. "\n")
+    else
+      Echowarn("filetype not supported!")
     endif
-    term_sendkeys(bufnr($'^{b:console_name}$'),
-          \ b:run_command(g:replica_tmp_filename) .. "\n")
-  else
-    Echowarn("filetype not supported!")
   endif
 enddef
 

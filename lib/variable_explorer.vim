@@ -42,8 +42,7 @@ export def Init()
 enddef
 
 def SendInitScript(filename: string)
-  delete(g:replica_tmp_filename) # Delete tmp file if any
-  writefile(readfile(filename), g:replica_tmp_filename, "a")
+  writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr('^' .. b:console_name .. '$'),
         \ b:run_command(g:replica_tmp_filename) .. "\n")
   echom "vim-replica interface initialized"
