@@ -270,10 +270,10 @@ def g:Test_variable_explorer_basic()
   exe "ReplicaInspect"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
-  
+
   var buf_name = 'Workspace'
   echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
-  
+
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -294,10 +294,10 @@ def g:Test_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test np.ndarray
-  expected_variable_explorer =<< END
-1	2	3
-4	5	6
-END
+  expected_variable_explorer = [
+"1\t2\t3",
+"4\t5\t6"
+]
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
@@ -311,22 +311,20 @@ END
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # TODO: Test np.ndarray slice DOES NOT WORK
-#   expected_variable_explorer =<< END
-# 1	2	3
-# 4	5	6
-# END
-#   exe "ReplicaInspect A"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
+  # Test np.ndarray slice
+  expected_variable_explorer = ["1\t2\t3"]
 
-#   buf_name = 'A'
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   echom assert_equal(actual_variable_explorer, expected_variable_explorer)
-#   echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  buf_name = 'A[0, :]'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   echom WaitForAssert(() => assert_equal(2, winnr('$')))
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  echom WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test pd.DataFrame
   expected_variable_explorer =<< END
