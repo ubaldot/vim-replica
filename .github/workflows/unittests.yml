@@ -17,9 +17,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install jupyter_console
+      - name: Install python packages
         run: |
           pip install jupyter_console
+          pip install numpy
+          pip install pandas
 
       - name: Setup Vim
         uses: rhysd/action-setup-vim@v1
@@ -54,9 +56,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install jupyter_console
+      - name: Install python packages
         run: |
           pip install jupyter_console
+          pip install numpy
+          pip install pandas
 
       - name: Setup Vim
         uses: rhysd/action-setup-vim@v1
