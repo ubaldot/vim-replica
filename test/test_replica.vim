@@ -6,7 +6,7 @@ vim9script
 # OBS! Sometimes these tests fail!
 
 # Uncomment for debug
-# import "../plugin/replica.vim"
+import "../plugin/replica.vim"
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
@@ -221,31 +221,31 @@ def g:Test_variable_explorer_basic()
   # WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test float
-  # var expected_variable_explorer = ['3.99']
-  # buf_name = 'a'
-  # exe $"ReplicaInspect {buf_name}"
-  # WaitForAssert(() => assert_equal(3, winnr('$')))
-  # redraw
+  var expected_variable_explorer = ['3.99']
+  var buf_name = 'a'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
+  
+  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
-  # var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  # echom assert_equal(actual_variable_explorer, expected_variable_explorer)
-  # echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
-
-  # # Test <esc> mapping
-  # exe "norm \<esc>"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test np.ndarray
-  var expected_variable_explorer =<< END
+  expected_variable_explorer =<< END
 1	2	3
 4	5	6
 END
-  var buf_name = 'A'
+  buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
-  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   echom assert_equal(actual_variable_explorer, expected_variable_explorer)
   echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
