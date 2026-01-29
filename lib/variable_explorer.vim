@@ -19,7 +19,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
-var is_utf16: bool = false
+var is_utf16: bool
 var encoding_detected: bool
 const RAW_BUF_MAX_LEN_DETECTION = 100
 
@@ -39,6 +39,8 @@ export def Init()
 
   if exists('g:replica_use_utf16')
     is_utf16 = g:replica_use_utf16
+  else
+    is_utf16 = true
   endif
 enddef
 

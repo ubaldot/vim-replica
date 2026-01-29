@@ -27,6 +27,13 @@ CONTENTS                                                     *ReplicaContents*
 ==============================================================================
 INTRODUCTION                                         *ReplicaIntroduction*
 
+TODO: Add logger,
+TODO: Update Commands and Mappings
+ReplicaInspect
+g:replica_use_utf16
+g:How to display variable explorer
+g:replica_debug
+
 Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
 way.
 

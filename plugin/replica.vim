@@ -73,8 +73,8 @@ var replica_jupyter_console_options_default = {
   julia: ""}
 
 var replica_console_prompts_default = {
-  python: '^In\s\[\d\+\]:\s$',
-  julia: '^julia>$'}
+  python: 'In\s\[\d\+\]:\s$',
+  julia: 'julia>$'}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
