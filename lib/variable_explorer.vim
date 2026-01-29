@@ -201,8 +201,8 @@ def FeedChars(bytes: string, console_prompt: string)
       endif
     # UTF-8 case
     else
-      var idx_cr = match(raw_buf, "\r")
-      var idx_lf = match(raw_buf, "\n")
+      var idx_cr = match(raw_buf, "\x0D")
+      var idx_lf = match(raw_buf, "\x0A")
 
       if idx_cr >= 0 && idx_lf == idx_cr + 1
         idx = idx_cr
