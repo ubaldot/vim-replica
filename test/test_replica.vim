@@ -25,20 +25,19 @@ def Cleanup_testfile(src_name: string)
 enddef
 
 def WaitPrompt(expected_prompt: string)
-  # Wait for Jupyter Console to be up and running
   const bufnr = term_list()[0]
-  var term_cursor_pos = term_getcursor(bufnr)
-  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-
   var count = 0
-  const max_count = 15
-  while (term_cursor !~ expected_prompt) && count < max_count
+
+  while count < 100
     redraw!
-    term_cursor_pos = term_getcursor(bufnr)
-    term_cursor = term_getline(bufnr, term_cursor_pos[0])
+    if getbufline(bufnr, '$')[0] =~ expected_prompt
+      return
+    endif
+    sleep 100m
     count += 1
-    sleep 1
   endwhile
+
+  throw $"Prompt not found: {expected_prompt}"
 enddef
 
 # Tests start here
@@ -73,8 +72,7 @@ def g:Test_python_basic()
   WaitPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
-  var term_cursor_pos = term_getcursor(bufnr)
-  var lastline = term_getline(bufnr, term_cursor_pos[0])
+  var lastline = getbufline(bufnr, '$')[0]
   echom assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
@@ -84,8 +82,7 @@ def g:Test_python_basic()
       expected_prompt = prompt
       exe "ReplicaSendCell"
       WaitPrompt(prompt)
-      term_cursor_pos = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, term_cursor_pos[0])
+      lastline = getbufline(bufnr, '$')[0]
       echom assert_true(lastline =~# expected_prompt)
       echom assert_true(line('.') == str2nr(line))
   endfor
@@ -98,8 +95,7 @@ def g:Test_python_basic()
       exe "ReplicaSendLine"
       WaitPrompt(prompt)
       expected_prompt = prompt
-      term_cursor_pos = term_getcursor(bufnr)
-      lastline = term_getline(bufnr, term_cursor_pos[0])
+      lastline = getbufline(bufnr, '$')[0]
       echom assert_true(lastline =~# expected_prompt)
       echom assert_true(line('.') == str2nr(line))
   endfor
@@ -122,8 +118,7 @@ def g:Test_python_basic()
   expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
-  term_cursor_pos = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor_pos[0])
+  lastline = getbufline(bufnr, '$')[0]
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -131,8 +126,7 @@ def g:Test_python_basic()
   exe "ReplicaSendFile"
   expected_prompt = '\[3\]'
   WaitPrompt(expected_prompt)
-  term_cursor_pos = term_getcursor(bufnr)
-  lastline = term_getline(bufnr, term_cursor_pos[0])
+  lastline = getbufline(bufnr, '$')[0]
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -250,8 +244,7 @@ def g:Test_variable_explorer_basic()
   var expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
 
-  term_cursor_pos = term_getcursor(bufnr)
-  var lastline = term_getline(bufnr, term_cursor_pos[0])
+  var lastline = getbufline(bufnr, '$')[0]
   assert_match(expected_prompt, lastline)
 
   # Send current buffer
