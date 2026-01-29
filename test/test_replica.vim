@@ -30,7 +30,7 @@ def WaitPrompt(expected_prompt: string)
 
   while count < 100
     redraw!
-    if getbufline(bufnr, '$')[0] =~ expected_prompt
+    if trim(getbufline(bufnr, '$')[0]) =~ expected_prompt
       return
     endif
     sleep 100m
@@ -115,7 +115,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  expected_prompt = '\[2\]'
+  expected_prompt = 'In \[2\]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
   lastline = getbufline(bufnr, '$')[0]
@@ -124,7 +124,7 @@ def g:Test_python_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
-  expected_prompt = '\[3\]'
+  expected_prompt = 'In \[3\]'
   WaitPrompt(expected_prompt)
   lastline = getbufline(bufnr, '$')[0]
   WaitForAssert(() => assert_equal(2, winnr('$')))
