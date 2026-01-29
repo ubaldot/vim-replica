@@ -72,7 +72,7 @@ def g:Test_python_basic()
   WaitPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
-  var lastline = getbufline(bufnr, '$')[0]
+  var lastline = trim(getbufline(bufnr, '$')[0])
   echom assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
@@ -82,7 +82,7 @@ def g:Test_python_basic()
       expected_prompt = prompt
       exe "ReplicaSendCell"
       WaitPrompt(prompt)
-      lastline = getbufline(bufnr, '$')[0]
+      lastline = trim(getbufline(bufnr, '$')[0])
       echom assert_true(lastline =~# expected_prompt)
       echom assert_true(line('.') == str2nr(line))
   endfor
@@ -95,7 +95,7 @@ def g:Test_python_basic()
       exe "ReplicaSendLine"
       WaitPrompt(prompt)
       expected_prompt = prompt
-      lastline = getbufline(bufnr, '$')[0]
+      lastline = trim(getbufline(bufnr, '$')[0])
       echom assert_true(lastline =~# expected_prompt)
       echom assert_true(line('.') == str2nr(line))
   endfor
@@ -118,7 +118,7 @@ def g:Test_python_basic()
   expected_prompt = 'In \[2\]'
   WaitPrompt(expected_prompt)
   bufnr = term_list()[0]
-  lastline = getbufline(bufnr, '$')[0]
+  lastline = trim(getbufline(bufnr, '$')[0])
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -126,7 +126,7 @@ def g:Test_python_basic()
   exe "ReplicaSendFile"
   expected_prompt = 'In \[3\]'
   WaitPrompt(expected_prompt)
-  lastline = getbufline(bufnr, '$')[0]
+  lastline = trim(getbufline(bufnr, '$')[0])
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -244,7 +244,7 @@ def g:Test_variable_explorer_basic()
   var expected_prompt = '\[2\]'
   WaitPrompt(expected_prompt)
 
-  var lastline = getbufline(bufnr, '$')[0]
+  var lastline = trim(getbufline(bufnr, '$')[0])
   assert_match(expected_prompt, lastline)
 
   # Send current buffer
