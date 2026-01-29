@@ -52,6 +52,7 @@ def Init()
     }
   endif
 
+  v:errmsg = ''
   # variable explorer variables init
   variable_explorer.Init()
 enddef
@@ -104,6 +105,23 @@ def ReplicaOutCbWrapper(prompt: string, ch: channel, msg: string)
   variable_explorer.ReplicaOutCb(prompt, ch, msg)
 enddef
 
+export def LogDebug(log_msg: list<string>)
+  if !exists('g:replica_debug') || !g:replica_debug
+    return
+  endif
+
+  if !empty(v:errmsg)
+    add(log_msg, $'Error: {v:errmsg}')
+    v:errmsg = ''
+  endif
+
+  try
+    writefile(log_msg, g:replica_log_filename, 'a')
+  catch
+    echoerr $'Cannot write {g:replica_log_filename}'
+  endtry
+enddef
+
 def ConsoleOpen()
   # If console does not exist, then create one,
   var console_win_id = 0
@@ -119,6 +137,24 @@ def ConsoleOpen()
       variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
 
       echo b:console_name .. " console opening..."
+
+      # Debug
+      var log_msg = [
+        '',
+        'Vim-replica-log',
+        strftime('%Y-%m-%d %H:%M:%S'),
+        '---------------------------------------',
+        "Console Open()",
+        $'start_cmd: {start_cmd}',
+        $'console_name: {b:console_name}',
+        $'console_prompt: {b:console_prompt}',
+        $'kernel_name: {b:kernel_name}',
+        # $'run_command: {b:run_command}',
+        $'cells_delimiter: {b:cells_delimiter}',
+        $'jupyter_console_options: {b:jupyter_console_options}',
+        $'on_msg_received action: {variable_explorer.on_msg_received.name}'
+      ]
+      LogDebug(log_msg)
 
       # I have to explicitly call the feedback through a FuncRef otherwise
       # 'prompt' variable is lost

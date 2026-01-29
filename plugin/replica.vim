@@ -25,6 +25,11 @@ import "../lib/highlight.vim"
 # Temp file used for sending cells or files
 g:replica_tmp_filename = tempname()
 
+if !exists('g:replica_log_filename')
+  g:replica_log_filename = $'{getcwd()}/vim_replica.log'
+  g:replica_log_filename = 'vim_replica.log'
+endif
+
 if !exists('g:replica_display_range')
   g:replica_display_range = true
 endif
@@ -73,8 +78,8 @@ var replica_jupyter_console_options_default = {
   julia: ""}
 
 var replica_console_prompts_default = {
-  python: 'In\s\[\d\+\]:\s$',
-  julia: 'julia>$'}
+  python: '^In\s\[\d\+\]:\s$',
+  julia: '^julia>$'}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
