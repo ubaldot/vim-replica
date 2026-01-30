@@ -90,7 +90,7 @@ def g:Test_python_basic()
 
   var bufnr = term_list()[0]
   var lastline = LastNonEmptyLine(bufnr)
-  echom  assert_match(expected_prompt, lastline)
+  echom assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
   var lines_prompts = {4: 'In\s\[3\]:\s*$', 7: 'In\s\[4\]:\s*$', 9: 'In\s\[5\]:\s*$'}

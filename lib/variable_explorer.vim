@@ -21,7 +21,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 export var raw_buf: string
 var is_utf16: bool
 var encoding_detected: bool = false
-const RAW_BUF_MAX_LEN_DETECTION = 20000
+const RAW_BUF_MAX_LEN_DETECTION = 1000
 
 def IsWSL(): bool
   return has('unix')
@@ -165,8 +165,7 @@ def FeedChars(bytes: string, console_prompt: string)
   raw_buf ..= bytes
 
   # Decode encoring
-  if !encoding_detected && len(raw_buf) > 80
-    # if raw_buf =~# "\x00.\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
+  if !encoding_detected
     if raw_buf =~# "\x0D\x00\|\x0A\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = true
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
@@ -179,7 +178,7 @@ def FeedChars(bytes: string, console_prompt: string)
 
 
   if encoding_detected
-    echom "is_utf16: " .. is_utf16
+    echom "porco is_utf16: " .. is_utf16
     # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
     while true
       var idx = -1
