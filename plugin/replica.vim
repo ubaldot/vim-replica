@@ -77,9 +77,11 @@ var replica_jupyter_console_options_default = {
   python: "",
   julia: ""}
 
+# TODO: add a final $ in the regex, but watch out because in Linux you may
+# have In [1]: In [1]:
 var replica_console_prompts_default = {
-  python: '^In\s\[\d\+\]:\s$',
-  julia: '^julia>$'}
+  python: '^In\s\[\d\+\]:\s',
+  julia: '^julia>'}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')
