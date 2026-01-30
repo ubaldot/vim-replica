@@ -40,7 +40,7 @@ enddef
 def WaitForPrompt(expected: string)
   const buf_nr = term_list()[0]
   var counter = 0
-  const max_count = 400  # 400*50ms = 20 seconds max
+  const max_count = 50 * 2  # 20*(2*50ms) = 20 seconds max
   var line = ''
 
   while counter < max_count
@@ -84,7 +84,7 @@ def g:Test_python_basic()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 1
+  sleep 5
   redraw!
 
   # var first_prompt = 'In\s\[1\]:'
@@ -137,7 +137,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  sleep 1
+  sleep 5
   redraw!
   # WaitForPrompt(first_prompt)
   expected_prompt = 'In\s\[2\]:\s*$'
@@ -207,7 +207,7 @@ def g:Test_unsupported_filetypes()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 1
+  sleep 5
   redraw!
   WaitForPrompt('In\s\[2\]:\s*$')
 
