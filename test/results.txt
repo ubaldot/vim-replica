@@ -1,3 +1,4 @@
 Test_python_basic(): pass
-Test_unsupported_filetypes(): pass
+Error: Test Test_unsupported_filetypes() failed with exception Prompt not found: In\s\[2\]:\s*$, got: In [1]:  after waiting 5000 ms at command line..script /home/yt75534/.vim/pack/minpac/start/vim-replica/test/runner.vim[48]..function <SNR>25_RunTests[20]..Test_unsupported_filetypes[43]..<SNR>26_WaitForPrompt, line 17
+Test_unsupported_filetypes(): FAIL
 Test_variable_explorer_basic(): pass
