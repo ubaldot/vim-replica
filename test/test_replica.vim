@@ -200,7 +200,7 @@ def g:Test_unsupported_filetypes()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForPrompt('[2]')
+  WaitForPrompt('In\s\[2\]:\s$')
 
   # switch buffer: python -> text
   exe "bnext"
