@@ -84,7 +84,7 @@ def g:Test_python_basic()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 50ms
+  sleep 1
   redraw!
 
   # var first_prompt = 'In\s\[1\]:'
@@ -137,7 +137,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  sleep 50ms
+  sleep 1
   redraw!
   # WaitForPrompt(first_prompt)
   expected_prompt = 'In\s\[2\]:\s*$'
@@ -207,6 +207,8 @@ def g:Test_unsupported_filetypes()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  sleep 1
+  redraw!
   WaitForPrompt('In\s\[2\]:\s*$')
 
   # switch buffer: python -> text
