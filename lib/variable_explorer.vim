@@ -21,8 +21,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
 var is_utf16: bool
-var encoding_detected: bool = false
-const RAW_BUF_MAX_LEN_DETECTION = 30
+var last_prompt: string
 
 def IsWSL(): bool
   return has('unix')
@@ -36,7 +35,7 @@ export def Init()
   payload_accum = ''
   variable_to_inspect = ''
   on_msg_received = On_Msg_Received.Ready
-  encoding_detected = false
+  last_prompt = ''
 
   is_utf16 = exists('g:replica_use_utf16')
     ? g:replica_use_utf16
@@ -88,10 +87,12 @@ enddef
 
 def HandleLine(line: string, console_prompt: string)
 
-  # Single line payload
-  if line =~# '^__VIM_PAYLOAD__' && line =~# '__END__$'
+  var line_debounced = line->substitute('\(In \[\d\+\]: \)\s*\1\+', '\1', '')
 
-    var payload = matchstr(line, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
+  # Single line_debounced payload
+  if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
+
+    var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     var decoded = blob2str(base64_decode(payload))
 
     if on_msg_received == On_Msg_Received.DisplayVariable
@@ -100,20 +101,20 @@ def HandleLine(line: string, console_prompt: string)
     endif
   endif
 
-  # Multi-line payload
-  if line =~# '^__VIM_PAYLOAD__' && line !~# '__END__$'
-    # strip the prefix if the first line contains it
-    payload_accum ..= line->substitute('^__VIM_PAYLOAD__', '', '')
+  # Multi-line_debounced payload
+  if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$'
+    # strip the prefix if the first line_debounced contains it
+    payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
     collecting_payload = true
     return
   endif
 
   # Inside the payload block
-  if collecting_payload
-    # Check if this line ends the payload
-    if line =~# '__END__$'
+  if collecting_payload && line_debounced !~# console_prompt
+    # Check if this line_debounced ends the payload
+    if line_debounced =~# '__END__$'
       # strip the suffix
-      payload_accum ..= line->substitute('__END__$', '', '')
+      payload_accum ..= line_debounced->substitute('__END__$', '', '')
 
       # Decode final payload
       try
@@ -133,12 +134,16 @@ def HandleLine(line: string, console_prompt: string)
     endif
 
     # No end yet, accumulate:
-    payload_accum ..= line
+    payload_accum ..= line_debounced
     return
   endif
 
   # Prompt is ready. Do something
-  if line =~# console_prompt
+  if line_debounced =~# console_prompt
+    if line_debounced == last_prompt
+      return
+    endif
+
     if on_msg_received == On_Msg_Received.InitializeConsole
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
       on_msg_received = On_Msg_Received.Ready
@@ -146,8 +151,12 @@ def HandleLine(line: string, console_prompt: string)
     endif
   endif
 
-  # Non-payload line (normal processing)
-  echom "line: " .. line
+  last_prompt = line_debounced
+  # Non-payload line_debounced (normal processing)
+  var msg_log = [$"last_prompt: {last_prompt}"]
+  msg_log += [$"line_debounced: {line_debounced}"]
+  repl.LogDebug(msg_log)
+  # echom $"line_debounced: {line_debounced}"
 enddef
 
 
@@ -163,6 +172,8 @@ enddef
 
 def FeedChars(bytes: string, console_prompt: string)
   raw_buf ..= bytes
+
+  var msg_log = []
 
   # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
   while true
@@ -214,6 +225,7 @@ def FeedChars(bytes: string, console_prompt: string)
     endif
 
     var line = idx > 0 ? raw_buf[: idx - 1] : ''
+    msg_log += [$'Unstripped line: {line}']
 
     try
       var clean_line = is_utf16
@@ -229,6 +241,9 @@ def FeedChars(bytes: string, console_prompt: string)
 
     raw_buf = raw_buf[idx + nbytes :]
   endwhile
+
+  msg_log += [$'raw buffer: {raw_buf}']
+  repl.LogDebug(msg_log)
 enddef
 
 
@@ -262,7 +277,7 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
     catch
       # Reset all script variables
       Init()
-      repl.Echoerr("Cannot convert prompt utf-16 string")
+      repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
     endtry
   endif
 enddef
@@ -283,6 +298,7 @@ export def VimInspect(
   # win_execute(variable_explored_winid, 'close')
   # endif
 
+  var msg_log = ["Entered VimInspect() function", '']
 
   # :tabonly secure that there is only one tab for variable explorer
   # tabonly
@@ -291,12 +307,19 @@ export def VimInspect(
     term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
     variable_to_inspect = variable_single_quoted
     on_msg_received = On_Msg_Received.DisplayVariable
+
+    msg_log += [$"Sent __vim_inspect(\"{variable_single_quoted}\")\n"]
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
     variable_to_inspect = whos_buf_name
     on_msg_received = On_Msg_Received.DisplayVariable
+
+    msg_log += [$'Sent __vim_whos()']
   endif
 
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
+
+  msg_log += ["Sent <c-l>"]
+  repl.LogDebug(msg_log)
 enddef

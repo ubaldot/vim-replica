@@ -60,6 +60,7 @@ enddef
 # Tests start here
 def g:Test_python_basic()
 
+  g:replica_debug = true
   messages clear
 
   const src_name = 'testfile.py'
