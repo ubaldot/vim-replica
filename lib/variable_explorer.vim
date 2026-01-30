@@ -21,7 +21,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 export var raw_buf: string
 var is_utf16: bool
 var encoding_detected: bool = false
-const RAW_BUF_MAX_LEN_DETECTION = 100
+const RAW_BUF_MAX_LEN_DETECTION = 20000
 
 def IsWSL(): bool
   return has('unix')
@@ -165,9 +165,9 @@ def FeedChars(bytes: string, console_prompt: string)
   raw_buf ..= bytes
 
   # Decode encoring
-  if !encoding_detected
-    # if raw_buf =~# "\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
-    if raw_buf =~# "\x0D\x00\|\x0A\x00"
+  if !encoding_detected && len(raw_buf) > 80
+    # if raw_buf =~# "\x00.\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
+    if raw_buf =~# "\x0D\x00\|\x0A\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = true
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = false
@@ -177,73 +177,75 @@ def FeedChars(bytes: string, console_prompt: string)
     encoding_detected = true
   endif
 
-  echom "is_utf16: " .. is_utf16
 
-  # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
-  while true
-    var idx = -1
-    var nbytes = -1
+  if encoding_detected
+    echom "is_utf16: " .. is_utf16
+    # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
+    while true
+      var idx = -1
+      var nbytes = -1
 
-    # UTF-16LE case
-    if is_utf16
-      if len(raw_buf) < 2
+      # UTF-16LE case
+      if is_utf16
+        if len(raw_buf) < 2
+          break
+        endif
+
+        var idx_cr = match(raw_buf, "\x0D\x00")
+        var idx_lf = match(raw_buf, "\x0A\x00")
+
+        if idx_cr >= 0 && idx_lf == idx_cr + 2
+          idx = idx_cr
+          nbytes = 4
+        elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+          idx = idx_cr
+          nbytes = 2
+        elseif idx_lf >= 0
+          idx = idx_lf
+          nbytes = 2
+        endif
+      # UTF-8 case
+      else
+        # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
+        # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
+        # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
+        # fixed.
+        var idx_cr = match(raw_buf, "\x0D")
+        var idx_lf = match(raw_buf, "\x0A")
+
+        if idx_cr >= 0 && idx_lf == idx_cr + 1
+          idx = idx_cr
+          nbytes = 2
+        elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+          idx = idx_cr
+          nbytes = 1
+        elseif idx_lf >= 0
+          idx = idx_lf
+          nbytes = 1
+        endif
+      endif
+
+      if idx < 0
         break
       endif
 
-      var idx_cr = match(raw_buf, "\x0D\x00")
-      var idx_lf = match(raw_buf, "\x0A\x00")
+      var line = idx > 0 ? raw_buf[: idx - 1] : ''
 
-      if idx_cr >= 0 && idx_lf == idx_cr + 2
-        idx = idx_cr
-        nbytes = 4
-      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
-        idx = idx_cr
-        nbytes = 2
-      elseif idx_lf >= 0
-        idx = idx_lf
-        nbytes = 2
-      endif
-    # UTF-8 case
-    else
-      # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
-      # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
-      # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
-      # fixed.
-      var idx_cr = match(raw_buf, "\x0D")
-      var idx_lf = match(raw_buf, "\x0A")
+      try
+        var clean_line = is_utf16
+          ? StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8'))
+          : StripAnsiEscapeSequences(line)
 
-      if idx_cr >= 0 && idx_lf == idx_cr + 1
-        idx = idx_cr
-        nbytes = 2
-      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
-        idx = idx_cr
-        nbytes = 1
-      elseif idx_lf >= 0
-        idx = idx_lf
-        nbytes = 1
-      endif
-    endif
+        HandleLine(clean_line, console_prompt)
+      catch
+        raw_buf = ''
+        repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+        break
+      endtry
 
-    if idx < 0
-      break
-    endif
-
-    var line = idx > 0 ? raw_buf[: idx - 1] : ''
-
-    try
-      var clean_line = is_utf16
-        ? StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8'))
-        : StripAnsiEscapeSequences(line)
-
-      HandleLine(clean_line, console_prompt)
-    catch
-      raw_buf = ''
-      repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-      break
-    endtry
-
-    raw_buf = raw_buf[idx + nbytes :]
-  endwhile
+      raw_buf = raw_buf[idx + nbytes :]
+    endwhile
+  endif
 enddef
 
 
