@@ -37,62 +37,14 @@ def LastNonEmptyLine(buf_nr: number): string
   return ''
 enddef
 
-def WaitForStableLastLine(): string
-  # If last line does not change for a while, it is returned
-  const buf_nr = term_list()[0]
-
-  # Wait for terminal to startup
-  var counter = 0
-  const max_count = 200
-
-  while counter < max_count
-    if !empty(LastNonEmptyLine(buf_nr))
-      break
-    else
-      sleep 50m
-      counter += 1
-    endif
-  endwhile
-
-  if counter >= max_count
-    throw 'REPL startup timeout: no output detected'
-  endif
-
-  # A line that does not change for some time is stable, but let's also add a
-  # hard timeout
-  var prev = ''
-  var stable = 0
-  const max_stable = 3
-
-  counter = 0
-  while stable < max_stable && counter < max_count
-    var cur = LastNonEmptyLine(buf_nr)
-
-    if cur ==# prev
-      stable += 1
-    else
-      stable = 0
-      prev = cur
-    endif
-
-    sleep 50m
-    counter += 1
-  endwhile
-
-  if counter >= max_count
-    throw "REPL got frozen"
-  endif
-
-  return prev
-enddef
-
 def WaitForPrompt(expected: string)
   const buf_nr = term_list()[0]
   var counter = 0
   const max_count = 400  # 400*50ms = 20 seconds max
+  var line = ''
 
   while counter < max_count
-    var line = LastNonEmptyLine(buf_nr)
+    line = LastNonEmptyLine(buf_nr)
     if line =~# expected
       # Prompt appeared, return immediately
       return
@@ -102,31 +54,7 @@ def WaitForPrompt(expected: string)
   endwhile
 
   # Timeout reached, fail with actual last line
-  var line = LastNonEmptyLine(buf_nr)
   throw $"Prompt not found: {expected}, got: {line}"
-enddef
-
-def WaitForPromptOld(expected: string)
-  const buf_nr = term_list()[0]
-
-  # Wait until last line changes from old prompt
-  var prev_line = LastNonEmptyLine(buf_nr)
-  var counter = 0
-  const max_count = 200
-
-  while counter < max_count
-    var cur_line = LastNonEmptyLine(buf_nr)
-    if cur_line !=# prev_line
-      break
-    endif
-    sleep 50m
-    counter += 1
-  endwhile
-
-  var line = WaitForStableLastLine()
-  if line !~# expected
-    throw $"Prompt not found: {expected}, got: {line}"
-  endif
 enddef
 
 # Tests start here
