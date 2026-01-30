@@ -46,7 +46,7 @@ def WaitForPrompt(expected: string)
   while counter < max_count
     line = LastNonEmptyLine(buf_nr)
     if line =~# expected
-      # Prompt appeared, return immediately
+      # Expected prompt appeared, return immediately
       return
     endif
     sleep 50m
@@ -133,7 +133,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  expected_prompt = 'In \[2\]'
+  expected_prompt = 'In \[2\]: $'
   WaitForPrompt(expected_prompt)
   bufnr = term_list()[0]
   lastline = LastNonEmptyLine(bufnr)
