@@ -40,6 +40,9 @@ export def Init()
   is_utf16 = exists('g:replica_use_utf16')
     ? g:replica_use_utf16
     : has('win32') || has('win64')
+
+  var log_msg = ['', $'encoding: {is_utf16 ? "utf-16" : "utf-8"}']
+  repl.LogDebug(log_msg)
 enddef
 
 def SendInitScript(filename: string)
