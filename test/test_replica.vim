@@ -88,6 +88,26 @@ enddef
 
 def WaitForPrompt(expected: string)
   const buf_nr = term_list()[0]
+  var counter = 0
+  const max_count = 400  # 400*50ms = 20 seconds max
+
+  while counter < max_count
+    var line = LastNonEmptyLine(buf_nr)
+    if line =~# expected
+      # Prompt appeared, return immediately
+      return
+    endif
+    sleep 50m
+    counter += 1
+  endwhile
+
+  # Timeout reached, fail with actual last line
+  var line = LastNonEmptyLine(buf_nr)
+  throw $"Prompt not found: {expected}, got: {line}"
+enddef
+
+def WaitForPromptOld(expected: string)
+  const buf_nr = term_list()[0]
 
   # Wait until last line changes from old prompt
   var prev_line = LastNonEmptyLine(buf_nr)
