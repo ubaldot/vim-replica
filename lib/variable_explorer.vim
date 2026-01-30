@@ -21,7 +21,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 export var raw_buf: string
 var is_utf16: bool
 var encoding_detected: bool = false
-const RAW_BUF_MAX_LEN_DETECTION = 1000
+const RAW_BUF_MAX_LEN_DETECTION = 30
 
 def IsWSL(): bool
   return has('unix')
@@ -35,6 +35,7 @@ export def Init()
   payload_accum = ''
   variable_to_inspect = ''
   on_msg_received = On_Msg_Received.Ready
+  encoding_detected = false
 
   if exists('g:replica_use_utf16')
     is_utf16 = g:replica_use_utf16
@@ -147,7 +148,7 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line (normal processing)
-  # echom "line: " .. line
+  echom "line: " .. line
 enddef
 
 

@@ -16,6 +16,9 @@ g:loaded_replica = true
 import "../lib/ftcommands_mappings.vim"
 import "../lib/highlight.vim"
 
+exe "$LANG = 'en_US.UTF-8'"
+exe "$LC_CTYPE = 'en_US.UTF-8'"
+exe "$PYTHONIOENCODING = 'utf-8'"
 # export const replica_path = expand('<sfile>:h:h')
 # echom replica_path
 

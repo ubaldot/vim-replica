@@ -161,7 +161,8 @@ def ConsoleOpen()
       var prompt = b:console_prompt
       term_start(start_cmd,
         {term_name: b:console_name,
-          out_cb: function("ReplicaOutCbWrapper", [prompt])})
+          out_cb: function("ReplicaOutCbWrapper", [prompt]),
+        })
 
       ftcommands_mappings.InstallConsoleCommands()
 
