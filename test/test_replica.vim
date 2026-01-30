@@ -99,6 +99,7 @@ def g:Test_python_basic()
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendCell"
+    redraw!
     WaitForPrompt(prompt)
     lastline = LastNonEmptyLine(bufnr)
     echom assert_match(prompt, lastline)
@@ -135,6 +136,8 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
+  sleep 50ms
+  redraw!
   # WaitForPrompt(first_prompt)
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
