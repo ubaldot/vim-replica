@@ -85,7 +85,7 @@ def g:Test_python_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var expected_prompt = 'In \[2\]'
+  var expected_prompt = 'In \[2\]: $'
   WaitForPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
@@ -93,7 +93,7 @@ def g:Test_python_basic()
   echom  assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
-  var lines_prompts = {4: 'In \[3\]', 7: 'In \[4\]', 9: 'In \[5\]'}
+  var lines_prompts = {4: 'In \[3\]: $', 7: 'In \[4\]: $', 9: 'In \[5\]: $'}
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendCell"
@@ -106,7 +106,7 @@ def g:Test_python_basic()
 
   # ReplicaSendLine
   cursor(1, 1)
-  lines_prompts = {2: 'In \[6\]', 3: 'In \[7\]'}
+  lines_prompts = {2: 'In \[6\]: $', 3: 'In \[7\]: $'}
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendLine"
@@ -118,7 +118,7 @@ def g:Test_python_basic()
   endfor
 
   # Double Toggle
-  expected_prompt = 'In \[7\]'
+  expected_prompt = 'In \[7\]: $'
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
@@ -142,7 +142,7 @@ def g:Test_python_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
-  expected_prompt = 'In \[3\]'
+  expected_prompt = 'In \[3\]: $'
   WaitForPrompt(expected_prompt)
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
