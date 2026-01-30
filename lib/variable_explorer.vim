@@ -167,6 +167,7 @@ def FeedChars(bytes: string, console_prompt: string)
 
   # Decode encoring
   if !encoding_detected
+    echom "buf stream: " .. raw_buf
     if raw_buf =~# "\x00.\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = true
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION

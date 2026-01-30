@@ -155,13 +155,18 @@ def ConsoleOpen()
         $'on_msg_received action: {variable_explorer.on_msg_received.name}'
       ]
       LogDebug(log_msg)
-
+      # var job_env = {,
+      #       \ 'PYTHONIOENCODING': 'utf-16',
+      #       \ 'LANG': 'en_US.UTF-16',
+      #       \ 'LC_CTYPE': 'en_US.UTF-16',
+      #       \ }
       # I have to explicitly call the feedback through a FuncRef otherwise
       # 'prompt' variable is lost
       var prompt = b:console_prompt
       term_start(start_cmd,
         {term_name: b:console_name,
           out_cb: function("ReplicaOutCbWrapper", [prompt]),
+          # env: job_env
         })
 
       ftcommands_mappings.InstallConsoleCommands()
