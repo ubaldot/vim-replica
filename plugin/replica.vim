@@ -81,8 +81,8 @@ var replica_jupyter_console_options_default = {
 # have In [1]: In [1]: due to a flaky variable_explorer.FeedChars() when it
 # comes to UTF-8. The ideal would be to  fix variable_explorer.FeedChars().
 var replica_console_prompts_default = {
-  python: '^In\s\[\d\+\]:\s',
-  julia: '^julia>'}
+  python: '^In\s\[\d\+\]:\s$',
+  julia: '^julia>$'}
 
 # User is allowed to change only replica_kernels and replica_cells_delimiters
 if exists('g:replica_kernels')

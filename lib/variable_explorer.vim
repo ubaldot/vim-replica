@@ -20,7 +20,7 @@ export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
 var is_utf16: bool
-var encoding_detected: bool
+var encoding_detected: bool = false
 const RAW_BUF_MAX_LEN_DETECTION = 100
 
 def IsWSL(): bool
@@ -34,7 +34,6 @@ export def Init()
   collecting_payload = false
   payload_accum = ''
   variable_to_inspect = ''
-  encoding_detected = false
   on_msg_received = On_Msg_Received.Ready
 
   if exists('g:replica_use_utf16')
@@ -167,7 +166,8 @@ def FeedChars(bytes: string, console_prompt: string)
 
   # Decode encoring
   if !encoding_detected
-    if raw_buf =~# "\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
+    # if raw_buf =~# "\x00" && len(raw_buf) < RAW_BUF_MAX_LEN_DETECTION
+    if raw_buf =~# "\x0D\x00\|\x0A\x00"
       is_utf16 = true
     elseif len(raw_buf) > RAW_BUF_MAX_LEN_DETECTION
       is_utf16 = false
@@ -176,6 +176,8 @@ def FeedChars(bytes: string, console_prompt: string)
     endif
     encoding_detected = true
   endif
+
+  echom "is_utf16: " .. is_utf16
 
   # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
   while true
