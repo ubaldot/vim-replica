@@ -85,6 +85,8 @@ def g:Test_python_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
+  var first_prompt = 'In\s\[1\]:'
+  WaitForPrompt(first_prompt)
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -133,6 +135,7 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
+  WaitForPrompt(first_prompt)
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
   bufnr = term_list()[0]
