@@ -84,11 +84,7 @@ def g:Test_python_basic()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 5
-  redraw!
 
-  # var first_prompt = 'In\s\[1\]:'
-  # WaitForPrompt(first_prompt)
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -137,9 +133,6 @@ def g:Test_python_basic()
 
   # Restart kernel
   exe "ReplicaConsoleRestart"
-  sleep 5
-  redraw!
-  # WaitForPrompt(first_prompt)
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
   bufnr = term_list()[0]
@@ -207,8 +200,6 @@ def g:Test_unsupported_filetypes()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 5
-  redraw!
   WaitForPrompt('In\s\[2\]:\s*$')
 
   # switch buffer: python -> text
