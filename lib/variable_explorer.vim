@@ -203,6 +203,10 @@ def FeedChars(bytes: string, console_prompt: string)
       endif
     # UTF-8 case
     else
+      # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
+      # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
+      # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
+      # fixed.
       var idx_cr = match(raw_buf, "\x0D")
       var idx_lf = match(raw_buf, "\x0A")
 
