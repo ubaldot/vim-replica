@@ -54,6 +54,8 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
+  var msg_log = []
+
   if bufexists(variable_to_inspect)
     var buf = bufnr(variable_to_inspect)
     setbufvar(buf, '&modifiable', true)
@@ -63,6 +65,9 @@ def DisplayVariable(decoded_value: list<string>)
   else
     # TODO: let user choose if he wants tabs or vnew
     # tabnew
+    msg_log += ["Creating a vertical split"]
+    repl.LogDebug(msg_log)
+
     vnew
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
@@ -87,6 +92,9 @@ enddef
 
 def HandleLine(line: string, console_prompt: string)
 
+  var msg_log = []
+
+  # You may have cases In [N]: In[N] on the same line
   var line_debounced = line->substitute('\(In \[\d\+\]: \)\s*\1\+', '\1', '')
 
   # Single line_debounced payload
@@ -120,6 +128,9 @@ def HandleLine(line: string, console_prompt: string)
       try
         var decoded = blob2str(base64_decode(payload_accum))
         if on_msg_received == On_Msg_Received.DisplayVariable
+          msg_log += [$"on_msg_received: {on_msg_received.name}"]
+          msg_log += [$"decoded: {decoded}"]
+
           DisplayVariable(decoded)
           on_msg_received = On_Msg_Received.Ready
         endif
@@ -149,12 +160,14 @@ def HandleLine(line: string, console_prompt: string)
       on_msg_received = On_Msg_Received.Ready
       payload_accum = ''
     endif
+
+    last_prompt = line_debounced
   endif
 
-  last_prompt = line_debounced
   # Non-payload line_debounced (normal processing)
-  var msg_log = [$"last_prompt: {last_prompt}"]
+  msg_log += [$"line: {line}"]
   msg_log += [$"line_debounced: {line_debounced}"]
+  msg_log += [$"last_prompt: {last_prompt}"]
   repl.LogDebug(msg_log)
   # echom $"line_debounced: {line_debounced}"
 enddef
