@@ -84,6 +84,8 @@ def g:Test_python_basic()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  sleep 50ms
+  redraw!
 
   # var first_prompt = 'In\s\[1\]:'
   # WaitForPrompt(first_prompt)
@@ -99,7 +101,6 @@ def g:Test_python_basic()
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendCell"
-    redraw!
     WaitForPrompt(prompt)
     lastline = LastNonEmptyLine(bufnr)
     echom assert_match(prompt, lastline)
