@@ -19,7 +19,6 @@ const LEVELS_MAP = {
   Error: LEVELS.Error,
 }
 
-v:errmsg = ''
 const user_level_str = get(g:, 'replica_log_level', 'Error')
 
 # Check if this message should be logged

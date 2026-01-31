@@ -13,22 +13,15 @@ endif
 
 g:loaded_replica = true
 
-
-# export const replica_path = expand('<sfile>:h:h')
-# echom replica_path
-
-# Other config parameters are handled in repl.Init()
-
-# TODO: think if you can avoid using it as a g: variable
-# Temp file used for sending cells or files
-
+# Remove the existing tnp file, if it exists
 if exists('g:replica_tmp_filename') && filereadable(g:replica_tmp_filename)
   delete(g:replica_tmp_filename)
 endif
 
+# Deterministic filepath (so, if Vim crashes, we know where the file is)
 def GetDataDir(): string
   if exists('$XDG_DATA_HOME')
-    return $XDG_DATA_HOME .. '/vim'
+    return $"{$XDG_DATA_HOME}/vim"
   endif
 
   if has('win32') || has('win64')
@@ -38,7 +31,7 @@ def GetDataDir(): string
   return expand('~/.local/share/vim')
 enddef
 
-var data_dir = GetDataDir()
+const data_dir = GetDataDir()
 
 if !isdirectory(data_dir)
   mkdir(data_dir, 'p')
@@ -49,6 +42,9 @@ g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
 if !exists('g:replica_log_filename')
   g:replica_log_filename = 'vim_replica.log'
 endif
+
+# --- logger setup -----
+v:errmsg = ''
 
 if !exists('g:replica_debug')
   g:replica_debug = false

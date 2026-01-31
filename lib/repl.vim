@@ -42,6 +42,12 @@ def Init(teardown: bool = false)
   endif
   logger.Info($'console height: {console_geometry.height}')
   logger.Info($'console width: {console_geometry.width}')
+  logger.Info($'console_name: {b:console_name}')
+  logger.Info($'console_prompt: {b:console_prompt}')
+  logger.Info($'kernel_name: {b:kernel_name}')
+  # logger.Info($'run_command: {b:run_command}')
+  logger.Info($'cells_delimiter: {b:cells_delimiter}')
+  logger.Info($'jupyter_console_options: {b:jupyter_console_options}')
 
   # variable explorer variables init
   variable_explorer.Init(teardown)
@@ -124,12 +130,6 @@ def ConsoleOpen()
       echo b:console_name .. " console opening..."
 
       logger.Info($'start_cmd: {start_cmd}')
-      logger.Info($'console_name: {b:console_name}')
-      logger.Info($'console_prompt: {b:console_prompt}')
-      logger.Info($'kernel_name: {b:kernel_name}')
-      # logger.Info($'run_command: {b:run_command}')
-      logger.Info($'cells_delimiter: {b:cells_delimiter}')
-      logger.Info($'jupyter_console_options: {b:jupyter_console_options}')
       logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
       # var job_env = {,
