@@ -290,7 +290,7 @@ export def SendFile(filename: string = '')
         logger.Info($"sent file: '{filename}'")
       endif
       term_sendkeys(bufnr($'^{b:console_name}$'),
-            \ b:run_command(g:replica_tmp_filename) .. "\n")
+                   $"{b:run_command(g:replica_tmp_filename)}\n")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")

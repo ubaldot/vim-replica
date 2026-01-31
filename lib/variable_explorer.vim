@@ -56,8 +56,8 @@ enddef
 def SendInitScript(filename: string)
   logger.Info('SendInitScript()')
   writefile(readfile(filename), g:replica_tmp_filename)
-  term_sendkeys(bufnr('^' .. b:console_name .. '$'),
-        \ b:run_command(g:replica_tmp_filename) .. "\n")
+  term_sendkeys(bufnr($'^{b:console_name}$'),
+                  $"{b:run_command(g:replica_tmp_filename)}\n")
   echom "vim-replica interface initialized"
   logger.Info("vim-replica interface initialized")
 enddef

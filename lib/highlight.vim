@@ -16,8 +16,8 @@ var list_sign_id = []
 
 # Find lines range based on cell_delimiter
 export def GetExtremes(display_range: bool = false): list<number>
-    var line_in = search("\^"  .. b:cells_delimiter, 'cnbW')
-    var line_out = search("\^" .. b:cells_delimiter, 'nW')
+    var line_in = search($"\^{b:cells_delimiter}", 'cnbW')
+    var line_out = search($"\^{b:cells_delimiter}", 'nW')
     # If search() returns 0 it means that the pattern has not been found
     if line_in == 0
         line_in = 1
@@ -27,7 +27,7 @@ export def GetExtremes(display_range: bool = false): list<number>
     endif
     # Display range only if some cell has been found
     if (line_in != 1 || line_out != line("$")) && display_range && g:replica_display_range
-        echo "cell_range=[" .. line_in .. "," .. line_out .. "]"
+      echo $"cell_range=[{line_in}, {line_out}]"
     endif
     return [line_in, line_out]
 enddef
