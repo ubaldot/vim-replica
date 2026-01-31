@@ -33,6 +33,7 @@ ReplicaInspect
 g:replica_use_utf16
 g:How to display variable explorer
 g:replica_debug
+g:replica_log_level
 
 Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
 way.

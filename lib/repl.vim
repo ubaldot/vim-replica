@@ -1,6 +1,7 @@
 vim9script
 
 import "../lib/highlight.vim"
+import "../lib/logger.vim"
 import "../lib/variable_explorer.vim"
 import "../lib/ftcommands_mappings.vim"
 
@@ -10,6 +11,8 @@ import "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
 
+logger.Info($'Vim-replica-log {strftime("%d %b %Y %X")}')
+logger.Info('---------------')
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
@@ -23,11 +26,17 @@ export def Echowarn(msg: string)
 enddef
 
 def Init()
+  exe "defer logger.Error(v:errmsg)"
+
+  logger.Info('Init()')
+
   if !exists('g:replica_console_position')
     g:replica_console_position = "L"
   elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
     Echoerr("'g:replica_console_position' must be one of 'HJKL'")
   endif
+
+  logger.Info($'Console position: {g:replica_console_position}')
 
   if !exists('g:replica_console_width')
     if index(["H", "L"], g:replica_console_position) >= 0
@@ -51,8 +60,9 @@ def Init()
       height: g:replica_console_height
     }
   endif
+  logger.Info($'Console height: {console_geometry.height}')
+  logger.Info($'Console width: {console_geometry.width}')
 
-  v:errmsg = ''
   # variable explorer variables init
   variable_explorer.Init()
 enddef
@@ -105,24 +115,8 @@ def ReplicaOutCbWrapper(prompt: string, ch: channel, msg: string)
   variable_explorer.ReplicaOutCb(prompt, ch, msg)
 enddef
 
-export def LogDebug(log_msg: list<string>)
-  if !exists('g:replica_debug') || !g:replica_debug
-    return
-  endif
-
-  if !empty(v:errmsg)
-    add(log_msg, $'Error: {v:errmsg}')
-    v:errmsg = ''
-  endif
-
-  try
-    writefile(log_msg, g:replica_log_filename, 'a')
-  catch
-    echoerr $'Cannot write {g:replica_log_filename}'
-  endtry
-enddef
-
 def ConsoleOpen()
+  exe "defer logger.Error(v:errmsg)"
   # If console does not exist, then create one,
   var console_win_id = 0
   if IsFiletypeSupported()
@@ -139,22 +133,16 @@ def ConsoleOpen()
       echo b:console_name .. " console opening..."
 
       # Debug
-      var log_msg = [
-        '',
-        'Vim-replica-log',
-        strftime('%Y-%m-%d %H:%M:%S'),
-        '---------------------------------------',
-        "Console Open()",
-        $'start_cmd: {start_cmd}',
-        $'console_name: {b:console_name}',
-        $'console_prompt: {b:console_prompt}',
-        $'kernel_name: {b:kernel_name}',
-        # $'run_command: {b:run_command}',
-        $'cells_delimiter: {b:cells_delimiter}',
-        $'jupyter_console_options: {b:jupyter_console_options}',
-        $'on_msg_received action: {variable_explorer.on_msg_received.name}'
-      ]
-      LogDebug(log_msg)
+      logger.Info("Console Open()")
+      logger.Info($'start_cmd: {start_cmd}')
+      logger.Debug($'console_name: {b:console_name}')
+      logger.Debug($'console_prompt: {b:console_prompt}')
+      logger.Debug($'kernel_name: {b:kernel_name}')
+      # logger.Debug($'run_command: {b:run_command}')
+      logger.Debug($'cells_delimiter: {b:cells_delimiter}')
+      logger.Debug($'jupyter_console_options: {b:jupyter_console_options}')
+      logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
+
       # var job_env = {,
       #       \ 'PYTHONIOENCODING': 'utf-16',
       #       \ 'LANG': 'en_US.UTF-16',
@@ -196,6 +184,9 @@ enddef
 
 
 def ConsoleClose()
+  exe "defer logger.Error(v:errmsg)"
+
+  logger.Info("Console Close()")
   # TODO Modify and make all the REPL to close from wherever you are?
   if IsFiletypeSupported()
     for win in ConsoleWinID()
@@ -217,6 +208,8 @@ enddef
 
 
 export def ConsoleShutoff()
+  exe "defer logger.Error(v:errmsg)"
+  logger.Info("Console Shutoff()")
   if ConsoleExists()
     var console_name = b:console_name
     exe "bw! " .. bufnr($'^{console_name}$')
@@ -239,6 +232,7 @@ export def RemoveCells()
     endfor
     echo "Cells removed."
   else
+    logger.Warn("filetype not supported!")
     Echowarn("filetype not supported!")
   endif
 enddef
@@ -306,6 +300,7 @@ export def SendFile(filename: string = '')
             \ b:run_command(g:replica_tmp_filename) .. "\n")
     endif
   else
+    logger.Warn("filetype not supported!")
     Echowarn("filetype not supported!")
   endif
 enddef

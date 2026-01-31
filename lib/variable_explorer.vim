@@ -1,6 +1,7 @@
 vim9script
 
 import "../lib/repl.vim"
+import "../lib/logger.vim"
 
 const replica_path = expand('<sfile>:h:h')
 
@@ -30,6 +31,8 @@ def IsWSL(): bool
 enddef
 
 export def Init()
+  exe "defer logger.Error(v:errmsg)"
+
   raw_buf = ''
   collecting_payload = false
   payload_accum = ''
@@ -41,21 +44,26 @@ export def Init()
     ? g:replica_use_utf16
     : has('win32') || has('win64')
 
-  var log_msg = ['', $'encoding: {is_utf16 ? "utf-16" : "utf-8"}']
-  repl.LogDebug(log_msg)
+  logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
 enddef
 
 def SendInitScript(filename: string)
+  exe "defer logger.Error(v:errmsg)"
+  logger.Info('SendInitScript')
   writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr('^' .. b:console_name .. '$'),
         \ b:run_command(g:replica_tmp_filename) .. "\n")
   echom "vim-replica interface initialized"
+  logger.Info("vim-replica interface initialized")
 enddef
 
 def DisplayVariable(decoded_value: list<string>)
   # Example: show in a scratch buffer
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
+
+  exe "defer logger.Error(v:errmsg)"
+  logger.Info('DisplayVariable()')
 
   var msg_log = []
 
@@ -68,8 +76,7 @@ def DisplayVariable(decoded_value: list<string>)
   else
     # TODO: let user choose if he wants tabs or vnew
     # tabnew
-    msg_log += ["Creating a vertical split"]
-    repl.LogDebug(msg_log)
+    logger.Info("Creating a vertical split")
 
     vnew
     var buf = bufnr('$')
@@ -94,6 +101,7 @@ enddef
 
 
 def HandleLine(line: string, console_prompt: string)
+  exe "defer logger.Error(v:errmsg)"
 
   var msg_log = []
 
@@ -168,10 +176,9 @@ def HandleLine(line: string, console_prompt: string)
   endif
 
   # Non-payload line_debounced (normal processing)
-  msg_log += [$"line: {line}"]
-  msg_log += [$"line_debounced: {line_debounced}"]
-  msg_log += [$"last_prompt: {last_prompt}"]
-  repl.LogDebug(msg_log)
+  logger.Debug($"line: {line}")
+  logger.Debug($"line_debounced: {line_debounced}")
+  logger.Debug($"last_prompt: {last_prompt}")
   # echom $"line_debounced: {line_debounced}"
 enddef
 
@@ -187,6 +194,8 @@ def StripAnsiEscapeSequences(msg: string): string
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
+  exe "defer logger.Error(v:errmsg)"
+
   raw_buf ..= bytes
 
   var msg_log = []
@@ -195,6 +204,8 @@ def FeedChars(bytes: string, console_prompt: string)
   while true
     var idx = -1
     var nbytes = -1
+
+    logger.Debug($'is_utf16: {is_utf16}')
 
     # UTF-16LE case
     if is_utf16
@@ -241,7 +252,7 @@ def FeedChars(bytes: string, console_prompt: string)
     endif
 
     var line = idx > 0 ? raw_buf[: idx - 1] : ''
-    msg_log += [$'Unstripped line: {line}']
+    logger.Debug($'Unstripped line: {line}')
 
     try
       var clean_line = is_utf16
@@ -258,8 +269,7 @@ def FeedChars(bytes: string, console_prompt: string)
     raw_buf = raw_buf[idx + nbytes :]
   endwhile
 
-  msg_log += [$'raw buffer: {raw_buf}']
-  repl.LogDebug(msg_log)
+  logger.Debug($'raw buffer: {raw_buf}')
 enddef
 
 
@@ -336,6 +346,5 @@ export def VimInspect(
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
 
-  msg_log += ["Sent <c-l>"]
-  repl.LogDebug(msg_log)
+  logger.Debug("Sent <c-l>")
 enddef

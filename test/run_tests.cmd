@@ -10,7 +10,6 @@ SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N --not-a-term"
 
 REM Create or overwrite the vimrc file with the initial setting
 echo set runtimepath+=.. > "%VIMRC%"
-echo g:replica_use_utf16 = false >> "%VIMRC%"
 echo filetype plugin on >> "%VIMRC%"
 
 REM Check if the vimrc file was created successfully

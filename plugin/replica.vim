@@ -13,12 +13,7 @@ endif
 
 g:loaded_replica = true
 
-import "../lib/ftcommands_mappings.vim"
-import "../lib/highlight.vim"
 
-exe "$LANG = 'en_US.UTF-8'"
-exe "$LC_CTYPE = 'en_US.UTF-8'"
-exe "$PYTHONIOENCODING = 'utf-8'"
 # export const replica_path = expand('<sfile>:h:h')
 # echom replica_path
 
@@ -29,7 +24,6 @@ exe "$PYTHONIOENCODING = 'utf-8'"
 g:replica_tmp_filename = tempname()
 
 if !exists('g:replica_log_filename')
-  g:replica_log_filename = $'{getcwd()}/vim_replica.log'
   g:replica_log_filename = 'vim_replica.log'
 endif
 
@@ -120,7 +114,8 @@ g:replica_console_prompts = replica_console_prompts_default
 #             \ "python": "source ~/pippo && ",
 #             \ "julia": ""}
 
-
+import "../lib/ftcommands_mappings.vim"
+import "../lib/highlight.vim"
 # The following variable won't change during run-time
 def SetBufferVars()
   b:kernel_name = g:replica_kernels[&filetype]
