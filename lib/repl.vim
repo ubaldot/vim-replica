@@ -139,13 +139,12 @@ def ConsoleOpen()
       console_win_id = win_findbuf(bufnr('$'))[0]
     elseif empty(ConsoleWinID())
       logger.Info("Opening existing console")
-      exe 'sbuffer ' .. bufnr($'^{b:console_name}$')
-      console_win_id = win_findbuf(bufnr('^'
-            \ .. b:console_name .. '$'))[0]
+      exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
+      console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
     endif
 
     # Set few options
-    exe 'wincmd ' .. g:replica_console_position
+    exe $'wincmd {g:replica_console_position}'
     setlocal nobuflisted winminheight winminwidth winfixbuf
     # Set geometry
     ResizeConsoleWindow(console_win_id)
@@ -209,7 +208,7 @@ export def RemoveCells()
 
   if IsFiletypeSupported()
     for ii in range(1, line('$'))
-      if getline(ii) =~ "^" .. b:cells_delimiter
+      if getline(ii) =~ $'^{b:cells_delimiter}'
         deletebufline('%', ii)
         logger.Debug($'removing line {ii}')
       endif
@@ -234,7 +233,7 @@ export def SendLines(firstline: number, lastline: number)
 
       # Actual implementation
       for line in getline(firstline, lastline)
-        term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
+        term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}\n")
         logger.Info($"sent lines: '{line}'")
       endfor
       norm! ^j
@@ -262,7 +261,7 @@ export def SendCell()
       # Overwrite tmp file
       writefile(getline(line_in, line_out), g:replica_tmp_filename)
       term_sendkeys(bufnr($'^{b:console_name}$'),
-            \ b:run_command(g:replica_tmp_filename) .. "\n")
+            $"{b:run_command(g:replica_tmp_filename)}\n")
 
       logger.Info($"sent cell: {string(getline(line_in, line_out))}")
     endif
