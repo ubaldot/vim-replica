@@ -118,8 +118,8 @@ def HandleLine(line: string, console_prompt: string)
     var decoded = blob2str(base64_decode(payload))
     logger.Info("message successfully decoded")
 
+    logger.Debug($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
       DisplayVariable(decoded)
       on_msg_received = On_Msg_Received.Ready
       logger.Debug($'on_msg_received: {on_msg_received.name}')
@@ -170,7 +170,7 @@ def HandleLine(line: string, console_prompt: string)
 
   # Prompt is ready. Do something
   if line_debounced =~# console_prompt
-    if line_debounced == last_prompt
+    if line_debounced == last_prompt && &filetype == 'python'
       return
     endif
 
@@ -340,14 +340,24 @@ export def VimInspect(
   # tabonly
   if !empty(variable)
     var variable_single_quoted = variable->substitute('"', "'", 'g')
-    term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
+    # TODO: FIX IT!
+    if &filetype == 'zsh'
+      term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect {variable_single_quoted}\n")
+    else
+      term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
+    endif
     variable_to_inspect = variable_single_quoted
     on_msg_received = On_Msg_Received.DisplayVariable
 
     logger.Debug($'on_msg_received: {on_msg_received.name}')
     logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
   else
-    term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
+    # TODO: FIX IT!
+    if &filetype == 'zsh'
+      term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos\n")
+    else
+      term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
+    endif
     variable_to_inspect = whos_buf_name
     on_msg_received = On_Msg_Received.DisplayVariable
 
