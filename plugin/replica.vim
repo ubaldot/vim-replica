@@ -39,15 +39,15 @@ endif
 
 g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
 
-if !exists('g:replica_log_filename')
-  g:replica_log_filename = 'vim_replica.log'
-endif
-
 # --- logger setup -----
 v:errmsg = ''
 
 if !exists('g:replica_debug')
   g:replica_debug = false
+endif
+
+if !exists('g:replica_log_filename')
+  g:replica_log_filename = 'vim_replica.log'
 endif
 
 if g:replica_debug
@@ -63,6 +63,7 @@ if !exists('g:replica_log_level')
   g:replica_log_level = 'Error'
 endif
 
+# ----- repl.vim setup -----
 if !exists('g:replica_console_position')
   g:replica_console_position = "L"
 elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
@@ -116,9 +117,6 @@ var replica_jupyter_console_options_default = {
   python: "",
   julia: ""}
 
-# TODO: add a final $ in the regex, but watch out because in Linux you may
-# have In [1]: In [1]: due to a flaky variable_explorer.FeedChars() when it
-# comes to UTF-8. The ideal would be to  fix variable_explorer.FeedChars().
 var replica_console_prompts_default = {
   python: '^In\s\[\d\+\]:\s$',
   julia: '^julia>$'}
@@ -162,6 +160,8 @@ endif
 
 import "../lib/ftcommands_mappings.vim"
 
+
+# --- highlight setup ------
 if !exists('g:replica_display_range')
   g:replica_display_range = true
 endif
@@ -173,7 +173,6 @@ endif
 if !exists('g:replica_alt_highlight')
   g:replica_alt_highlight = false
 endif
-
 
 import "../lib/highlight.vim"
 
