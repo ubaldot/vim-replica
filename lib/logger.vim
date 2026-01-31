@@ -4,6 +4,8 @@ vim9script
 #   logger.Debug('starting replica')
 #   logger.Warn('fallback triggered')
 
+import "../lib/repl.vim"
+
 enum LEVELS
   Debug,
   Info,
@@ -29,7 +31,7 @@ def ShouldLog(level: LEVELS): bool
   else
     # Disable logging in case of errors
     g:replica_debug = false
-    echoerr $"[vim-replica]: Variable 'g:replica_log_level' shall be one of {string(keys(LEVELS_MAP))}. Logging disabled."
+    repl.Echoerr($"[vim-replica]: Variable 'g:replica_log_level' shall be one of {string(keys(LEVELS_MAP))}. Logging disabled.")
     return false
   endif
 
@@ -47,7 +49,7 @@ def Write(level: LEVELS, msg: string)
   try
     writefile(lines, g:replica_log_filename, 'a')
   catch
-    echoerr $'Cannot write {g:replica_log_filename}'
+    repl.Echoerr($'Cannot write {g:replica_log_filename}')
   endtry
 enddef
 
@@ -73,6 +75,6 @@ export def BlankLine()
   try
     writefile([''], g:replica_log_filename, 'a')
   catch
-    echoerr $"Cannot write {g:replica_log_filename}"
+    repl.Echoerr($"Cannot write {g:replica_log_filename}")
   endtry
 enddef

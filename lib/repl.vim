@@ -171,7 +171,7 @@ def ConsoleOpen()
     setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
   else
     logger.Error($"Filetype {&filetype} not supported")
-    echoerr $"[vim-replica]: Filetype {&filetype} not supported"
+    Echoerr($"[vim-replica]: Filetype {&filetype} not supported")
   endif
 enddef
 
