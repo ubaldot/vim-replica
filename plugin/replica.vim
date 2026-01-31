@@ -40,6 +40,7 @@ endif
 g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
 
 # --- logger setup -----
+#  If a vim error happens (blockimg), we want to log it.
 v:errmsg = ''
 
 if !exists('g:replica_debug')
@@ -53,8 +54,9 @@ endif
 if g:replica_debug
   const head = [
   '',
-  $'Vim-replica-log: {strftime("%d %b %Y %X")}',
-  '-------------------------------------'
+  $'Vim-replica-log:',
+  '{strftime("%d %b %Y %X")}',
+  '---------------------'
   ]
   writefile(head, g:replica_log_filename, 'a')
 endif
@@ -119,17 +121,26 @@ if exists('g:replica_kernels')
   extend(replica_kernels_default, g:replica_kernels, "force")
 endif
 
+if exists('g:replica_console_names')
+  extend(replica_console_names_default, g:replica_console_names, "keep")
+endif
+
 if exists('g:replica_jupyter_console_options')
   extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
 endif
 
-# TODO: not sure if you want user to override the prompts
+# If a user wants to add more languages
+if exists('g:replica_run_commands')
+  extend(replica_run_commands_default, g:replica_run_commands, "keep")
+endif
+
 if exists('g:replica_console_prompts')
-  extend(replica_console_prompts_default, g:replica_console_prompts, "force")
+  extend(replica_console_prompts_default, g:replica_console_prompts, "keep")
 endif
 
 g:replica_kernels = replica_kernels_default
 g:replica_console_names = replica_console_names_default
+g:replica_jupyter_console_options = replica_jupyter_console_options_default
 g:replica_run_commands = replica_run_commands_default
 g:replica_console_prompts = replica_console_prompts_default
 
@@ -155,10 +166,10 @@ var replica_cells_delimiters_default = {
   python: "# %%",
   julia: "# %%"}
 
+# If a user wants to add a new language
 if exists('g:replica_cells_delimiters')
-  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
+  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "keep")
 endif
-
 g:replica_cells_delimiters = replica_cells_delimiters_default
 
 if !exists('g:replica_display_range')

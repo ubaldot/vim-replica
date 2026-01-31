@@ -81,6 +81,8 @@ export def HighlightCell(display_range: bool = false)
             # Update old values
             line_in_old = line_in
             line_out_old = line_out
+
+            logger.Info($'highlighted lines: {line_in} - {line_out}')
         endif
     else
         # ..which means line_in = 1 and line_out = line("$")
@@ -89,5 +91,4 @@ export def HighlightCell(display_range: bool = false)
             sign_unplace("", {"buffer": expand("%:p"), "id": line})
         endfor
     endif
-    logger.Info($'highlighted lines: {line_in} - {line_out}')
 enddef
