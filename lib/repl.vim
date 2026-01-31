@@ -43,10 +43,10 @@ def Init(teardown: bool = false)
   logger.Info($'console height: {console_geometry.height}')
   logger.Info($'console width: {console_geometry.width}')
   logger.Info($"console name: {b:console_name}")
-  logger.Info($"console_prompt: '{b:console_prompt}'")
-  logger.Info($'kernel_name: {b:kernel_name}')
+  logger.Info($"repl_prompt: '{b:repl_prompt}'")
+  logger.Info($'repl_name: {b:repl_name}')
   logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
-  logger.Info($"jupyter_console_options: '{b:jupyter_console_options}'")
+  logger.Info($"repl_options: '{b:repl_options}'")
 
   # variable explorer variables init
   variable_explorer.Init(teardown)
@@ -117,8 +117,7 @@ def ConsoleOpen()
       logger.Info("Console Open()")
       logger.Info("create new console")
 
-      var start_cmd = $"python -m jupyter console --kernel={b:kernel_name}"
-                       .. $' {b:jupyter_console_options}'
+      var start_cmd = $"{b:repl_name} {b:repl_options}"
 
       # Send scripts to enable __vim_inspect() to the repl
       variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
@@ -128,7 +127,7 @@ def ConsoleOpen()
       logger.Info($'start_cmd: {start_cmd}')
       logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
-            var prompt = b:console_prompt
+      var prompt = b:repl_prompt
       term_start(start_cmd,
         {term_name: b:console_name,
           out_cb: function("ReplicaOutCbWrapper", [prompt]),
@@ -152,10 +151,10 @@ def ConsoleOpen()
     # Cursor back to the editor
     wincmd p
     # We give console terminal buffer b:console_name and
-    # b:kernel_name variables.
+    # b:repl_name variables.
     setbufvar(bufnr('$'), 'console_name', b:console_name)
-    setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
-    setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
+    setbufvar(bufnr('$'), 'repl_name', b:repl_name)
+    setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
   else
     logger.Error($"Filetype {&filetype} not supported")
     Echoerr($"[vim-replica]: Filetype {&filetype} not supported")

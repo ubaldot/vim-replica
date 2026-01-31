@@ -11,10 +11,6 @@ import "../plugin/replica.vim"
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
-var jupyter_console = exepath('jupyter-console')
-if jupyter_console->empty()
-  throw 'Skipped: jupyter_console is not found in $PATH'
-endif
 
 def Generate_testfile(lines: list<string>, src_name: string)
   writefile(lines, src_name)
@@ -60,6 +56,10 @@ enddef
 # Tests start here
 def g:Test_python_basic()
 
+  if exepath('ipython')->empty()
+    throw 'Skipped: repl_console is not found in $PATH'
+  endif
+
   g:replica_debug = true
   messages clear
 
@@ -80,7 +80,7 @@ def g:Test_python_basic()
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "kernel_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -132,7 +132,7 @@ def g:Test_python_basic()
   exe "ReplicaRemoveCells"
   WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
-  # Restart kernel
+  # Restart repl
   exe "ReplicaConsoleRestart"
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
@@ -177,7 +177,7 @@ def g:Test_unsupported_filetypes()
   # Start console and fail, since 'text' filetype is not supported
   echom assert_fails('ReplicaConsoleToggle', 'E492:')
   # Check that the buffer variables are not set
-  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
   # Generate python file
@@ -195,7 +195,7 @@ def g:Test_unsupported_filetypes()
   exe $"edit {python_filename}"
 
   # Check that the buffer variables are set
-  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
 
   # Start console
@@ -209,14 +209,14 @@ def g:Test_unsupported_filetypes()
   # Start console and fail, since 'text' filetype is not supported
   assert_fails('ReplicaConsoleToggle', 'E492:')
   # Check that the buffer variables are not set
-  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
   # switch buffer: text -> python
   exe "bnext"
 
   # Check that the buffer variables are set
-  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
   # Close console
   exe "ReplicaConsoleToggle"
@@ -251,7 +251,7 @@ def g:Test_variable_explorer_basic()
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "kernel_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -286,7 +286,7 @@ def g:Test_variable_explorer_basic()
 
   # --- test %whos
   #  TODO: test won't pass on Windows
-  # OBS! The way %whos display variables, may change with the kernel
+  # OBS! The way %whos display variables, may change with the repl
   # versions, so you cannot really test it reliably. At most, you can check
   # that a split window happened
 

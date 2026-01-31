@@ -85,16 +85,16 @@ if !exists('g:replica_console_height')
   endif
 endif
 
-if !exists('g:replica_jupyter_console_options')
-  g:replica_jupyter_console_options = {
+if !exists('g:replica_repl_options')
+  g:replica_repl_options = {
     python: "",
     julia: ""}
 endif
 
 # Dicts. Keys must be Vim filetypes
-var replica_kernels_default = {
-  python: "python3",
-  julia: "julia-1.8"}
+var replica_repls_default = {
+  python: "ipython",
+  julia: "julia"}
 
 var replica_console_names_default = {
   python: "IPYTHON",
@@ -105,25 +105,25 @@ var replica_run_commands_default = {
   python: (filename) => $"run -i {filename}",
   julia: (filename) => $"include({filename})" }
 
-var replica_jupyter_console_options_default = {
+var replica_repl_options_default = {
   python: "",
   julia: ""}
 
-var replica_console_prompts_default = {
+var replica_repl_prompts_default = {
   python: '^In\s\[\d\+\]:\s$',
   julia: '^julia>$'}
 
-# User is allowed to change only replica_kernels and replica_cells_delimiters
-if exists('g:replica_kernels')
-  extend(replica_kernels_default, g:replica_kernels, "force")
+# User is allowed to change only replica_repls and replica_cells_delimiters
+if exists('g:replica_repls')
+  extend(replica_repls_default, g:replica_repls, "force")
 endif
 
 if exists('g:replica_console_names')
   extend(replica_console_names_default, g:replica_console_names, "keep")
 endif
 
-if exists('g:replica_jupyter_console_options')
-  extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
+if exists('g:replica_repl_options')
+  extend(replica_repl_options_default, g:replica_repl_options, "force")
 endif
 
 # If a user wants to add more languages
@@ -131,21 +131,21 @@ if exists('g:replica_run_commands')
   extend(replica_run_commands_default, g:replica_run_commands, "keep")
 endif
 
-if exists('g:replica_console_prompts')
-  extend(replica_console_prompts_default, g:replica_console_prompts, "keep")
+if exists('g:replica_repl_prompts')
+  extend(replica_repl_prompts_default, g:replica_repl_prompts, "keep")
 endif
 
-g:replica_kernels = replica_kernels_default
+g:replica_repls = replica_repls_default
 g:replica_console_names = replica_console_names_default
-g:replica_jupyter_console_options = replica_jupyter_console_options_default
+g:replica_repl_options = replica_repl_options_default
 g:replica_run_commands = replica_run_commands_default
-g:replica_console_prompts = replica_console_prompts_default
+g:replica_repl_prompts = replica_repl_prompts_default
 
 # TODO at the moment the term is started directly with
-# jupyter console ... but a user may want to do something before opening the
+# repl console ... but a user may want to do something before opening the
 # console. One could
 # a. use b:precommand = g:replica_pre_commands[&filtype] in ft files
-# b. Update ConsoleOpen() function with term_start(b:precommand .. "jupyter
+# b. Update ConsoleOpen() function with term_start(b:precommand .. "repl
 # console ..."
 # g:replica_precommands = {
 #             \ "python": "source ~/pippo && ",
@@ -188,11 +188,11 @@ import "../lib/highlight.vim"
 def InitBuffers()
 
   # -- REPL init ----
-  b:kernel_name = g:replica_kernels[&filetype]
+  b:repl_name = g:replica_repls[&filetype]
   b:console_name = g:replica_console_names[&filetype]
-  b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
+  b:repl_options = g:replica_repl_options[&filetype]
   b:run_command = g:replica_run_commands[&filetype]
-  b:console_prompt = g:replica_console_prompts[&filetype]
+  b:repl_prompt = g:replica_repl_prompts[&filetype]
 
   # -- highlight init ----
   b:cells_delimiter = g:replica_cells_delimiters[&filetype]
@@ -215,7 +215,7 @@ enddef
 
 augroup REPLICA_INIT_BUFFERS
   autocmd!
-  for val in keys(g:replica_kernels)
+  for val in keys(g:replica_repls)
     exe $"autocmd FileType {val} InitBuffers()"
   endfor
 augroup END
