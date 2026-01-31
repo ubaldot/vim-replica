@@ -32,31 +32,7 @@ def Init(teardown: bool = false)
     logger.Info('Replica Teardown (Init(true))')
   endif
 
-
-  if !exists('g:replica_console_position')
-    g:replica_console_position = "L"
-  elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
-    logger.Error("'g:replica_console_position' must be one of 'HJKL'")
-    Echoerr("'g:replica_console_position' must be one of 'HJKL'")
-  endif
-
   logger.Info($'console position: {g:replica_console_position}')
-
-  if !exists('g:replica_console_width')
-    if index(["H", "L"], g:replica_console_position) >= 0
-      g:replica_console_width = &columns / 2
-    else
-      g:replica_console_width = &columns
-    endif
-  endif
-
-  if !exists('g:replica_console_height')
-    if index(["H", "L"], g:replica_console_position) >= 0
-      g:replica_console_height = &lines
-    else
-      g:replica_console_height = &lines / 4
-    endif
-  endif
 
   if empty(console_geometry)
     console_geometry = {

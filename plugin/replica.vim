@@ -21,6 +21,7 @@ g:loaded_replica = true
 
 # TODO: think if you can avoid using it as a g: variable
 # Temp file used for sending cells or files
+
 g:replica_tmp_filename = tempname()
 
 if !exists('g:replica_log_filename')
@@ -31,30 +32,44 @@ if !exists('g:replica_debug')
   g:replica_debug = false
 endif
 
+if g:replica_debug
+  const head = [
+  '',
+  $'Vim-replica-log: {strftime("%d %b %Y %X")}',
+  '-------------------------------------'
+  ]
+  writefile(head, g:replica_log_filename, 'a')
+endif
+
 if !exists('g:replica_log_level')
   g:replica_log_level = 'Error'
 endif
 
-if !exists('g:replica_display_range')
-  g:replica_display_range = true
+if !exists('g:replica_console_position')
+  g:replica_console_position = "L"
+elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
+  echoerr "[vim-replica]: 'g:replica_console_position' must be one of 'HJKL'"
 endif
 
-if !exists('g:replica_enable_highlight')
-  g:replica_enable_highlight = true
+if !exists('g:replica_console_width')
+  if index(["H", "L"], g:replica_console_position) >= 0
+    g:replica_console_width = &columns / 2
+  else
+    g:replica_console_width = &columns
+  endif
 endif
 
-if !exists('g:replica_alt_highlight')
-  g:replica_alt_highlight = false
+if !exists('g:replica_console_height')
+  if index(["H", "L"], g:replica_console_position) >= 0
+    g:replica_console_height = &lines
+  else
+    g:replica_console_height = &lines / 4
+  endif
 endif
 
 if !exists('g:replica_python_options')
   g:replica_python_options = ""
 endif
-
-if !exists('g:replica_use_default_mapping')
-  g:replica_use_default_mapping = false
-endif
-
 
 if !exists('g:replica_jupyter_console_options')
   g:replica_jupyter_console_options = {
@@ -123,17 +138,27 @@ g:replica_console_prompts = replica_console_prompts_default
 #             \ "python": "source ~/pippo && ",
 #             \ "julia": ""}
 
+if !exists('g:replica_use_default_mapping')
+  g:replica_use_default_mapping = false
+endif
+
 import "../lib/ftcommands_mappings.vim"
+
+if !exists('g:replica_display_range')
+  g:replica_display_range = true
+endif
+
+if !exists('g:replica_enable_highlight')
+  g:replica_enable_highlight = true
+endif
+
+if !exists('g:replica_alt_highlight')
+  g:replica_alt_highlight = false
+endif
+
+
 import "../lib/highlight.vim"
 
-if g:replica_debug
-  const head = [
-  '',
-  $'Vim-replica-log: {strftime("%d %b %Y %X")}',
-  '-------------------------------------'
-  ]
-  writefile(head, g:replica_log_filename, 'a')
-endif
 
 # The following variable won't change during run-time
 def SetBufferVars()
