@@ -25,7 +25,6 @@ var is_utf16: bool
 var last_prompt: string
 
 export def Init(teardwn: bool = false)
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   raw_buf = ''
   collecting_payload = false
@@ -55,7 +54,6 @@ export def Init(teardwn: bool = false)
 enddef
 
 def SendInitScript(filename: string)
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info('SendInitScript()')
   writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr('^' .. b:console_name .. '$'),
@@ -69,7 +67,6 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info('DisplayVariable()')
 
 
@@ -102,7 +99,7 @@ def DisplayVariable(decoded_value: list<string>)
     nnoremap <buffer> <silent> <esc> <cmd>close<cr>
   endif
 
-  logger.Info($"displayed variable value: '{decoded_value}'")
+  logger.Info($"displayed variable value: {decoded_value}")
   # This is the end-point. We can reset all script variables for the next
   # round.
   Init(true)
@@ -110,7 +107,6 @@ enddef
 
 
 def HandleLine(line: string, console_prompt: string)
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   # You may have cases In [N]: In[N] on the same line
   var line_debounced = line->substitute('\(In \[\d\+\]: \)\s*\1\+', '\1', '')
@@ -210,7 +206,6 @@ def StripAnsiEscapeSequences(msg: string): string
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   raw_buf ..= bytes
 

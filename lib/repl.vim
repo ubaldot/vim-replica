@@ -15,6 +15,7 @@ var console_geometry = {}
 # Functions for dealing with the console
 # ---------------------------------------
 
+# Differently from echoerr this is non-blocking
 export def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
@@ -24,7 +25,6 @@ export def Echowarn(msg: string)
 enddef
 
 def Init(teardown: bool = false)
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   if !teardown
     logger.Info('Init()')
@@ -32,7 +32,7 @@ def Init(teardown: bool = false)
     logger.Info('Replica Teardown (Init(true))')
   endif
 
-  logger.Info($'console position: {g:replica_console_position}')
+  logger.Info($"console position: '{g:replica_console_position}'")
 
   if empty(console_geometry)
     console_geometry = {
@@ -42,12 +42,11 @@ def Init(teardown: bool = false)
   endif
   logger.Info($'console height: {console_geometry.height}')
   logger.Info($'console width: {console_geometry.width}')
-  logger.Info($'console_name: {b:console_name}')
-  logger.Info($'console_prompt: {b:console_prompt}')
+  logger.Info($"console name: {b:console_name}")
+  logger.Info($"console_prompt: '{b:console_prompt}'")
   logger.Info($'kernel_name: {b:kernel_name}')
-  # logger.Info($'run_command: {b:run_command}')
-  logger.Info($'cells_delimiter: {b:cells_delimiter}')
-  logger.Info($'jupyter_console_options: {b:jupyter_console_options}')
+  logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
+  logger.Info($"jupyter_console_options: '{b:jupyter_console_options}'")
 
   # variable explorer variables init
   variable_explorer.Init(teardown)
@@ -111,7 +110,6 @@ enddef
 # This is the actual entry point of the plugin
 def ConsoleOpen()
   # To start a new logging session you must close and reopen Vim
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   # If console does not exist, then create one,
   var console_win_id = 0
   if IsFiletypeSupported()
@@ -132,18 +130,10 @@ def ConsoleOpen()
       logger.Info($'start_cmd: {start_cmd}')
       logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
-      # var job_env = {,
-      #       \ 'PYTHONIOENCODING': 'utf-16',
-      #       \ 'LANG': 'en_US.UTF-16',
-      #       \ 'LC_CTYPE': 'en_US.UTF-16',
-      #       \ }
-      # I have to explicitly call the feedback through a FuncRef otherwise
-      # 'prompt' variable is lost
-      var prompt = b:console_prompt
+            var prompt = b:console_prompt
       term_start(start_cmd,
         {term_name: b:console_name,
           out_cb: function("ReplicaOutCbWrapper", [prompt]),
-          # env: job_env
         })
 
       ftcommands_mappings.InstallConsoleCommands()
@@ -177,7 +167,6 @@ enddef
 
 
 def ConsoleClose()
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info("Console Close()")
 
   # TODO Modify and make all the REPL to close from wherever you are?
@@ -201,8 +190,8 @@ enddef
 
 
 export def ConsoleShutoff()
-  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info("Console Shutoff()")
+
   if ConsoleExists()
     var console_name = b:console_name
     exe "bw! " .. bufnr($'^{console_name}$')
@@ -219,6 +208,7 @@ enddef
 
 export def RemoveCells()
   logger.Info('RemoveCells()')
+
   if IsFiletypeSupported()
     for ii in range(1, line('$'))
       if getline(ii) =~ "^" .. b:cells_delimiter
@@ -249,8 +239,6 @@ export def SendLines(firstline: number, lastline: number)
         term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
         logger.Info($"sent lines: '{line}'")
       endfor
-      # TODO: avoid the following when firstline and lastline are passed
-      norm! j^
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")
@@ -277,7 +265,7 @@ export def SendCell()
       term_sendkeys(bufnr($'^{b:console_name}$'),
             \ b:run_command(g:replica_tmp_filename) .. "\n")
 
-      logger.Info($"sent cell: '{string(getline(line_in, line_out))}")
+      logger.Info($"sent cell: {string(getline(line_in, line_out))}")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")

@@ -40,9 +40,6 @@ endif
 g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
 
 # --- logger setup -----
-#  If a vim error happens (blockimg), we want to log it.
-v:errmsg = ''
-
 if !exists('g:replica_debug')
   g:replica_debug = false
 endif
@@ -54,8 +51,8 @@ endif
 if g:replica_debug
   const head = [
   '',
-  $'Vim-replica-log:',
-  '{strftime("%d %b %Y %X")}',
+  'Vim-replica-log:',
+  $'{strftime("%d %b %Y %X")}',
   '---------------------'
   ]
   writefile(head, g:replica_log_filename, 'a')
