@@ -22,7 +22,29 @@ g:loaded_replica = true
 # TODO: think if you can avoid using it as a g: variable
 # Temp file used for sending cells or files
 
-g:replica_tmp_filename = tempname()
+if exists('g:replica_tmp_filename') && filereadable(g:replica_tmp_filename)
+  delete(g:replica_tmp_filename)
+endif
+
+def GetDataDir(): string
+  if exists('$XDG_DATA_HOME')
+    return $XDG_DATA_HOME .. '/vim'
+  endif
+
+  if has('win32') || has('win64')
+    return expand('~/vimfiles')
+  endif
+
+  return expand('~/.local/share/vim')
+enddef
+
+var data_dir = GetDataDir()
+
+if !isdirectory(data_dir)
+  mkdir(data_dir, 'p')
+endif
+
+g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
 
 if !exists('g:replica_log_filename')
   g:replica_log_filename = 'vim_replica.log'
