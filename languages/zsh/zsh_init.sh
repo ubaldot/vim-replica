@@ -3,9 +3,9 @@
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
-# User must mark the variables to visualize through the following, e.g.
+# User must append the variables to _VIM_USER_VARS to visualize, e.g.
 #   FOO=ubaldot
-#   _VIM_USER_VARS("FOO")
+#   _VIM_USER_VARS+=("FOO")
 typeset -a _VIM_USER_VARS
 
 __vim_inspect() {
