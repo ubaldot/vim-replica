@@ -239,6 +239,7 @@ export def SendLines(firstline: number, lastline: number)
         term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
         logger.Info($"sent lines: '{line}'")
       endfor
+      norm! ^j
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")

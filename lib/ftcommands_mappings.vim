@@ -14,7 +14,7 @@ export def InstallMappings()
               \ <ScriptCmd>repl.ConsoleToggle()<cr>
 
   noremap <buffer> <Plug>ReplicaSendLines
-              \ <ScriptCmd>repl.SendLines(line('.'), line('.'))<cr>
+              \ <ScriptCmd>repl.SendLines(line('.'), line('.'))<cr>k
 
   noremap <buffer>  <Plug>ReplicaSendFile
               \ <ScriptCmd>repl.SendFile()<cr>
