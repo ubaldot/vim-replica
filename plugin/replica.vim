@@ -86,10 +86,6 @@ if !exists('g:replica_console_height')
   endif
 endif
 
-if !exists('g:replica_python_options')
-  g:replica_python_options = ""
-endif
-
 if !exists('g:replica_jupyter_console_options')
   g:replica_jupyter_console_options = {
     python: "",
@@ -105,10 +101,7 @@ var replica_console_names_default = {
   python: "IPYTHON",
   julia: "JULIA"}
 
-var replica_cells_delimiters_default = {
-  python: "# %%",
-  julia: "# %%"}
-
+# TODO: Not sure if you want the user to override this
 var replica_run_commands_default = {
   python: (filename) => $"run -i {filename}",
   julia: (filename) => $"include({filename})" }
@@ -126,20 +119,16 @@ if exists('g:replica_kernels')
   extend(replica_kernels_default, g:replica_kernels, "force")
 endif
 
-if exists('g:replica_cells_delimiters')
-  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
-endif
-
 if exists('g:replica_jupyter_console_options')
   extend(replica_jupyter_console_options_default, g:replica_jupyter_console_options, "force")
 endif
 
+# TODO: not sure if you want user to override the prompts
 if exists('g:replica_console_prompts')
   extend(replica_console_prompts_default, g:replica_console_prompts, "force")
 endif
 
 g:replica_kernels = replica_kernels_default
-g:replica_cells_delimiters = replica_cells_delimiters_default
 g:replica_console_names = replica_console_names_default
 g:replica_run_commands = replica_run_commands_default
 g:replica_console_prompts = replica_console_prompts_default
@@ -154,14 +143,24 @@ g:replica_console_prompts = replica_console_prompts_default
 #             \ "python": "source ~/pippo && ",
 #             \ "julia": ""}
 
+# ---- ftcommands_mappings.vim setup ------
 if !exists('g:replica_use_default_mapping')
   g:replica_use_default_mapping = false
 endif
 
 import "../lib/ftcommands_mappings.vim"
 
-
 # --- highlight setup ------
+var replica_cells_delimiters_default = {
+  python: "# %%",
+  julia: "# %%"}
+
+if exists('g:replica_cells_delimiters')
+  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "force")
+endif
+
+g:replica_cells_delimiters = replica_cells_delimiters_default
+
 if !exists('g:replica_display_range')
   g:replica_display_range = true
 endif
@@ -176,9 +175,9 @@ endif
 
 import "../lib/highlight.vim"
 
-
+# ---- set autocmds ------
 # The following variable won't change during run-time
-def SetBufferVars()
+def InitBuffers()
   b:kernel_name = g:replica_kernels[&filetype]
   b:console_name = g:replica_console_names[&filetype]
   b:cells_delimiter = g:replica_cells_delimiters[&filetype]
@@ -201,10 +200,10 @@ def SetBufferVars()
   ftcommands_mappings.InstallMappings()
 enddef
 
-augroup REPLICA_SET_BUFFER_VARS
+augroup REPLICA_INIT_BUFFERS
   autocmd!
   for val in keys(g:replica_kernels)
-    exe $"autocmd FileType {val} SetBufferVars()"
+    exe $"autocmd FileType {val} InitBuffers()"
   endfor
 augroup END
 

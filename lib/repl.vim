@@ -120,7 +120,7 @@ def ConsoleOpen()
       logger.Info("Console Open()")
       logger.Info("create new console")
 
-      var start_cmd = "python " .. g:replica_python_options ..
+      var start_cmd = "python " .. b:jupyter_console_options ..
             \ $" -m jupyter console --kernel={b:kernel_name} "
             \ .. b:jupyter_console_options
 
