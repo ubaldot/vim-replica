@@ -11,8 +11,6 @@ import "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
 
-logger.Info($'Vim-replica-log {strftime("%d %b %Y %X")}')
-logger.Info('---------------')
 # ---------------------------------------
 # Functions for dealing with the console
 # ---------------------------------------
@@ -25,18 +23,24 @@ export def Echowarn(msg: string)
   echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
 
-def Init()
-  exe "defer logger.Error(v:errmsg)"
+def Init(teardown: bool = false)
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
-  logger.Info('Init()')
+  if !teardown
+    logger.Info('Init()')
+  else
+    logger.Info('Replica Teardown (Init(true))')
+  endif
+
 
   if !exists('g:replica_console_position')
     g:replica_console_position = "L"
   elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
+    logger.Error("'g:replica_console_position' must be one of 'HJKL'")
     Echoerr("'g:replica_console_position' must be one of 'HJKL'")
   endif
 
-  logger.Info($'Console position: {g:replica_console_position}')
+  logger.Info($'console position: {g:replica_console_position}')
 
   if !exists('g:replica_console_width')
     if index(["H", "L"], g:replica_console_position) >= 0
@@ -60,14 +64,17 @@ def Init()
       height: g:replica_console_height
     }
   endif
-  logger.Info($'Console height: {console_geometry.height}')
-  logger.Info($'Console width: {console_geometry.width}')
+  logger.Info($'console height: {console_geometry.height}')
+  logger.Info($'console width: {console_geometry.width}')
 
   # variable explorer variables init
-  variable_explorer.Init()
+  variable_explorer.Init(teardown)
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)
+
+  logger.Info("ResizeConsoleWindow()")
+
   win_execute(console_win_id, 'resize ' .. console_geometry["height"])
   win_execute(console_win_id, 'vertical resize '
         \ .. console_geometry["width"])
@@ -79,12 +86,14 @@ def ResizeConsoleWindow(console_win_id: number)
 enddef
 
 def SaveConsoleWindowSize(console_win_id: number)
+  logger.Info("SaveConsoleWindowSize()")
   console_geometry["height"] = winheight(console_win_id)
   console_geometry["width"] = winwidth(console_win_id)
 enddef
 
 
 def ConsoleExists(): bool
+  logger.Info("ConsoleExists()")
   # Check if exists a console of a given filetype (i.e.calling buffer ft)
   if exists("b:console_name")
     return bufexists(bufnr($"^{escape(b:console_name, '[]\.^$*~')}$"))
@@ -95,6 +104,7 @@ enddef
 
 
 def ConsoleWinID(): list<number>
+  logger.Info('ConsoleWinID()')
   # Return the windows ID where a console of a specific ft is displayed.
   if ConsoleExists()
     return win_findbuf(bufnr($'^{b:console_name}$'))
@@ -105,6 +115,7 @@ enddef
 
 
 def IsFiletypeSupported(): bool
+  logger.Info('IsFiletypeSupported()')
   # has_hey() maybe is more clear?
   # No, because if we are on a console it would return false.
   # Terminal buffers have no filetype.
@@ -115,13 +126,17 @@ def ReplicaOutCbWrapper(prompt: string, ch: channel, msg: string)
   variable_explorer.ReplicaOutCb(prompt, ch, msg)
 enddef
 
+# This is the actual entry point of the plugin
 def ConsoleOpen()
-  exe "defer logger.Error(v:errmsg)"
+  # To start a new logging session you must close and reopen Vim
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   # If console does not exist, then create one,
   var console_win_id = 0
   if IsFiletypeSupported()
     if !ConsoleExists()
       Init()
+      logger.Info("Console Open()")
+      logger.Info("create new console")
 
       var start_cmd = "python " .. g:replica_python_options ..
             \ $" -m jupyter console --kernel={b:kernel_name} "
@@ -132,15 +147,13 @@ def ConsoleOpen()
 
       echo b:console_name .. " console opening..."
 
-      # Debug
-      logger.Info("Console Open()")
       logger.Info($'start_cmd: {start_cmd}')
-      logger.Debug($'console_name: {b:console_name}')
-      logger.Debug($'console_prompt: {b:console_prompt}')
-      logger.Debug($'kernel_name: {b:kernel_name}')
-      # logger.Debug($'run_command: {b:run_command}')
-      logger.Debug($'cells_delimiter: {b:cells_delimiter}')
-      logger.Debug($'jupyter_console_options: {b:jupyter_console_options}')
+      logger.Info($'console_name: {b:console_name}')
+      logger.Info($'console_prompt: {b:console_prompt}')
+      logger.Info($'kernel_name: {b:kernel_name}')
+      # logger.Info($'run_command: {b:run_command}')
+      logger.Info($'cells_delimiter: {b:cells_delimiter}')
+      logger.Info($'jupyter_console_options: {b:jupyter_console_options}')
       logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
       # var job_env = {,
@@ -161,6 +174,7 @@ def ConsoleOpen()
 
       console_win_id = win_findbuf(bufnr('$'))[0]
     elseif empty(ConsoleWinID())
+      logger.Info("Opening existing console")
       exe 'sbuffer ' .. bufnr($'^{b:console_name}$')
       console_win_id = win_findbuf(bufnr('^'
             \ .. b:console_name .. '$'))[0]
@@ -179,14 +193,17 @@ def ConsoleOpen()
     setbufvar(bufnr('$'), 'console_name', b:console_name)
     setbufvar(bufnr('$'), 'kernel_name', b:kernel_name)
     setbufvar(bufnr('$'), 'console_prompt', b:console_prompt)
+  else
+    logger.Error($"Filetype {&filetype} not supported")
+    echoerr $"[vim-replica]: Filetype {&filetype} not supported"
   endif
 enddef
 
 
 def ConsoleClose()
-  exe "defer logger.Error(v:errmsg)"
-
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info("Console Close()")
+
   # TODO Modify and make all the REPL to close from wherever you are?
   if IsFiletypeSupported()
     for win in ConsoleWinID()
@@ -208,7 +225,7 @@ enddef
 
 
 export def ConsoleShutoff()
-  exe "defer logger.Error(v:errmsg)"
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info("Console Shutoff()")
   if ConsoleExists()
     var console_name = b:console_name
@@ -216,24 +233,28 @@ export def ConsoleShutoff()
     # When the console is closed the focused buffer can be of any type and
     # therefore it may not have b:console_name.
     echo $"Console {console_name} shutoff."
+    logger.Info($"Console {console_name} shutoff.")
 
     # Reset script variables
-    Init()
+    Init(true)
   endif
 enddef
 
 
 export def RemoveCells()
+  logger.Info('RemoveCells()')
   if IsFiletypeSupported()
     for ii in range(1, line('$'))
       if getline(ii) =~ "^" .. b:cells_delimiter
         deletebufline('%', ii)
+        logger.Debug($'removing line {ii}')
       endif
     endfor
+    logger.Info('cells removed')
     echo "Cells removed."
   else
-    logger.Warn("filetype not supported!")
-    Echowarn("filetype not supported!")
+    logger.Warn($"filetype {&filetype} not supported!")
+    Echowarn($"Filetype {&filetype} not supported!")
   endif
 enddef
 
@@ -241,6 +262,7 @@ enddef
 # Functions for sending stuff to the REPL
 # ---------------------------------------
 export def SendLines(firstline: number, lastline: number)
+  logger.Info('SendLines()')
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
@@ -249,18 +271,21 @@ export def SendLines(firstline: number, lastline: number)
       # Actual implementation
       for line in getline(firstline, lastline)
         term_sendkeys(bufnr($'^{b:console_name}$'), line .. "\n")
+        logger.Info($"sent lines: '{line}'")
       endfor
       # TODO: avoid the following when firstline and lastline are passed
       norm! j^
     endif
   else
-    Echowarn("filetype not supported!")
+    logger.Warn($"filetype {&filetype} not supported!")
+    Echowarn($"filetype {&filetype} not supported!")
   endif
 enddef
 
 
 # Actually sending code-cell
 export def SendCell()
+  logger.Info('SendCell()')
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
@@ -275,15 +300,19 @@ export def SendCell()
       writefile(getline(line_in, line_out), g:replica_tmp_filename)
       term_sendkeys(bufnr($'^{b:console_name}$'),
             \ b:run_command(g:replica_tmp_filename) .. "\n")
+
+      logger.Info($"sent cell: '{string(getline(line_in, line_out))}")
     endif
   else
-    Echowarn("filetype not supported!")
+    logger.Warn($"filetype {&filetype} not supported!")
+    Echowarn($"filetype {&filetype} not supported!")
   endif
 enddef
 
 
 export def SendFile(filename: string = '')
 
+  logger.Info('SendFile()')
   if IsFiletypeSupported()
     # If there are open terminals with different names than IPYTHON,
     # JULIA, etc. it will open its own
@@ -293,47 +322,16 @@ export def SendFile(filename: string = '')
       # Write tmp file
       if empty(filename)
         writefile(getline(1, '$'), g:replica_tmp_filename)
+        logger.Info('sent: current buffer')
       else
         writefile(readfile(filename), g:replica_tmp_filename)
+        logger.Info($"sent file: '{filename}'")
       endif
       term_sendkeys(bufnr($'^{b:console_name}$'),
             \ b:run_command(g:replica_tmp_filename) .. "\n")
     endif
   else
-    logger.Warn("filetype not supported!")
-    Echowarn("filetype not supported!")
+    logger.Warn($"filetype {&filetype} not supported!")
+    Echowarn($"filetype {&filetype} not supported!")
   endif
 enddef
-
-# =========================================
-#               TEST
-#  =======================================
-# def WaitPrompt(expected_prompt: string)
-#   # Wait for Jupyter Console to be up and running
-#   const bufnr = term_list()[0]
-#   var term_cursor_pos = term_getcursor(bufnr)
-#   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-
-#   var count = 0
-#   const max_count = 10
-#   while term_cursor !~ expected_prompt && count < max_count
-#     redraw!
-#     term_cursor_pos = term_getcursor(bufnr)
-#     term_cursor = term_getline(bufnr, term_cursor_pos[0])
-#     count += 1
-#     sleep 1
-#   endwhile
-# enddef
-
-# def g:Test()
-#   message clear
-#   # Open the file safely
-#   execute 'edit ' .. fnameescape('xxx.py')
-#   var buf_nr = bufnr('$')
-#   exe ":ReplicaConsoleToggle"
-#   WaitPrompt('In [1]: ')
-#   redraw!
-#   exe ":ReplicaConsoleShutoff"
-#   exe ":Redir messages"
-#   exe $"bw! {buf_nr}"
-# enddef

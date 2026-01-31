@@ -1,4 +1,7 @@
 vim9script
+
+import "../lib/logger.vim"
+
 # ---------------------------------------
 # Functions for highlighing cells
 # ---------------------------------------
@@ -86,4 +89,5 @@ export def HighlightCell(display_range: bool = false)
             sign_unplace("", {"buffer": expand("%:p"), "id": line})
         endfor
     endif
+    logger.Info($'highlighted lines: {line_in} - {line_out}')
 enddef

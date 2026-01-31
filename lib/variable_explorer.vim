@@ -24,14 +24,8 @@ export var raw_buf: string
 var is_utf16: bool
 var last_prompt: string
 
-def IsWSL(): bool
-  return has('unix')
-    && filereadable('/proc/sys/kernel/osrelease')
-    && readfile('/proc/sys/kernel/osrelease')[0] =~? 'microsoft'
-enddef
-
-export def Init()
-  exe "defer logger.Error(v:errmsg)"
+export def Init(teardwn: bool = false)
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   raw_buf = ''
   collecting_payload = false
@@ -44,12 +38,25 @@ export def Init()
     ? g:replica_use_utf16
     : has('win32') || has('win64')
 
+  if teardwn
+    logger.Info('variable explorer teardown (Init(true))')
+  else
+    logger.Info('variable explorer Init()')
+  endif
+
   logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
+  logger.Debug($'raw_buf: {raw_buf}')
+  logger.Debug($'collecting_payload: {collecting_payload}')
+  logger.Debug($'payload_accum: {payload_accum}')
+  logger.Debug($'variable_to_inspect: {variable_to_inspect}')
+  logger.Debug($'on_msg_received: {on_msg_received.name}')
+  logger.Debug($'last_prompt: {last_prompt}')
+
 enddef
 
 def SendInitScript(filename: string)
-  exe "defer logger.Error(v:errmsg)"
-  logger.Info('SendInitScript')
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
+  logger.Info('SendInitScript()')
   writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr('^' .. b:console_name .. '$'),
         \ b:run_command(g:replica_tmp_filename) .. "\n")
@@ -62,12 +69,12 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  exe "defer logger.Error(v:errmsg)"
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
   logger.Info('DisplayVariable()')
 
-  var msg_log = []
 
   if bufexists(variable_to_inspect)
+    logger.Info("reusing existing vertical split")
     var buf = bufnr(variable_to_inspect)
     setbufvar(buf, '&modifiable', true)
     deletebufline(buf, 1, "$")
@@ -76,7 +83,7 @@ def DisplayVariable(decoded_value: list<string>)
   else
     # TODO: let user choose if he wants tabs or vnew
     # tabnew
-    logger.Info("Creating a vertical split")
+    logger.Info("creating a vertical split")
 
     vnew
     var buf = bufnr('$')
@@ -94,34 +101,39 @@ def DisplayVariable(decoded_value: list<string>)
 
     nnoremap <buffer> <silent> <esc> <cmd>close<cr>
   endif
+
+  logger.Info($"displayed variable value: '{decoded_value}'")
   # This is the end-point. We can reset all script variables for the next
   # round.
-  Init()
+  Init(true)
 enddef
 
 
 def HandleLine(line: string, console_prompt: string)
-  exe "defer logger.Error(v:errmsg)"
-
-  var msg_log = []
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   # You may have cases In [N]: In[N] on the same line
   var line_debounced = line->substitute('\(In \[\d\+\]: \)\s*\1\+', '\1', '')
 
   # Single line_debounced payload
   if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
+    logger.Info($'decoding one line payload')
 
     var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     var decoded = blob2str(base64_decode(payload))
+    logger.Info("message successfully decoded")
 
     if on_msg_received == On_Msg_Received.DisplayVariable
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
       DisplayVariable(decoded)
       on_msg_received = On_Msg_Received.Ready
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
     endif
   endif
 
   # Multi-line_debounced payload
   if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$'
+    logger.Info($'decoding multi-line payload')
     # strip the prefix if the first line_debounced contains it
     payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
     collecting_payload = true
@@ -138,14 +150,15 @@ def HandleLine(line: string, console_prompt: string)
       # Decode final payload
       try
         var decoded = blob2str(base64_decode(payload_accum))
+        logger.Info("message successfully decoded")
         if on_msg_received == On_Msg_Received.DisplayVariable
-          msg_log += [$"on_msg_received: {on_msg_received.name}"]
-          msg_log += [$"decoded: {decoded}"]
-
+          logger.Debug($"on_msg_received: {on_msg_received.name}")
           DisplayVariable(decoded)
           on_msg_received = On_Msg_Received.Ready
+          logger.Debug($"on_msg_received: {on_msg_received.name}")
         endif
       catch
+        logger.Error("invalid base64 payload")
         repl.Echoerr("invalid base64 payload")
       finally
         # Reset all relevant script variables
@@ -167,9 +180,12 @@ def HandleLine(line: string, console_prompt: string)
     endif
 
     if on_msg_received == On_Msg_Received.InitializeConsole
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
       SendInitScript($"{replica_path}/languages/python/ipython_init.py")
       on_msg_received = On_Msg_Received.Ready
       payload_accum = ''
+      logger.Info($"sending init script: {replica_path}/languages/python/ipython_init.py")
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
     endif
 
     last_prompt = line_debounced
@@ -194,11 +210,9 @@ def StripAnsiEscapeSequences(msg: string): string
 enddef
 
 def FeedChars(bytes: string, console_prompt: string)
-  exe "defer logger.Error(v:errmsg)"
+  exe $'defer logger.Error("Vim error: {v:errmsg}")'
 
   raw_buf ..= bytes
-
-  var msg_log = []
 
   # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
   while true
@@ -252,7 +266,7 @@ def FeedChars(bytes: string, console_prompt: string)
     endif
 
     var line = idx > 0 ? raw_buf[: idx - 1] : ''
-    logger.Debug($'Unstripped line: {line}')
+    logger.Debug($'unstripped line: {line}')
 
     try
       var clean_line = is_utf16
@@ -262,6 +276,7 @@ def FeedChars(bytes: string, console_prompt: string)
       HandleLine(clean_line, console_prompt)
     catch
       raw_buf = ''
+      logger.Error($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       break
     endtry
@@ -302,7 +317,8 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
       raw_buf = ''
     catch
       # Reset all script variables
-      Init()
+      Init(true)
+      logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
     endtry
   endif
@@ -324,7 +340,7 @@ export def VimInspect(
   # win_execute(variable_explored_winid, 'close')
   # endif
 
-  var msg_log = ["Entered VimInspect() function", '']
+  logger.Info("VimInspect()")
 
   # :tabonly secure that there is only one tab for variable explorer
   # tabonly
@@ -334,17 +350,19 @@ export def VimInspect(
     variable_to_inspect = variable_single_quoted
     on_msg_received = On_Msg_Received.DisplayVariable
 
-    msg_log += [$"Sent __vim_inspect(\"{variable_single_quoted}\")\n"]
+    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
   else
     term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
     variable_to_inspect = whos_buf_name
     on_msg_received = On_Msg_Received.DisplayVariable
 
-    msg_log += [$'Sent __vim_whos()']
+    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'sent: __vim_whos()')
   endif
 
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
 
-  logger.Debug("Sent <c-l>")
+  logger.Info("sent: <c-l>")
 enddef

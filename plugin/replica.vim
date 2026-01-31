@@ -27,6 +27,14 @@ if !exists('g:replica_log_filename')
   g:replica_log_filename = 'vim_replica.log'
 endif
 
+if !exists('g:replica_debug')
+  g:replica_debug = false
+endif
+
+if !exists('g:replica_log_level')
+  g:replica_log_level = 'Error'
+endif
+
 if !exists('g:replica_display_range')
   g:replica_display_range = true
 endif
@@ -46,6 +54,7 @@ endif
 if !exists('g:replica_use_default_mapping')
   g:replica_use_default_mapping = false
 endif
+
 
 if !exists('g:replica_jupyter_console_options')
   g:replica_jupyter_console_options = {
@@ -116,6 +125,16 @@ g:replica_console_prompts = replica_console_prompts_default
 
 import "../lib/ftcommands_mappings.vim"
 import "../lib/highlight.vim"
+
+if g:replica_debug
+  const head = [
+  '',
+  $'Vim-replica-log: {strftime("%d %b %Y %X")}',
+  '-------------------------------------'
+  ]
+  writefile(head, g:replica_log_filename, 'a')
+endif
+
 # The following variable won't change during run-time
 def SetBufferVars()
   b:kernel_name = g:replica_kernels[&filetype]

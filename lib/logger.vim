@@ -28,7 +28,9 @@ def ShouldLog(level: LEVELS): bool
   if index(keys(LEVELS_MAP), user_level_str) != -1
     return level.ordinal >= LEVELS_MAP[user_level_str].ordinal
   else
-    echoerr $"[vim-replica]: variable 'g:replica_log_level' shall be one of {string(keys(LEVELS_MAP))}"
+    # Disable logging in case of errors
+    g:replica_debug = false
+    echoerr $"[vim-replica]: Variable 'g:replica_log_level' shall be one of {string(keys(LEVELS_MAP))}. Logging disabled."
     return false
   endif
 
@@ -36,7 +38,8 @@ enddef
 
 # Write a log message
 def Write(level: LEVELS, msg: string)
-  if !ShouldLog(level) && (!exists('g:replica_debug') || !g:replica_debug)
+
+  if !exists('g:replica_debug') || !g:replica_debug || !ShouldLog(level)
     return
   endif
 
@@ -65,4 +68,12 @@ export def Error(msg: string)
   if !empty(msg)
     Write(LEVELS.Error, msg)
   endif
+enddef
+
+export def BlankLine()
+  try
+    writefile([''], g:replica_log_filename, 'a')
+  catch
+    echoerr $"Cannot write {g:replica_log_filename}"
+  endtry
 enddef

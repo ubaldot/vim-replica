@@ -27,8 +27,9 @@ CONTENTS                                                     *ReplicaContents*
 ==============================================================================
 INTRODUCTION                                         *ReplicaIntroduction*
 
-TODO: Add logger,
 TODO: Update Commands and Mappings
+Log continue through all the Vim session. To start a new logging, close and
+reopen Vim.
 ReplicaInspect
 g:replica_use_utf16
 g:How to display variable explorer
