@@ -3,7 +3,6 @@ vim9script
 import "../lib/repl.vim"
 import "../lib/logger.vim"
 
-const replica_path = expand('<sfile>:h:h')
 
 # For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
@@ -177,10 +176,10 @@ def HandleLine(line: string, console_prompt: string)
 
     if on_msg_received == On_Msg_Received.InitializeConsole
       logger.Debug($'on_msg_received: {on_msg_received.name}')
-      SendInitScript($"{replica_path}/languages/python/ipython_init.py")
+      SendInitScript(b:repl_init_script)
       on_msg_received = On_Msg_Received.Ready
       payload_accum = ''
-      logger.Info($"sending init script: {replica_path}/languages/python/ipython_init.py")
+      logger.Info($"sending init script: {b:repl_init_script}")
       logger.Debug($'on_msg_received: {on_msg_received.name}')
     endif
 
