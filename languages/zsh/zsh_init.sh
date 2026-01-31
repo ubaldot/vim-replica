@@ -11,12 +11,14 @@ typeset -a _VIM_USER_VARS
 __vim_inspect() {
   local var="$1"
   if [[ -z "$var" ]]; then
+    # It can be only shown in the logger
     echo "Usage: __vim_inspect VARIABLE_NAME"
     return
   fi
 
   # check variable existence
   if ! typeset -p "$var" &>/dev/null; then
+    # It can be only shown in the logger
     echo "Variable '$var' does not exist"
     return
   fi
@@ -99,6 +101,11 @@ __vim_whos() {
         ;;
     esac
   done
+
+  # Get exported vars (env variables)
+  while IFS='=' read -r key val; do
+    out+="$key=$val"$'\n'
+  done < <(env)
 
   # Strip trailing newline
   out=${out%$'\n'}
