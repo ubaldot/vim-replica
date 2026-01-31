@@ -25,10 +25,10 @@ def GetDataDir(): string
   endif
 
   if has('win32') || has('win64')
-    return expand('~/vimfiles')
+    return expand($"{$HOME}/vimfiles")
   endif
 
-  return expand('~/.local/share/vim')
+  return expand($'{$HOME}/.local/share/vim')
 enddef
 
 const data_dir = GetDataDir()
@@ -178,13 +178,16 @@ import "../lib/highlight.vim"
 # ---- set autocmds ------
 # The following variable won't change during run-time
 def InitBuffers()
+
+  # -- REPL init ----
   b:kernel_name = g:replica_kernels[&filetype]
   b:console_name = g:replica_console_names[&filetype]
-  b:cells_delimiter = g:replica_cells_delimiters[&filetype]
   b:jupyter_console_options = g:replica_jupyter_console_options[&filetype]
   b:run_command = g:replica_run_commands[&filetype]
   b:console_prompt = g:replica_console_prompts[&filetype]
 
+  # -- highlight init ----
+  b:cells_delimiter = g:replica_cells_delimiters[&filetype]
   if g:replica_enable_highlight
     augroup highlight_cells
       autocmd! * <buffer>
@@ -195,9 +198,11 @@ def InitBuffers()
     augroup END
   endif
 
+  # -- command and mappings init ----
   ftcommands_mappings.InstallConsoleCommands()
   ftcommands_mappings.InstallSendCommands()
   ftcommands_mappings.InstallMappings()
+
 enddef
 
 augroup REPLICA_INIT_BUFFERS
