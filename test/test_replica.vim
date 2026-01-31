@@ -277,8 +277,8 @@ def g:Test_variable_explorer_basic()
   redraw
 
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
-  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -312,7 +312,7 @@ def g:Test_variable_explorer_basic()
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
+  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
   echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
@@ -347,8 +347,8 @@ END
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
-  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -365,8 +365,8 @@ END
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(actual_variable_explorer, expected_variable_explorer)
-  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
