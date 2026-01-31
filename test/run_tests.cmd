@@ -22,7 +22,7 @@ REM Display the contents of VIMRC (for debugging purposes)
 type "%VIMRC%"
 
 REM Run Vim with the specified configuration and additional commands
-%VIM_CMD% -c "vim9cmd g:TestName = 'test_replica.vim'" -S "runner.vim"
+%VIM_CMD% -c "vim9cmd g:TestName = 'test_replica_python.vim'" -S "runner.vim"
 
 REM Check the exit code of Vim command
 if %ERRORLEVEL% EQU 0 (

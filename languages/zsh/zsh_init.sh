@@ -3,6 +3,11 @@
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
+# User must mark the variables to visualize through the following, e.g.
+#   FOO=ubaldot
+#   _VIM_USER_VARS("FOO")
+typeset -a _VIM_USER_VARS
+
 __vim_inspect() {
   local var="$1"
   if [[ -z "$var" ]]; then
@@ -19,13 +24,12 @@ __vim_inspect() {
   local decl type output key val
   decl=$(typeset -p "$var" 2>/dev/null)
 
-  # detect type
-  if [[ $decl == *'()'* ]]; then
-    type="array"
-  elif [[ $decl == *'=('* ]]; then
-    type="associative"
+  if [[ $decl == typeset*"-a"* ]]; then
+      type="array"
+  elif [[ $decl == typeset*"-A"* ]]; then
+      type="associative"
   else
-    type="scalar"
+      type="scalar"
   fi
 
   output=""
@@ -35,59 +39,23 @@ __vim_inspect() {
       output="${(P)var}"
       ;;
     array)
-      output="(${(j:, :)${(P)var}})"
+      output="(${(j: :)${(P)var}})"  # indexed array
       ;;
     associative)
-      for key in ${(kP)var}; do
-        val=${(P)var[$key]}
-        output+="$key=$val"$'\t'
+      # TODO: improve this
+      for k in $(eval "echo \${(k)${var}}"); do
+        val=$(eval "echo \${${var}[\$k]}")
+        output+="$k=$val"$'\n'
       done
-      output=${output%$'\t'}
+      output=${output%$'\n'}
       ;;
   esac
-
   # encode
   local payload
   payload=$(print -rn -- "$output" | base64)
   echo "${_VIM_SENTINEL_START}${payload}${_VIM_SENTINEL_END}"
 }
 
-# TODO: Only track variables you explicitly want. You cannot track all the
-# variables, not even the user-defined variables
-typeset -a _VIM_USER_VARS
-# When creating variables:
-# 1️⃣ Scalar
-FOO="hello world"
-_VIM_USER_VARS+=("FOO")
-
-# 2️⃣ Array
-BAR=(a b c)
-_VIM_USER_VARS+=("BAR")
-
-# 3️⃣ Associative array
-
-# %%
-# 9️⃣ Nested associative array
-declare -A COMPLEX=( ['a']=1 ['b']=2 )
-_VIM_USER_VARS+=("COMPLEX")
-
-# 5️⃣ Float
-declare -F PI=3.14159
-_VIM_USER_VARS+=("PI")
-
-# 6️⃣ Readonly scalar
-readonly NAME="ubaldot"
-_VIM_USER_VARS+=("NAME")
-
-# 7️⃣ Color / string style (like you had for prompt colors)
-COLOR_DIR="%F{197}"
-_VIM_USER_VARS+=("COLOR_DIR")
-COLOR_DEF="%f"
-_VIM_USER_VARS+=("COLOR_DEF")
-
-# 8️⃣ Empty array
-EMPTY_ARRAY=()
-_VIM_USER_VARS+=("EMPTY_ARRAY")
 
 __vim_whos() {
   local out="" name type
@@ -102,12 +70,12 @@ __vim_whos() {
     [[ -z $decl ]] && continue
 
     # Determine type
-    if [[ $decl == *'()'* ]]; then
-      type=array
-    elif [[ $decl == *'=('* ]]; then
-      type=associative
+    if [[ $decl == typeset*"-a"* ]]; then
+        type="array"
+    elif [[ $decl == typeset*"-A"* ]]; then
+        type="associative"
     else
-      type=scalar
+        type="scalar"
     fi
 
     # Build output line by line
@@ -116,12 +84,15 @@ __vim_whos() {
         out+="$name=${(P)name}"$'\n'
         ;;
       array)
-        out+="$name=(${(j:, :)${(P)name}})"$'\n'
+        out+="$name=(${(j: :)${(P)name}})"$'\n'
         ;;
       associative)
         local kv="" k
-        for k in ${(kP)name}; do
-          kv+="$k=${(P)name[$k]}, "
+
+        # TODO: improve this
+        for k in $(eval "echo \${(k)${name}}"); do
+          val=$(eval "echo \${${name}[\$k]}")
+          kv+="$k=$val",' '
         done
         kv=${kv%, }
         out+="$name=($kv)"$'\n'
@@ -133,3 +104,38 @@ __vim_whos() {
   out=${out%$'\n'}
   print -r -- "${_VIM_SENTINEL_START}$(print -rn -- "$out" | base64)${_VIM_SENTINEL_END}"
 }
+
+# ------------------------------------------
+#     TEST DATA
+# ------------------------------------------
+# # Scalar
+# FOO="hello world"
+# _VIM_USER_VARS+=("FOO")
+
+# # Array
+# BAR=(a b c)
+# _VIM_USER_VARS+=("BAR")
+
+# # Nested associative array
+# declare -A COMPLEX=( ['a']=1 ['b']=2 )
+# _VIM_USER_VARS+=("COMPLEX")
+
+# declare -A BAZ=( ['a']='ciao' ['b']='mare' )
+# _VIM_USER_VARS+=("BAZ")
+
+# # Float
+# declare -F PI=3.14159
+# _VIM_USER_VARS+=("PI")
+
+# # Color / string style (like you had for prompt colors)
+# COLOR_DIR="%F{197}"
+# _VIM_USER_VARS+=("COLOR_DIR")
+# COLOR_DEF="%f"
+# _VIM_USER_VARS+=("COLOR_DEF")
+
+# # Empty array
+# EMPTY_ARRAY=()
+# _VIM_USER_VARS+=("EMPTY_ARRAY")
+
+# MY_ARRAY=(banana, lampone, cetriolo)
+# _VIM_USER_VARS+=("MY_ARRAY")
