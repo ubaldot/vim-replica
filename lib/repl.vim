@@ -56,9 +56,8 @@ def ResizeConsoleWindow(console_win_id: number)
 
   logger.Info("ResizeConsoleWindow()")
 
-  win_execute(console_win_id, 'resize ' .. console_geometry["height"])
-  win_execute(console_win_id, 'vertical resize '
-        \ .. console_geometry["width"])
+  win_execute(console_win_id, $'resize {console_geometry["height"]}')
+  win_execute(console_win_id, $'vertical resize {console_geometry["width"]}')
   if index(["J", "K"], g:replica_console_position) >= 0
     win_execute(console_win_id, 'set winfixheight')
   else
@@ -118,14 +117,13 @@ def ConsoleOpen()
       logger.Info("Console Open()")
       logger.Info("create new console")
 
-      var start_cmd = "python" ..
-            \ $" -m jupyter console --kernel={b:kernel_name} "
-            \ .. b:jupyter_console_options
+      var start_cmd = $"python -m jupyter console --kernel={b:kernel_name}"
+                       .. $' {b:jupyter_console_options}'
 
       # Send scripts to enable __vim_inspect() to the repl
       variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
 
-      echo b:console_name .. " console opening..."
+      echo $'{b:console_name} console opening...'
 
       logger.Info($'start_cmd: {start_cmd}')
       logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
