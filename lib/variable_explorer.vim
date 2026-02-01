@@ -284,7 +284,7 @@ def FeedChars(bytes: string, console_prompt: string)
 enddef
 
 
-export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
+export def ReplicaOutCb(_: channel, msg: string)
   # OBS! Issues may occur if:
   #
   #   A. A chunk from terminal match console_prompt AND
@@ -300,24 +300,32 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
   #
   # OBS! UTF-16BE encoding is not supported
 
-  FeedChars(msg, console_prompt)
+  # Using try/catch because you never know if the buffer with b:repl_prompt is
+  # still around while executing the terminal stdout callback function
+  try
+    var console_prompt = b:repl_prompt
+    FeedChars(msg, console_prompt)
 
-  # Handle Leftovers in the raw_buf, which is generally the prompt
-  var clean_tail = is_utf16
-    ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
-    : StripAnsiEscapeSequences(raw_buf)
+    # Handle Leftovers in the raw_buf, which is generally the prompt
+    var clean_tail = is_utf16
+      ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
+      : StripAnsiEscapeSequences(raw_buf)
 
-  if !empty(clean_tail) && clean_tail =~# console_prompt && clean_tail !~# '\e'
-    try
-      HandleLine(clean_tail, console_prompt)
-      raw_buf = ''
-    catch
-      # Reset all script variables
-      # Init(true)
-      logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-      repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-    endtry
-  endif
+    if !empty(clean_tail) && clean_tail =~# console_prompt && clean_tail !~# '\e'
+      try
+        HandleLine(clean_tail, console_prompt)
+        raw_buf = ''
+      catch
+        # Reset all script variables
+        # Init(true)
+        logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+        repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+      endtry
+    endif
+  catch
+    logger.Error('issues found inside ReplicaOutCb')
+    repl.Echoerr('issues found inside ReplicaOutCb')
+  endtry
 enddef
 
 

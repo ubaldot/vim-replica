@@ -103,11 +103,6 @@ def IsFiletypeSupported(): bool
   return !empty(getbufvar('%', "console_name"))
 enddef
 
-def ReplicaOutCbWrapper(ch: channel, msg: string)
-  var prompt = b:repl_prompt
-  variable_explorer.ReplicaOutCb(prompt, ch, msg)
-enddef
-
 # This is the actual entry point of the plugin
 def ConsoleOpen()
   # To start a new logging session you must close and reopen Vim
@@ -130,7 +125,7 @@ def ConsoleOpen()
 
       term_start(start_cmd,
         {term_name: b:console_name,
-          out_cb: function("ReplicaOutCbWrapper"),
+          out_cb: function("variable_explorer.ReplicaOutCb"),
         })
 
       ftcommands_mappings.InstallConsoleCommands()
