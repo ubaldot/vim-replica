@@ -237,6 +237,7 @@ def InitBuffers()
   b:repl_prompt = g:replica_repl_prompts[&filetype]
   b:repl_init_script = g:replica_repl_init_scripts[&filetype]
 
+  # Functions to poll variable_explorer data from the repl
   if index(['zsh'], &filetype) != -1
     # Functions in zsh, bash, etc. are called without parenthesis,
     # e.g. __vim_whos instead of __vim_whos()
@@ -245,6 +246,14 @@ def InitBuffers()
   else
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => "__vim_whos()\n"
+  endif
+
+  # Standard prompt for filetypes with problematic prompts like zsh
+  # OBS! Secure that in the init script you actually change prompt!
+  if index(['zsh'], &filetype) != -1
+    b:prompt_to_be_changed = true
+  else
+    b:prompt_to_be_changed = false
   endif
 
   # Some repl have incremental prompt, like IPython: In [2]: In [3]:, etc. so
