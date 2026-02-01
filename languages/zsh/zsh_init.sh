@@ -3,6 +3,7 @@
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
+# OBS! This shall be the same as in variable_explorer.vim
 export PS1='vim_replica> '
 
 # User must append the variables to _VIM_USER_VARS to visualize, e.g.

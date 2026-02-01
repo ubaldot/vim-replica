@@ -33,6 +33,8 @@ var is_utf16: bool
 var last_prompt: string
 
 export def Init(teardwn: bool = false)
+  # TODO: how to teardown? Where to place this? Maybe with some defer
+  # Init(true) somewhere?
 
   raw_buf = ''
   collecting_payload = false
