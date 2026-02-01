@@ -137,6 +137,35 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
   return []
 enddef
 
+def HandlePrompt(line_debounced: string)
+    if line_debounced == last_prompt && incremental_prompt
+      logger.Info($'Same prompt as before, no action')
+    endif
+
+    if on_msg_received == On_Msg_Received.InitializeConsole
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
+
+      on_msg_received = prompt_to_be_changed
+        ? On_Msg_Received.ChangePrompt
+        : On_Msg_Received.Ready
+
+      SendInitScript(repl_init_script)
+
+      logger.Info($"sending init script: {repl_init_script}")
+      logger.Debug($'on_msg_received: {on_msg_received.name}')
+    elseif on_msg_received == On_Msg_Received.ChangePrompt
+      logger.Info('Changing prompt')
+      repl_prompt = universal_prompt
+      on_msg_received = On_Msg_Received.Ready
+      prompt_to_be_changed = false
+    endif
+
+    # Update last_prompt, needed for incremental prompts like in IPython
+    last_prompt = line_debounced
+
+  logger.Debug($"last_prompt: {last_prompt}")
+enddef
+
 def HandleLine(clean_line: string)
 
   # You may have cases In [N]: In[N] on the same line
@@ -172,34 +201,7 @@ def HandleLine(clean_line: string)
   # Prompt is ready. Do something
   elseif line_debounced =~# repl_prompt
     logger.Info($'Prompt detected: {line_debounced}')
-    if line_debounced == last_prompt && incremental_prompt
-      logger.Info($'Same prompt as before, no action')
-    endif
-
-    if on_msg_received == On_Msg_Received.InitializeConsole
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
-
-      on_msg_received = prompt_to_be_changed
-        ? On_Msg_Received.ChangePrompt
-        : On_Msg_Received.Ready
-
-      SendInitScript(repl_init_script)
-
-      logger.Info($"sending init script: {repl_init_script}")
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
-    elseif on_msg_received == On_Msg_Received.ChangePrompt
-      logger.Info('Changing prompt')
-      repl_prompt = universal_prompt
-      on_msg_received = On_Msg_Received.Ready
-      prompt_to_be_changed = false
-    endif
-
-    # Update last_prompt
-    last_prompt = line_debounced
-  endif
-
-  # Non-payload line_debounced (normal processing)
-  logger.Debug($"last_prompt: {last_prompt}")
+    HandlePrompt(line_debounced)
 enddef
 
 

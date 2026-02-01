@@ -1,3 +1,6 @@
-Test_python_basic(): pass
-Test_unsupported_filetypes(): pass
-Test_variable_explorer_basic(): pass
+Error: Test Test_python_basic() failed with exception Vim(sleep):E171: Saknar :endif at command line..script /Users/ubaldot/.vim/pack/minpac/start/vim-replica/test/runner.vim[48]..function <SNR>26_RunTests[20]..Test_python_basic[33]..<SNR>27_WaitForPrompt[12]..<SNR>25_ReplicaOutCb[18]..<SNR>25_FeedChars[63]..<SNR>25_HandleLine, rad 35
+Test_python_basic(): FAIL
+Error: Test Test_unsupported_filetypes() failed with exception Vim(sleep):E1091: Function is not compiled: <SNR>25_ReplicaOutCb at command line..script /Users/ubaldot/.vim/pack/minpac/start/vim-replica/test/runner.vim[48]..function <SNR>26_RunTests[20]..Test_unsupported_filetypes[43]..<SNR>27_WaitForPrompt, rad 12
+Test_unsupported_filetypes(): FAIL
+Error: Test Test_variable_explorer_basic() failed with exception Vim(sleep):E1091: Function is not compiled: <SNR>25_ReplicaOutCb at command line..script /Users/ubaldot/.vim/pack/minpac/start/vim-replica/test/runner.vim[48]..function <SNR>26_RunTests[20]..Test_variable_explorer_basic[30]..<SNR>27_WaitForPrompt, rad 12
+Test_variable_explorer_basic(): FAIL
