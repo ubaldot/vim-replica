@@ -9,6 +9,13 @@ var collecting_payload: bool
 var payload_accum: string
 var variable_to_inspect: string
 
+var repl_prompt: string
+var incremental_prompt: bool
+var prompt_to_be_changed: bool
+var repl_init_script: string
+
+var test_variable = 'figa'
+
 # To decide what to do when a console prompt is ready
 export enum On_Msg_Received
   Ready,
@@ -40,6 +47,11 @@ export def Init(teardwn: bool = false)
     logger.Info('variable explorer teardown, reset variables to the following values:')
   else
     # This should executed only once
+    repl_prompt = b:repl_prompt
+    incremental_prompt = b:incremental_prompt
+    prompt_to_be_changed = b:prompt_to_be_changed
+    repl_init_script = b:repl_init_script
+
     logger.Info('variable explorer script initialization')
     last_prompt = ''
   endif
@@ -92,7 +104,7 @@ def DisplayVariable(decoded_value: list<string>)
     setbufvar(buf, '&winfixbuf', true)
     setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
 
-    wincmd p
+    # wincmd p
     nnoremap <buffer> <silent> <esc> <cmd>close<cr>
   endif
 
@@ -135,7 +147,7 @@ def HandleLine(clean_line: string)
   endif
 
   # Inside the payload block
-  if collecting_payload && line_debounced !~# b:repl_prompt
+  if collecting_payload && line_debounced !~# repl_prompt
     # Check if this line_debounced ends the payload
     if line_debounced =~# '__END__$'
       # strip the suffix
@@ -166,32 +178,32 @@ def HandleLine(clean_line: string)
   endif
 
   # Prompt is ready. Do something
-  if line_debounced =~# b:repl_prompt
+  if line_debounced =~# repl_prompt
     logger.Info($'Prompt detected: {line_debounced}')
-    if line_debounced == last_prompt && b:incremental_prompt
+    if line_debounced == last_prompt && incremental_prompt
       logger.Info($'Same prompt as before, no action')
       return
     endif
 
     if on_msg_received == On_Msg_Received.InitializeConsole
       logger.Debug($'on_msg_received: {on_msg_received.name}')
-      if b:prompt_to_be_changed
+      if prompt_to_be_changed
         on_msg_received = On_Msg_Received.ChangePrompt
       else
         on_msg_received = On_Msg_Received.Ready
         payload_accum = ''
       endif
 
-      SendInitScript(b:repl_init_script)
+      SendInitScript(repl_init_script)
 
-      logger.Info($"sending init script: {b:repl_init_script}")
+      logger.Info($"sending init script: {repl_init_script}")
       logger.Debug($'on_msg_received: {on_msg_received.name}')
     elseif on_msg_received == On_Msg_Received.ChangePrompt
       logger.Info('Changing prompt')
-      b:repl_prompt = '__VIM_REPLICA__$ '
+      repl_prompt = '__VIM_REPLICA__$ '
 
       on_msg_received = On_Msg_Received.Ready
-      b:prompt_to_be_changed = false
+      prompt_to_be_changed = false
       payload_accum = ''
     endif
 
@@ -304,17 +316,18 @@ export def ReplicaOutCb(_: channel, msg: string)
   # variable. This, because this function is randomly called (for example
   # when there is a screen redraw or when there is a window resize).
   # For example, if the focus goes to a buffer that has no
-  # e.g. b:repl_prompt, and this function is invoked, then you get an error.
+  # e.g. repl_prompt, and this function is invoked, then you get an error.
   #
   # OBS! UTF-16BE encoding is not supported
 
-  # Using try/catch because you never know if the buffer with b:repl_prompt is
+  # Using try/catch because you never know if the buffer with repl_prompt is
   # still around while executing the terminal stdout callback function
   #
 
   # TODO: start from here
   # defer Init(true)
 
+  echom test_variable
   try
     FeedChars(msg)
 
@@ -323,7 +336,7 @@ export def ReplicaOutCb(_: channel, msg: string)
       ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
       : StripAnsiEscapeSequences(raw_buf)
 
-    if !empty(clean_tail) && clean_tail =~# b:repl_prompt && clean_tail !~# '\e'
+    if !empty(clean_tail) && clean_tail =~# repl_prompt && clean_tail !~# '\e'
       try
         HandleLine(clean_tail)
         raw_buf = ''
