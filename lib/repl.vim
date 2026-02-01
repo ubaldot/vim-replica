@@ -247,6 +247,7 @@ export def SendCell()
       var extremes = highlight.GetExtremes()
       var line_in = extremes[0]
       var line_out = extremes[1]
+      echom "SC line_in, line_out: " .. string([line_in, line_out])
       # Jump to the next cell
       cursor(line_out, getcurpos()[2])
       # Overwrite tmp file

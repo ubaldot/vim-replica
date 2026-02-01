@@ -36,6 +36,11 @@ g:How to display variable explorer
 g:replica_debug
 g:replica_log_level
 
+# If you start dealing with extremely long payloads, consider splitting
+# payload in smaller chunks (modify init scripts)
+
+For zsh, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
+
 Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
 way.
 
