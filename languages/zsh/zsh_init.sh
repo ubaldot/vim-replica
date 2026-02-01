@@ -3,6 +3,8 @@
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
+export PS1='__VIM_REPLICA__$ '
+
 # User must append the variables to _VIM_USER_VARS to visualize, e.g.
 #   FOO=ubaldot
 #   _VIM_USER_VARS+=("FOO")
@@ -102,10 +104,10 @@ __vim_whos() {
     esac
   done
 
-  # Get exported vars (env variables)
-  while IFS='=' read -r key val; do
-    out+="$key=$val"$'\n'
-  done < <(env)
+  # TODO: uncomment to get exported vars (env variables)
+  # while IFS='=' read -r key val; do
+  #   out+="$key=$val"$'\n'
+  # done < <(env)
 
   # Strip trailing newline
   out=${out%$'\n'}

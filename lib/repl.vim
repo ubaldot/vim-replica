@@ -47,6 +47,10 @@ def Init(teardown: bool = false)
   logger.Info($'repl_name: {b:repl_name}')
   logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
   logger.Info($"repl_options: '{b:repl_options}'")
+  logger.Info($"vim inspect function: {b:vim_inspect_function('x')}")
+  logger.Info($"vim whos function: {b:vim_whos_function()}")
+  logger.Info($"run command: {b:run_command('x')}")
+  logger.Info($"incremental prompt: '{b:incremental_prompt}'")
 
   # variable explorer variables init
   variable_explorer.Init(teardown)

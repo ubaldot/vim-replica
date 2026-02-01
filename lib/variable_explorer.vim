@@ -13,6 +13,7 @@ var variable_to_inspect: string
 export enum On_Msg_Received
   Ready,
   InitializeConsole,
+  ChangePrompt,
   DisplayVariable,
 endenum
 
@@ -97,8 +98,8 @@ def DisplayVariable(decoded_value: list<string>)
   endif
 
   logger.Info($"displayed variable value: {decoded_value}")
-  # This is the end-point. We can reset all script variables for the next
-  # round.
+  # TODO: This is the end-point. We can reset all script variables for the next
+  # round, but I am not sure if it is needed.
   Init(true)
 enddef
 
@@ -168,17 +169,20 @@ def HandleLine(line: string, console_prompt: string)
 
   # Prompt is ready. Do something
   if line_debounced =~# console_prompt
-    if line_debounced == last_prompt && &filetype == 'python'
+    if line_debounced == last_prompt && b:incremental_prompt
       return
     endif
 
     if on_msg_received == On_Msg_Received.InitializeConsole
       logger.Debug($'on_msg_received: {on_msg_received.name}')
       SendInitScript(b:repl_init_script)
-      on_msg_received = On_Msg_Received.Ready
-      payload_accum = ''
+      on_msg_received = On_Msg_Received.ChangePrompt
+      # payload_accum = ''
       logger.Info($"sending init script: {b:repl_init_script}")
       logger.Debug($'on_msg_received: {on_msg_received.name}')
+    elseif on_msg_received == On_Msg_Received.ChangePrompt
+      on_msg_received = On_Msg_Received.ChangePrompt
+      payload_accum = ''
     endif
 
     last_prompt = line_debounced
@@ -303,13 +307,13 @@ export def ReplicaOutCb(console_prompt: string, _: channel, msg: string)
     ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
     : StripAnsiEscapeSequences(raw_buf)
 
-  if !empty(clean_tail) && clean_tail =~# console_prompt
+  if !empty(clean_tail) && clean_tail =~# console_prompt && clean_tail !~# '\e'
     try
       HandleLine(clean_tail, console_prompt)
       raw_buf = ''
     catch
       # Reset all script variables
-      Init(true)
+      # Init(true)
       logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
     endtry
@@ -338,12 +342,7 @@ export def VimInspect(
   # tabonly
   if !empty(variable)
     var variable_single_quoted = variable->substitute('"', "'", 'g')
-    # TODO: FIX IT!
-    if &filetype == 'zsh'
-      term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect {variable_single_quoted}\n")
-    else
-      term_sendkeys(bufnr($'^{b:console_name}$'), $"__vim_inspect(\"{variable_single_quoted}\")\n")
-    endif
+    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
     variable_to_inspect = variable_single_quoted
     on_msg_received = On_Msg_Received.DisplayVariable
 
@@ -351,11 +350,7 @@ export def VimInspect(
     logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
   else
     # TODO: FIX IT!
-    if &filetype == 'zsh'
-      term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos\n")
-    else
-      term_sendkeys(bufnr($'^{b:console_name}$'), "__vim_whos()\n")
-    endif
+    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
     variable_to_inspect = whos_buf_name
     on_msg_received = On_Msg_Received.DisplayVariable
 

@@ -133,6 +133,13 @@ var replica_repl_options_default = {
   zsh: ""
 }
 
+# Initially we use the following prompts to send the init script, but then we may need
+# to change them with a forced prompt, because we never know how the use set their prompts,
+# especially in case of zsh, bash, etc. This makes impossible to parse a
+# prompt.
+# For this reason, after startup we try to guess a prompt and then we
+# forcibly set one that is easy to parse, e.g. __VIM_REPLICA__$
+# Nevertheless, the regex used for parsing the prompt won't change.
 var replica_repl_prompts_default = {
   python: '^In\s\[\d\+\]:\s$',
   julia: '^julia>$',
@@ -229,6 +236,22 @@ def InitBuffers()
   b:run_command = g:replica_run_commands[&filetype]
   b:repl_prompt = g:replica_repl_prompts[&filetype]
   b:repl_init_script = g:replica_repl_init_scripts[&filetype]
+
+  if index(['zsh'], &filetype) != -1
+    # Functions in zsh, bash, etc. are called without parenthesis,
+    # e.g. __vim_whos instead of __vim_whos()
+    b:vim_inspect_function = (x) => $"__vim_inspect {x}\n"
+    b:vim_whos_function = () => "__vim_whos\n"
+  else
+    b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
+    b:vim_whos_function = () => "__vim_whos()\n"
+  endif
+
+  # Some repl have incremental prompt, like IPython: In [2]: In [3]:, etc. so
+  # it may be worth to check if the prompt changes.
+  # Some other repl have the same prompt, like zsh: $, so the previous prompt
+  # is always the same as the current.
+  b:incremental_prompt = index(['python'], &filetype) != -1 ? true : false
 
   # -- highlight init ----
   b:cells_delimiter = g:replica_cells_delimiters[&filetype]
