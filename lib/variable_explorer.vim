@@ -14,8 +14,6 @@ var incremental_prompt: bool
 var prompt_to_be_changed: bool
 var repl_init_script: string
 
-var test_variable = 'figa'
-
 # To decide what to do when a console prompt is ready
 export enum On_Msg_Received
   Ready,
@@ -200,7 +198,7 @@ def HandleLine(clean_line: string)
       logger.Debug($'on_msg_received: {on_msg_received.name}')
     elseif on_msg_received == On_Msg_Received.ChangePrompt
       logger.Info('Changing prompt')
-      repl_prompt = '__VIM_REPLICA__$ '
+      repl_prompt = g:replica_universal_prompt
 
       on_msg_received = On_Msg_Received.Ready
       prompt_to_be_changed = false
@@ -327,7 +325,6 @@ export def ReplicaOutCb(_: channel, msg: string)
   # TODO: start from here
   # defer Init(true)
 
-  echom test_variable
   try
     FeedChars(msg)
 

@@ -3,7 +3,7 @@
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
-export PS1='__VIM_REPLICA__$ '
+export PS1='vim_replica> '
 
 # User must append the variables to _VIM_USER_VARS to visualize, e.g.
 #   FOO=ubaldot
