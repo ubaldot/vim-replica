@@ -103,7 +103,8 @@ def IsFiletypeSupported(): bool
   return !empty(getbufvar('%', "console_name"))
 enddef
 
-def ReplicaOutCbWrapper(prompt: string, ch: channel, msg: string)
+def ReplicaOutCbWrapper(ch: channel, msg: string)
+  var prompt = b:repl_prompt
   variable_explorer.ReplicaOutCb(prompt, ch, msg)
 enddef
 
@@ -127,10 +128,9 @@ def ConsoleOpen()
       logger.Info($'start_cmd: {start_cmd}')
       logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
-      var prompt = b:repl_prompt
       term_start(start_cmd,
         {term_name: b:console_name,
-          out_cb: function("ReplicaOutCbWrapper", [prompt]),
+          out_cb: function("ReplicaOutCbWrapper"),
         })
 
       ftcommands_mappings.InstallConsoleCommands()
