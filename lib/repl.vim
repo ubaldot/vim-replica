@@ -27,9 +27,9 @@ enddef
 def Init(teardown: bool = false)
 
   if !teardown
-    logger.Info('Init()')
+    logger.Info('repl initialization')
   else
-    logger.Info('Replica Teardown (Init(true))')
+    logger.Info('teardown, follow restored values:')
   endif
 
   logger.Info($"console position: '{g:replica_console_position}'")
@@ -54,7 +54,7 @@ enddef
 
 def ResizeConsoleWindow(console_win_id: number)
 
-  logger.Info("ResizeConsoleWindow()")
+  logger.Info("resize console window")
 
   win_execute(console_win_id, $'resize {console_geometry["height"]}')
   win_execute(console_win_id, $'vertical resize {console_geometry["width"]}')
@@ -66,14 +66,13 @@ def ResizeConsoleWindow(console_win_id: number)
 enddef
 
 def SaveConsoleWindowSize(console_win_id: number)
-  logger.Info("SaveConsoleWindowSize()")
+  logger.Info("save console windows size")
   console_geometry["height"] = winheight(console_win_id)
   console_geometry["width"] = winwidth(console_win_id)
 enddef
 
 
 def ConsoleExists(): bool
-  logger.Info("ConsoleExists()")
   # Check if exists a console of a given filetype (i.e.calling buffer ft)
   if exists("b:console_name")
     return bufexists(bufnr($"^{escape(b:console_name, '[]\.^$*~')}$"))
@@ -84,7 +83,6 @@ enddef
 
 
 def ConsoleWinID(): list<number>
-  logger.Info('ConsoleWinID()')
   # Return the windows ID where a console of a specific ft is displayed.
   if ConsoleExists()
     return win_findbuf(bufnr($'^{b:console_name}$'))
@@ -95,7 +93,6 @@ enddef
 
 
 def IsFiletypeSupported(): bool
-  logger.Info('IsFiletypeSupported()')
   # has_hey() maybe is more clear?
   # No, because if we are on a console it would return false.
   # Terminal buffers have no filetype.
@@ -114,7 +111,6 @@ def ConsoleOpen()
   if IsFiletypeSupported()
     if !ConsoleExists()
       Init()
-      logger.Info("Console Open()")
       logger.Info("create new console")
 
       var start_cmd = $"{b:repl_name} {b:repl_options}"
@@ -125,7 +121,7 @@ def ConsoleOpen()
       echo $'{b:console_name} console opening...'
 
       logger.Info($'start_cmd: {start_cmd}')
-      logger.Debug($'on_msg_received action: {variable_explorer.on_msg_received.name}')
+      logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
       var prompt = b:repl_prompt
       term_start(start_cmd,
@@ -137,7 +133,7 @@ def ConsoleOpen()
 
       console_win_id = win_findbuf(bufnr('$'))[0]
     elseif empty(ConsoleWinID())
-      logger.Info("Opening existing console")
+      logger.Info("opening existing console")
       exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
       console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
     endif
@@ -163,7 +159,7 @@ enddef
 
 
 def ConsoleClose()
-  logger.Info("Console Close()")
+  logger.Info("hide console")
 
   # TODO Modify and make all the REPL to close from wherever you are?
   if IsFiletypeSupported()
@@ -186,7 +182,7 @@ enddef
 
 
 export def ConsoleShutoff()
-  logger.Info("Console Shutoff()")
+  logger.Info("shutoff console")
 
   if ConsoleExists()
     var console_name = b:console_name
@@ -203,7 +199,7 @@ enddef
 
 
 export def RemoveCells()
-  logger.Info('RemoveCells()')
+  logger.Info('removing cells')
 
   if IsFiletypeSupported()
     for ii in range(1, line('$'))
@@ -224,7 +220,6 @@ enddef
 # Functions for sending stuff to the REPL
 # ---------------------------------------
 export def SendLines(firstline: number, lastline: number)
-  logger.Info('SendLines()')
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
@@ -246,7 +241,6 @@ enddef
 
 # Actually sending code-cell
 export def SendCell()
-  logger.Info('SendCell()')
   if IsFiletypeSupported()
     if !ConsoleExists()
       ConsoleOpen()
@@ -273,7 +267,6 @@ enddef
 
 export def SendFile(filename: string = '')
 
-  logger.Info('SendFile()')
   if IsFiletypeSupported()
     # If there are open terminals with different names than IPYTHON,
     # JULIA, etc. it will open its own

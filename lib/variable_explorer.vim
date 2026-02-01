@@ -37,28 +37,26 @@ export def Init(teardwn: bool = false)
     : has('win32') || has('win64')
 
   if teardwn
-    logger.Info('variable explorer teardown (Init(true))')
+    logger.Info('variable explorer teardown, reset variables to the following values:')
   else
-    logger.Info('variable explorer Init()')
+    logger.Info('variable explorer script initialization')
   endif
 
   logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
-  logger.Debug($'raw_buf: {raw_buf}')
-  logger.Debug($'collecting_payload: {collecting_payload}')
-  logger.Debug($'payload_accum: {payload_accum}')
-  logger.Debug($'variable_to_inspect: {variable_to_inspect}')
-  logger.Debug($'on_msg_received: {on_msg_received.name}')
-  logger.Debug($'last_prompt: {last_prompt}')
+  logger.Info($'raw_buf: {raw_buf}')
+  logger.Info($'collecting_payload: {collecting_payload}')
+  logger.Info($'payload_accum: {payload_accum}')
+  logger.Info($'variable_to_inspect: {variable_to_inspect}')
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($'last_prompt: {last_prompt}')
 
 enddef
 
 def SendInitScript(filename: string)
-  logger.Info('SendInitScript()')
   writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr($'^{b:console_name}$'),
                   $"{b:run_command(g:replica_tmp_filename)}\n")
   echom "vim-replica interface initialized"
-  logger.Info("vim-replica interface initialized")
 enddef
 
 def DisplayVariable(decoded_value: list<string>)
@@ -66,7 +64,7 @@ def DisplayVariable(decoded_value: list<string>)
   # Shutoff existing explorer for the same variable if it is still hanging
   # somewhere
 
-  logger.Info('DisplayVariable()')
+  logger.Info('displaying variable')
 
 
   if bufexists(variable_to_inspect)
@@ -112,17 +110,17 @@ def HandleLine(line: string, console_prompt: string)
 
   # Single line_debounced payload
   if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
-    logger.Info($'decoding one line payload')
+    logger.Info($'decoding one-line payload')
 
     var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
     var decoded = blob2str(base64_decode(payload))
-    logger.Info("message successfully decoded")
+    logger.Info("one-line message successfully decoded")
 
-    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
       DisplayVariable(decoded)
       on_msg_received = On_Msg_Received.Ready
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
+      logger.Info($'on_msg_received: {on_msg_received.name}')
     endif
   endif
 
@@ -145,7 +143,7 @@ def HandleLine(line: string, console_prompt: string)
       # Decode final payload
       try
         var decoded = blob2str(base64_decode(payload_accum))
-        logger.Info("message successfully decoded")
+        logger.Info("multi-line message successfully decoded")
         if on_msg_received == On_Msg_Received.DisplayVariable
           logger.Debug($"on_msg_received: {on_msg_received.name}")
           DisplayVariable(decoded)
@@ -334,7 +332,7 @@ export def VimInspect(
   # win_execute(variable_explored_winid, 'close')
   # endif
 
-  logger.Info("VimInspect()")
+  logger.Info("inspecting variables")
 
   # :tabonly secure that there is only one tab for variable explorer
   # tabonly
@@ -349,7 +347,7 @@ export def VimInspect(
     variable_to_inspect = variable_single_quoted
     on_msg_received = On_Msg_Received.DisplayVariable
 
-    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'on_msg_received: {on_msg_received.name}')
     logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
   else
     # TODO: FIX IT!
@@ -361,7 +359,7 @@ export def VimInspect(
     variable_to_inspect = whos_buf_name
     on_msg_received = On_Msg_Received.DisplayVariable
 
-    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'on_msg_received: {on_msg_received.name}')
     logger.Info($'sent: __vim_whos()')
   endif
 
