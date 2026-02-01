@@ -258,8 +258,6 @@ def g:Test_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   var bufnr = term_list()[0]
-  var term_cursor_pos = term_getcursor(bufnr)
-  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
