@@ -114,14 +114,14 @@ var replica_console_names_default = {
 # TODO: Not sure if you want the user to override this
 var replica_run_commands_default = {
   python: (filename) => $"run -i {filename}",
-  julia: (filename) => $"include({filename})",
+  julia: (filename) => $'include("{filename}")',
   sh: (filename) => $"source {filename}",
   zsh: (filename) => $"source {filename}"
 }
 
 var replica_repl_init_scripts_default = {
   python: $"{replica_path}/languages/python/ipython_init.py",
-  julia: "",
+  julia: $"{replica_path}/languages/julia/julia_init.jl",
   sh: "",
   zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
 }
@@ -142,7 +142,7 @@ var replica_repl_options_default = {
 # Nevertheless, the regex used for parsing the prompt won't change.
 var replica_repl_prompts_default = {
   python: '^In\s\[\d\+\]:\s$',
-  julia: '^julia>$',
+  julia: "^julia>\\s*$",
   sh: ".*[\$#>]\\s*$",
   zsh: ".*[\$#>]\\s*$"
 }
@@ -243,6 +243,10 @@ def InitBuffers()
     # e.g. __vim_whos instead of __vim_whos()
     b:vim_inspect_function = (x) => $"__vim_inspect {x}\n"
     b:vim_whos_function = () => "__vim_whos\n"
+  elseif &filetype ==# 'julia'
+    # VimReplica is the module name of ./lib/languages/init_julia.jl
+    b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
+    b:vim_whos_function = () => "VimReplica.__vim_whos()\n"
   else
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => "__vim_whos()\n"

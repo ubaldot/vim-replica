@@ -25,7 +25,7 @@ export def Echowarn(msg: string)
 enddef
 
 def Init(teardown: bool = false)
-
+  v:errmsg = ''
   if !teardown
     logger.Info('repl initialization')
   else
@@ -51,6 +51,7 @@ def Init(teardown: bool = false)
   logger.Info($"vim whos function: {b:vim_whos_function()}")
   logger.Info($"run command: {b:run_command('x')}")
   logger.Info($"incremental prompt: '{b:incremental_prompt}'")
+  logger.Info("-----------------------------------")
 
   variable_explorer.Init()
 enddef
@@ -247,7 +248,6 @@ export def SendCell()
       var extremes = highlight.GetExtremes()
       var line_in = extremes[0]
       var line_out = extremes[1]
-      echom "SC line_in, line_out: " .. string([line_in, line_out])
       # Jump to the next cell
       cursor(line_out, getcurpos()[2])
       # Overwrite tmp file

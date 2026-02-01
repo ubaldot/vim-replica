@@ -373,6 +373,9 @@ export enum On_Msg_Received
     logger.Info($'sent: __vim_whos()')
   endif
 
+  # Capture eventual errors
+  logger.Error($"vim errors: {v:errmsg}")
+
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
   logger.Info("sent: <c-l>")
