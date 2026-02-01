@@ -58,6 +58,8 @@ __vim_inspect() {
   # encode
   local payload
   payload=$(print -rn -- "$output" | base64)
+  # If payload is too long, consider more echo statements. See python
+  # init_script for examples
   echo "${_VIM_SENTINEL_START}${payload}${_VIM_SENTINEL_END}"
 }
 
@@ -112,40 +114,7 @@ __vim_whos() {
 
   # Strip trailing newline
   out=${out%$'\n'}
+  # If payload is too long, consider more echo statements. See python
+  # init_script for examples
   print -r -- "${_VIM_SENTINEL_START}$(print -rn -- "$out" | base64)${_VIM_SENTINEL_END}"
 }
-
-# ------------------------------------------
-#     TEST DATA
-# ------------------------------------------
-# # Scalar
-# FOO="hello world"
-# _VIM_USER_VARS+=("FOO")
-
-# # Array
-# BAR=(a b c)
-# _VIM_USER_VARS+=("BAR")
-
-# # Nested associative array
-# declare -A COMPLEX=( ['a']=1 ['b']=2 )
-# _VIM_USER_VARS+=("COMPLEX")
-
-# declare -A BAZ=( ['a']='ciao' ['b']='mare' )
-# _VIM_USER_VARS+=("BAZ")
-
-# # Float
-# declare -F PI=3.14159
-# _VIM_USER_VARS+=("PI")
-
-# # Color / string style (like you had for prompt colors)
-# COLOR_DIR="%F{197}"
-# _VIM_USER_VARS+=("COLOR_DIR")
-# COLOR_DEF="%f"
-# _VIM_USER_VARS+=("COLOR_DEF")
-
-# # Empty array
-# EMPTY_ARRAY=()
-# _VIM_USER_VARS+=("EMPTY_ARRAY")
-
-# MY_ARRAY=(banana, lampone, cetriolo)
-# _VIM_USER_VARS+=("MY_ARRAY")
