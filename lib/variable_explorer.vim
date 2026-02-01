@@ -11,6 +11,9 @@ var variable_to_inspect: string
 
 var repl_prompt: string
 var incremental_prompt: bool
+# OBS! This shall be the same in the language initialization scripts
+var universal_prompt: string
+
 var prompt_to_be_changed: bool
 var repl_init_script: string
 
@@ -49,6 +52,8 @@ export def Init(teardwn: bool = false)
     incremental_prompt = b:incremental_prompt
     prompt_to_be_changed = b:prompt_to_be_changed
     repl_init_script = b:repl_init_script
+    # OBS! This shall be the same in the language initialization scripts
+    universal_prompt = 'vim_replica> '
 
     logger.Info('variable explorer script initialization')
     last_prompt = ''
@@ -61,6 +66,7 @@ export def Init(teardwn: bool = false)
   logger.Info($'variable_to_inspect: {variable_to_inspect}')
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'last_prompt: {last_prompt}')
+  logger.Info($"universal prompt: '{universal_prompt}'")
 
 enddef
 
@@ -198,7 +204,7 @@ def HandleLine(clean_line: string)
       logger.Debug($'on_msg_received: {on_msg_received.name}')
     elseif on_msg_received == On_Msg_Received.ChangePrompt
       logger.Info('Changing prompt')
-      repl_prompt = g:replica_universal_prompt
+      repl_prompt = universal_prompt
 
       on_msg_received = On_Msg_Received.Ready
       prompt_to_be_changed = false

@@ -51,7 +51,6 @@ def Init(teardown: bool = false)
   logger.Info($"vim whos function: {b:vim_whos_function()}")
   logger.Info($"run command: {b:run_command('x')}")
   logger.Info($"incremental prompt: '{b:incremental_prompt}'")
-  logger.Info($"universal prompt: '{g:replica_universal_prompt}'")
 
   # variable explorer variables init
   variable_explorer.Init(teardown)

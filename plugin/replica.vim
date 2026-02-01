@@ -15,9 +15,6 @@ g:loaded_replica = true
 
 const replica_path = expand('<sfile>:h:h')
 
-# OBS! This shall be the same in the language initialization scripts
-g:replica_universal_prompt = 'vim_replica> '
-
 # Remove the existing tnp file, if it exists
 if exists('g:replica_tmp_filename') && filereadable(g:replica_tmp_filename)
   delete(g:replica_tmp_filename)
