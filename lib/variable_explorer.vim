@@ -3,19 +3,18 @@ vim9script
 import "../lib/repl.vim"
 import "../lib/logger.vim"
 
-
 # For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
 var payload_accum: string
 var variable_to_inspect: string
 
+# OBS! universal_prompt shall be the same in the language initialization scripts
+var universal_prompt: string
 var repl_prompt: string
 var incremental_prompt: bool
-# OBS! This shall be the same in the language initialization scripts
-var universal_prompt: string
-
 var prompt_to_be_changed: bool
 var repl_init_script: string
+var last_prompt: string
 
 # To decide what to do when a console prompt is ready
 export enum On_Msg_Received
@@ -25,41 +24,32 @@ export enum On_Msg_Received
   DisplayVariable,
 endenum
 
-export var on_msg_received: On_Msg_Received = On_Msg_Received.Ready
+export var on_msg_received: On_Msg_Received
 
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
 var is_utf16: bool
-var last_prompt: string
 
-export def Init(teardwn: bool = false)
-  # TODO: how to teardown? Where to place this? Maybe with some defer
-  # Init(true) somewhere?
+export def Init()
+  logger.Info('variable explorer script initialization')
 
   raw_buf = ''
   collecting_payload = false
   payload_accum = ''
   variable_to_inspect = ''
   on_msg_received = On_Msg_Received.Ready
+  # OBS! This shall be the same in the language initialization scripts
+  universal_prompt = '^vim_replica> $'
 
   is_utf16 = exists('g:replica_use_utf16')
     ? g:replica_use_utf16
     : has('win32') || has('win64')
 
-  if teardwn
-    logger.Info('variable explorer teardown, reset variables to the following values:')
-  else
-    # This should executed only once
-    repl_prompt = b:repl_prompt
-    incremental_prompt = b:incremental_prompt
-    prompt_to_be_changed = b:prompt_to_be_changed
-    repl_init_script = b:repl_init_script
-    # OBS! This shall be the same in the language initialization scripts
-    universal_prompt = 'vim_replica> '
-
-    logger.Info('variable explorer script initialization')
-    last_prompt = ''
-  endif
+  # This should executed only once
+  repl_prompt = b:repl_prompt
+  incremental_prompt = b:incremental_prompt
+  prompt_to_be_changed = b:prompt_to_be_changed
+  repl_init_script = b:repl_init_script
 
   logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
   logger.Info($'raw_buf: {raw_buf}')
@@ -70,19 +60,17 @@ export def Init(teardwn: bool = false)
   logger.Info($'last_prompt: {last_prompt}')
   logger.Info($"universal prompt: '{universal_prompt}'")
 
+  logger.Info('variable explorer script initialized')
 enddef
 
 def SendInitScript(filename: string)
   writefile(readfile(filename), g:replica_tmp_filename)
   term_sendkeys(bufnr($'^{b:console_name}$'),
                   $"{b:run_command(g:replica_tmp_filename)}\n")
-  echom "vim-replica interface initialized"
+  echo "vim-replica interface initialized"
 enddef
 
 def DisplayVariable(decoded_value: list<string>)
-  # Example: show in a scratch buffer
-  # Shutoff existing explorer for the same variable if it is still hanging
-  # somewhere
 
   logger.Info('displaying variable')
 
@@ -110,13 +98,44 @@ def DisplayVariable(decoded_value: list<string>)
     setbufvar(buf, '&winfixbuf', true)
     setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
 
-    # wincmd p
     nnoremap <buffer> <silent> <esc> <cmd>close<cr>
   endif
 
   logger.Info($"displayed variable value: {decoded_value}")
 enddef
 
+def DecodeOneLinePayload(line_debounced: string): list<string>
+    var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
+    var line_decoded = blob2str(base64_decode(payload))
+    logger.Info("one-line message successfully decoded")
+    return line_decoded
+enddef
+
+def DecodeMultiLinePayload(line_debounced: string): list<string>
+
+  if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$'
+    # strip the prefix if the first line_debounced contains it
+    payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
+    collecting_payload = true
+  # Inside the payload block
+  elseif collecting_payload
+    # Check if this line_debounced ends the payload
+    if line_debounced =~# '__END__$'
+        payload_accum ..= line_debounced->substitute('__END__$', '', '')
+        # Decode final payload
+        var line_decoded = blob2str(base64_decode(payload_accum))
+        logger.Info("multi-line message successfully decoded")
+        # Reset all relevant script variables
+        payload_accum = ''
+        collecting_payload = false
+        return line_decoded
+    endif
+    # No end yet, accumulate:
+    payload_accum ..= line_debounced
+  endif
+
+  return []
+enddef
 
 def HandleLine(clean_line: string)
 
@@ -128,77 +147,41 @@ def HandleLine(clean_line: string)
 
   # Single line_debounced payload
   if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
-    logger.Info($'decoding one-line payload')
 
-    var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-    var decoded = blob2str(base64_decode(payload))
-    logger.Info("one-line message successfully decoded")
+    logger.Info($'decoding one-line payload')
+    var line_decoded = DecodeOneLinePayload(line_debounced)
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
-      DisplayVariable(decoded)
-      logger.Info('Out DisplayVariable')
+      DisplayVariable(line_decoded)
       on_msg_received = On_Msg_Received.Ready
     endif
-    return
-  endif
 
-  # Multi-line_debounced payload
-  if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$'
+  # Multi-line debounced payload
+  elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
+
     logger.Info($'decoding multi-line payload')
-    # strip the prefix if the first line_debounced contains it
-    payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
-    collecting_payload = true
-    return
-  endif
+    var line_decoded = DecodeMultiLinePayload(line_debounced)
 
-  # Inside the payload block
-  if collecting_payload && line_debounced !~# repl_prompt
-    # Check if this line_debounced ends the payload
-    if line_debounced =~# '__END__$'
-      # strip the suffix
-      payload_accum ..= line_debounced->substitute('__END__$', '', '')
-
-      # Decode final payload
-      try
-        var decoded = blob2str(base64_decode(payload_accum))
-        logger.Info("multi-line message successfully decoded")
-        if on_msg_received == On_Msg_Received.DisplayVariable
-          logger.Debug($"on_msg_received: {on_msg_received.name}")
-          DisplayVariable(decoded)
-          on_msg_received = On_Msg_Received.Ready
-        endif
-      catch
-        logger.Error("invalid base64 payload")
-        repl.Echoerr("invalid base64 payload")
-      finally
-        # Reset all relevant script variables
-        payload_accum = ''
-        collecting_payload = false
-      endtry
-      return
+    if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
+      logger.Info($'on_msg_received: {on_msg_received.name}')
+      DisplayVariable(line_decoded)
+      on_msg_received = On_Msg_Received.Ready
     endif
 
-    # No end yet, accumulate:
-    payload_accum ..= line_debounced
-  endif
-
   # Prompt is ready. Do something
-  if line_debounced =~# repl_prompt
+  elseif line_debounced =~# repl_prompt
     logger.Info($'Prompt detected: {line_debounced}')
     if line_debounced == last_prompt && incremental_prompt
       logger.Info($'Same prompt as before, no action')
-      return
     endif
 
     if on_msg_received == On_Msg_Received.InitializeConsole
       logger.Debug($'on_msg_received: {on_msg_received.name}')
-      if prompt_to_be_changed
-        on_msg_received = On_Msg_Received.ChangePrompt
-      else
-        on_msg_received = On_Msg_Received.Ready
-        payload_accum = ''
-      endif
+
+      on_msg_received = prompt_to_be_changed
+        ? On_Msg_Received.ChangePrompt
+        : On_Msg_Received.Ready
 
       SendInitScript(repl_init_script)
 
@@ -207,10 +190,8 @@ def HandleLine(clean_line: string)
     elseif on_msg_received == On_Msg_Received.ChangePrompt
       logger.Info('Changing prompt')
       repl_prompt = universal_prompt
-
       on_msg_received = On_Msg_Received.Ready
       prompt_to_be_changed = false
-      payload_accum = ''
     endif
 
     # Update last_prompt
@@ -313,26 +294,20 @@ enddef
 export def ReplicaOutCb(_: channel, msg: string)
   # OBS! Issues may occur if:
   #
-  #   A. A chunk from terminal match console prompt AND
+  #   A. A chunk from terminal match repl_prompt regex AND
   #   B. HandleLine() do something with that
   #
   # Nevertheless, this is a very unlikely case.
   #
   # OBS! All the functions called by this callback, shall not use any b:
-  # variable. This, because this function is randomly called (for example
-  # when there is a screen redraw or when there is a window resize).
-  # For example, if the focus goes to a buffer that has no
-  # e.g. repl_prompt, and this function is invoked, then you get an error.
+  # variable. This because we may jump in a new buffer (like in
+  # DisplayVariable()) and all the b: are gone. Once returning from such a
+  # function the caller may still try to access b: variables!
   #
   # OBS! UTF-16BE encoding is not supported
 
   # Using try/catch because you never know if the buffer with repl_prompt is
   # still around while executing the terminal stdout callback function
-  #
-
-  # TODO: start from here
-  # defer Init(true)
-
   try
     FeedChars(msg)
 
@@ -346,8 +321,6 @@ export def ReplicaOutCb(_: channel, msg: string)
         HandleLine(clean_tail)
         raw_buf = ''
       catch
-        # Reset all script variables
-        # Init(true)
         logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
         repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
       endtry
@@ -364,15 +337,6 @@ export def VimInspect(
     action: On_Msg_Received = On_Msg_Received.Ready
     )
   const whos_buf_name = 'Workspace'
-
-  # TODO: attempt to have a 'live' update but 'close' close too many
-  # The following relying on that the variable explorer buffer has
-  # &bufhidden = 'wipe'. It closes existing variable explorers
-  # if !empty(win_findbuf(bufnr(variable)))
-  # var variable_explored_winid = win_findbuf(bufnr(variable))[0]
-  # echom variable_explored_winid
-  # win_execute(variable_explored_winid, 'close')
-  # endif
 
   logger.Info("inspecting variables")
 
@@ -397,6 +361,5 @@ export def VimInspect(
 
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-
   logger.Info("sent: <c-l>")
 enddef

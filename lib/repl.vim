@@ -52,8 +52,7 @@ def Init(teardown: bool = false)
   logger.Info($"run command: {b:run_command('x')}")
   logger.Info($"incremental prompt: '{b:incremental_prompt}'")
 
-  # variable explorer variables init
-  variable_explorer.Init(teardown)
+  variable_explorer.Init()
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)

@@ -2,6 +2,7 @@ import io
 import contextlib
 import base64
 import sys
+import time
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
@@ -54,7 +55,15 @@ def __vim_inspect(expr: str):
             print(f"[vim_inspect error] {e!r}")
 
     payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
-    print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
+    # Note that the payload is always on one-line
+    # print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
+
+    # For testing multi-line payloads
+    print(_VIM_SENTINEL_START + payload[:200])
+    time.sleep(0.1)
+    print(payload[200:400])
+    time.sleep(0.1)
+    print(payload[400:] + _VIM_SENTINEL_END)
 
 
 def __vim_whos():
@@ -76,4 +85,12 @@ def __vim_whos():
             print(f"[vim_whos error] {e!r}")
 
     payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
+    # Note that the payload is always on one-line
     print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
+
+    # For testing multi-line payloads
+    print(_VIM_SENTINEL_START + payload[:200])
+    time.sleep(0.1)
+    print(payload[200:400])
+    time.sleep(0.1)
+    print(payload[400:] + _VIM_SENTINEL_END)
