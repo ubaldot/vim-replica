@@ -26,6 +26,10 @@ const user_level_str = get(g:, 'replica_log_level', 'Error')
 # Check if this message should be logged
 def ShouldLog(level: LEVELS): bool
 
+  if !exists('g:replica_debug') || !g:replica_debug
+    return false
+  endif
+
   if index(keys(LEVELS_MAP), user_level_str) != -1
     return level.ordinal >= LEVELS_MAP[user_level_str].ordinal
   else
@@ -40,16 +44,16 @@ enddef
 # Write a log message
 def Write(level: LEVELS, msg: string)
 
-  if !exists('g:replica_debug') || !g:replica_debug || !ShouldLog(level)
+  if !ShouldLog(level)
     return
   endif
 
   var lines = [$'{level.name}: {msg}']
 
   try
-    writefile(lines, g:replica_log_filename, 'a')
+    writefile(lines, g:replica_log_filepath, 'a')
   catch
-    repl.Echoerr($'Cannot write {g:replica_log_filename}')
+    repl.Echoerr($'Cannot write {g:replica_log_filepath}')
   endtry
 enddef
 
@@ -73,8 +77,8 @@ enddef
 
 export def BlankLine()
   try
-    writefile([''], g:replica_log_filename, 'a')
+    writefile([''], g:replica_log_filepath, 'a')
   catch
-    repl.Echoerr($"Cannot write {g:replica_log_filename}")
+    repl.Echoerr($"Cannot write {g:replica_log_filepath}")
   endtry
 enddef

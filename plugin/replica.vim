@@ -15,9 +15,9 @@ g:loaded_replica = true
 
 const replica_path = expand('<sfile>:h:h')
 
-# Remove the existing tnp file, if it exists
-if exists('g:replica_tmp_filename') && filereadable(g:replica_tmp_filename)
-  delete(g:replica_tmp_filename)
+# Remove the existing tnp file needed for SendCell() & friends, if it exists
+if exists('g:replica_tmp_filepath') && filereadable(g:replica_tmp_filepath)
+  delete(g:replica_tmp_filepath)
 endif
 
 # Deterministic filepath (so, if Vim crashes, we know where the file is)
@@ -39,15 +39,19 @@ if !isdirectory(data_dir)
   mkdir(data_dir, 'p')
 endif
 
-g:replica_tmp_filename = $'{data_dir}/vim_replica.tmp'
+# File used for SendCell() & friends
+g:replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
+
+# File used for logging
+g:replica_log_filepath = $'{data_dir}/vim_replica.log'
 
 # --- logger setup -----
 if !exists('g:replica_debug')
   g:replica_debug = false
 endif
 
-if !exists('g:replica_log_filename')
-  g:replica_log_filename = 'vim_replica.log'
+if !exists('g:replica_log_max_size')
+   g:replica_log_max_size = 1024 * 1024 # 1 MB
 endif
 
 if g:replica_debug
@@ -57,7 +61,7 @@ if g:replica_debug
   $'{strftime("%d %b %Y %X")}',
   '---------------------'
   ]
-  writefile(head, g:replica_log_filename, 'a')
+  writefile(head, g:replica_log_filepath, 'a')
 endif
 
 if !exists('g:replica_log_level')
@@ -293,5 +297,5 @@ augroup REPLICA_INIT_BUFFERS
 augroup END
 
 augroup REPLICA_DELETE_TMP_FILE
-  autocmd VimLeave * delete(g:replica_tmp_filename)
+  autocmd VimLeave * delete(g:replica_tmp_filepath)
 augroup END

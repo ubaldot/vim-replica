@@ -69,15 +69,15 @@ export enum On_Msg_Received
     logger.Info($'on_msg_received: {on_msg_received.name}')
     logger.Info($'last_prompt: {last_prompt}')
     logger.Info($"universal prompt: '{universal_prompt}'")
-
+    logger.Info($"init script: '{repl_init_script}'")
     logger.Info('variable explorer script initialized')
+    logger.Info("-----------------------------------")
   enddef
 
   def SendInitScript(filename: string)
-    writefile(readfile(filename), g:replica_tmp_filename)
+    writefile(readfile(filename), g:replica_tmp_filepath)
     term_sendkeys(bufnr($'^{b:console_name}$'),
-      $"{b:run_command(g:replica_tmp_filename)}\n")
-    echo "vim-replica interface initialized"
+      $"{b:run_command(g:replica_tmp_filepath)}\n")
   enddef
 
   def DisplayVariable(decoded_value: list<string>)
@@ -374,7 +374,9 @@ export enum On_Msg_Received
   endif
 
   # Capture eventual errors
-  logger.Error($"vim errors: {v:errmsg}")
+  if !empty(v:errmsg)
+    logger.Error(v:errmsg)
+  endif
 
   # Clean up console
   term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")

@@ -24,15 +24,20 @@ export def Echowarn(msg: string)
   echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
 
-def Init(teardown: bool = false)
+def Init()
   v:errmsg = ''
-  if !teardown
-    logger.Info('repl initialization')
-  else
-    logger.Info('teardown, follow restored values:')
+
+  # Check log file size
+  if filereadable(g:replica_log_filepath)
+      && getfsize(g:replica_log_filepath) > g:replica_log_max_size
+    Echowarn($"'{g:replica_log_filepath}' exceeded the maximum size "
+          .. $"({g:replica_log_max_size} bytes). "
+          .. "Logging has been stopped.")
+    sleep 3
+    g:replica_debug = false
   endif
 
-  logger.Info($"console position: '{g:replica_console_position}'")
+  logger.Info('repl initialization')
 
   if empty(console_geometry)
     console_geometry = {
@@ -40,8 +45,9 @@ def Init(teardown: bool = false)
       height: g:replica_console_height
     }
   endif
-  logger.Info($'console height: {console_geometry.height}')
-  logger.Info($'console width: {console_geometry.width}')
+
+  logger.Info($"console position: '{g:replica_console_position}'")
+  logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
   logger.Info($"repl_prompt: '{b:repl_prompt}'")
   logger.Info($'repl_name: {b:repl_name}')
@@ -54,6 +60,7 @@ def Init(teardown: bool = false)
   logger.Info("-----------------------------------")
 
   variable_explorer.Init()
+
 enddef
 
 def ResizeConsoleWindow(console_win_id: number)
@@ -118,7 +125,6 @@ def ConsoleOpen()
       # Send scripts to enable __vim_inspect() to the repl
       variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
 
-      echo $'{b:console_name} console opening...'
 
       logger.Info($'start_cmd: {start_cmd}')
       logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
@@ -191,8 +197,6 @@ export def ConsoleShutoff()
     echo $"Console {console_name} shutoff."
     logger.Info($"Console {console_name} shutoff.")
 
-    # Reset script variables
-    Init(true)
   endif
 enddef
 
@@ -251,9 +255,9 @@ export def SendCell()
       # Jump to the next cell
       cursor(line_out, getcurpos()[2])
       # Overwrite tmp file
-      writefile(getline(line_in, line_out), g:replica_tmp_filename)
+      writefile(getline(line_in, line_out), g:replica_tmp_filepath)
       term_sendkeys(bufnr($'^{b:console_name}$'),
-            $"{b:run_command(g:replica_tmp_filename)}\n")
+            $"{b:run_command(g:replica_tmp_filepath)}\n")
 
       logger.Info($"sent cell: {string(getline(line_in, line_out))}")
     endif
@@ -274,14 +278,14 @@ export def SendFile(filename: string = '')
     else
       # Write tmp file
       if empty(filename)
-        writefile(getline(1, '$'), g:replica_tmp_filename)
+        writefile(getline(1, '$'), g:replica_tmp_filepath)
         logger.Info('sent: current buffer')
       else
-        writefile(readfile(filename), g:replica_tmp_filename)
+        writefile(readfile(filename), g:replica_tmp_filepath)
         logger.Info($"sent file: '{filename}'")
       endif
       term_sendkeys(bufnr($'^{b:console_name}$'),
-                   $"{b:run_command(g:replica_tmp_filename)}\n")
+                   $"{b:run_command(g:replica_tmp_filepath)}\n")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")
