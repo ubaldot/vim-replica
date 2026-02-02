@@ -42,16 +42,17 @@ endif
 # File used for SendCell() & friends
 g:replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
 
+# --- logger setup -----
+
 # File used for logging
 g:replica_log_filepath = $'{data_dir}/vim_replica.log'
 
-# --- logger setup -----
-if !exists('g:replica_debug')
-  g:replica_debug = false
-endif
-
 if !exists('g:replica_log_max_size')
    g:replica_log_max_size = 1024 * 1024 # 1 MB
+endif
+
+if !exists('g:replica_debug')
+  g:replica_debug = false
 endif
 
 if g:replica_debug
@@ -89,15 +90,6 @@ if !exists('g:replica_console_height')
   else
     g:replica_console_height = &lines / 4
   endif
-endif
-
-if !exists('g:replica_repl_options')
-  g:replica_repl_options = {
-    python: "",
-    julia: "",
-    sh: "",
-    zsh: ""
-  }
 endif
 
 # Dicts. Keys must be Vim filetypes
@@ -242,6 +234,8 @@ def InitBuffers()
   b:repl_init_script = g:replica_repl_init_scripts[&filetype]
 
   # Functions to poll variable_explorer data from the repl
+  # Consider to make another two dictionaries as the number of languages
+  # increases
   if index(['zsh'], &filetype) != -1
     # Functions in zsh, bash, etc. are called without parenthesis,
     # e.g. __vim_whos instead of __vim_whos()

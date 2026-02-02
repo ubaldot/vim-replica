@@ -84,6 +84,8 @@ export enum On_Msg_Received
 
     logger.Info('displaying variable')
 
+    echom "decoded_value: " .. string(decoded_value)
+
     if bufexists(variable_to_inspect)
       logger.Info("reusing existing vertical split")
       var buf = bufnr(variable_to_inspect)
@@ -189,7 +191,10 @@ export enum On_Msg_Received
     if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
 
       logger.Info($'decoding one-line payload')
+      echom "line_debounced: " .. string(line_debounced)
       var line_decoded = DecodeOneLinePayload(line_debounced)
+
+      echom "line_decoded prev: " .. string(line_decoded)
 
       logger.Info($'on_msg_received: {on_msg_received.name}')
       if on_msg_received == On_Msg_Received.DisplayVariable

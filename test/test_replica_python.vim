@@ -302,7 +302,8 @@ def g:Test_variable_explorer_basic()
   # -- Test np.ndarray
   expected_variable_explorer = [
     "1\t2\t3",
-    "4\t5\t6"
+    "4\t5\t6",
+    ""
   ]
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
@@ -318,7 +319,7 @@ def g:Test_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Test np.ndarray slice
-  expected_variable_explorer = ["1\t2\t3"]
+  expected_variable_explorer = ["1\t2\t3", ""]
 
   buf_name = 'A[0, :]'
   exe $"ReplicaInspect {buf_name}"
@@ -337,6 +338,7 @@ def g:Test_variable_explorer_basic()
       a  b  c
 row1  1  2  3
 row2  4  5  6
+
 END
 
   buf_name = 'df'
@@ -356,6 +358,7 @@ END
   expected_variable_explorer =<< END
 row1    1
 row2    4
+
 END
   buf_name = "df['a']"
   exe $"ReplicaInspect {buf_name}"
