@@ -268,7 +268,7 @@ def g:Test_variable_explorer_basic()
   exe "ReplicaSendFile"
 
   # -- Test float
-  var expected_variable_explorer = ['110']
+  var expected_variable_explorer = ['110', '']
   var buf_name = 'a'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
