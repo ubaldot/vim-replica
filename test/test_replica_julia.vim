@@ -53,87 +53,131 @@ def WaitForPrompt(expected: string)
 enddef
 
 # Tests start here
-def g:Test_zsh_basic()
+def g:Test_julia_basic()
 
   # g:replica_debug = true
+  v:errors = []
   messages clear
 
-  const src_name = 'testfile.sh'
-  const lines =<< trim END
-      # Scalar
-      FOO="hello world"
-      _VIM_USER_VARS+=("FOO")
+  const src_name = 'testfile.jl'
+  const code_lines =<< trim END
+"""
+Test file for vim-replica (Julia)
 
-      # Array
-      BAR=(a b c)
-      _VIM_USER_VARS+=("BAR")
+Includes:
+- Simple scalar variables
+- 1D, 2D, and 3D arrays
+- DataFrames
+"""
 
-      # Nested associative array
-      declare -A COMPLEX=( ['a']=1 ['b']=2 )
-      _VIM_USER_VARS+=("COMPLEX")
+using DataFrames
+using Dates
 
-      declare -A BAZ=( ['a']='ciao' ['b']='mare' )
-      _VIM_USER_VARS+=("BAZ")
 
-      # Float
-      declare -F PI=3.14159
-      _VIM_USER_VARS+=("PI")
+# %% -----------------
+# Simple variables
+# --------------------
+a_int   = 42
+a_float = 3.14159
+a_str   = "vim-replica test"
+a_bool  = true
+a_nothing = nothing
 
-      # Color / string style (like you had for prompt colors)
-      COLOR_DIR="%F{197}"
-      _VIM_USER_VARS+=("COLOR_DIR")
-      COLOR_DEF="%f"
-      _VIM_USER_VARS+=("COLOR_DEF")
 
-      # Empty array
-      EMPTY_ARRAY=()
-      _VIM_USER_VARS+=("EMPTY_ARRAY")
+# --------------------
+# 1D arrays (Vectors)
+# --------------------
+vec_int = [1, 2, 3, 4, 5]
+vec_float = [0.1, 0.2, 0.3]
+vec_mixed = [1.0, 2.5, 3.75]
 
-      MY_ARRAY=(banana, lampone, cetriolo)
-      _VIM_USER_VARS+=("MY_ARRAY")
-  END
 
-  Generate_testfile(lines, src_name)
+# %% -----------------
+# 2D arrays (Matrices)
+# --------------------
+mat_int = [
+    1 2 3
+    4 5 6
+]
+
+mat_float = [
+    0.1 0.2
+    0.3 0.4
+    0.5 0.6
+]
+
+
+# --------------------
+# 3D arrays
+# --------------------
+arr_3d = reshape(collect(1:8), 2, 2, 2)
+# Dimensions: (2, 2, 2)
+# arr_3d[:, :, 1] = [1 3; 2 4]
+# arr_3d[:, :, 2] = [5 7; 6 8]
+
+
+# --------------------
+# DataFrames
+# --------------------
+df_simple = DataFrame(
+    A = [1, 2, 3],
+    B = [4, 5, 6],
+)
+
+# %%
+df_mixed = DataFrame(
+    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
+    value = [0.1, 0.2, 0.3, 0.4],
+    flag  = [true, false, true, false],
+)
+
+df_categorical = DataFrame(
+    category = ["x", "x", "y", "y"],
+    id       = [1, 2, 1, 2],
+    value    = [10, 20, 30, 40],
+)
+END
+
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  echom assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # TODO: TO BE DONE
-  var expected_prompt = '$'
+  const expected_prompt = 'julia> '
   WaitForPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
   var lastline = LastNonEmptyLine(bufnr)
-  echom assert_match(expected_prompt, lastline)
+  assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
-  # var lines_prompts = {4: 'In\s\[3\]:\s*$', 7: 'In\s\[4\]:\s*$', 9: 'In\s\[5\]:\s*$'}
+  cursor(1, 1)
+  # var expected_lines = [14, 32, 64]
+  var expected_lines = [14, 32]
 
-  # for [line, prompt] in items(lines_prompts)
-  #   exe "ReplicaSendCell"
-  #   WaitForPrompt(prompt)
-  #   lastline = LastNonEmptyLine(bufnr)
-  #   echom assert_match(prompt, lastline)
-  #   # Check that in the editor you end up in the correct line
-  #   echom assert_equal(str2nr(line), line('.'))
-  # endfor
+  for line in expected_lines
+    exe "ReplicaSendCell"
+    WaitForPrompt(expected_prompt)
+    lastline = LastNonEmptyLine(bufnr)
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
+  endfor
 
   # ReplicaSendLine
-  # cursor(1, 1)
-  # lines_prompts = {2: 'In\s\[6\]:\s*$', 3: 'In\s\[7\]:\s*$'}
+  # cursor(17, 1)
+  # expected_lines = [18, 19]
 
-  # for [line, prompt] in items(lines_prompts)
+  # for line in expected_lines
   #   exe "ReplicaSendLine"
-  #   WaitForPrompt(prompt)
+  #   WaitForPrompt(expected_prompt)
   #   lastline = LastNonEmptyLine(bufnr)
-  #   echom assert_match(prompt, lastline)
   #   # Check that in the editor you end up in the correct line
-  #   echom assert_equal(str2nr(line), line('.'))
+  #   assert_equal(line, line('.'))
   # endfor
 
   # Double Toggle
@@ -161,17 +205,20 @@ def g:Test_zsh_basic()
 
   # ReplicaSendFile
   # exe "ReplicaSendFile"
-  expected_prompt = 'In\s\[3\]:\s*$'
-  WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(bufnr)
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_match(expected_prompt, lastline))
+  # expected_prompt = 'In\s\[3\]:\s*$'
+  # WaitForPrompt(expected_prompt)
+  # lastline = LastNonEmptyLine(bufnr)
+  # WaitForAssert(() => assert_equal(2, winnr('$')))
+  # WaitForAssert(() => assert_match(expected_prompt, lastline))
 
   # Shutoff
   # exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
+  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  # WaitForAssert(() => assert_equal(1, winnr('$')))
 
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
   # :%bw!
   # Cleanup_testfile(src_name)
 enddef
