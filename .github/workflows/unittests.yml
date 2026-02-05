@@ -12,6 +12,9 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+      - name: Setup Lulia
+      - uses: julia-actions/setup-julia@v2
+
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
         with:
@@ -19,7 +22,6 @@ jobs:
 
       - name: Install python packages
         run: |
-          pip install jupyter_console
           pip install numpy
           pip install pandas
 
@@ -58,7 +60,6 @@ jobs:
 
       - name: Install python packages
         run: |
-          pip install jupyter_console
           pip install numpy
           pip install pandas
 

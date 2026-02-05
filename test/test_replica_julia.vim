@@ -52,6 +52,28 @@ def WaitForPrompt(expected: string)
   throw $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
 enddef
 
+def WaitForJuliaSymbol(symbol: string)
+  const buf_nr = term_list()[0]
+  const marker = '__VIM_REPLICA_READY__:'
+  const max_count = 40
+  var counter = 0
+  var line = ''
+
+  while counter < max_count
+    term_sendkeys(
+      buf_nr,
+      $"println(\"{marker}\", isdefined(Main, :{symbol}))\n"
+    )
+    sleep 100m
+    line = LastNonEmptyLine(buf_nr)
+    if line ==# $"{marker}true"
+      return
+    endif
+    counter += 1
+  endwhile
+
+  throw $"Julia symbol not ready: {symbol}"
+enddef
 # Tests start here
 def g:Test_julia_basic()
 
@@ -158,77 +180,76 @@ END
   # ReplicaSendCell
   cursor(1, 1)
   # var expected_lines = [14, 32, 64]
-  var expected_lines = [14, 32]
+  var expected_lines = [14, 32, 64]
 
   for line in expected_lines
     exe "ReplicaSendCell"
     WaitForPrompt(expected_prompt)
+    WaitForJuliaSymbol("DataFrame")
     lastline = LastNonEmptyLine(bufnr)
     # Check that in the editor you end up in the correct line
     assert_equal(line, line('.'))
   endfor
 
   # ReplicaSendLine
-  # cursor(17, 1)
-  # expected_lines = [18, 19]
+  cursor(17, 1)
+  expected_lines = [18, 19]
 
-  # for line in expected_lines
-  #   exe "ReplicaSendLine"
-  #   WaitForPrompt(expected_prompt)
-  #   lastline = LastNonEmptyLine(bufnr)
-  #   # Check that in the editor you end up in the correct line
-  #   assert_equal(line, line('.'))
-  # endfor
+  for line in expected_lines
+    exe "ReplicaSendLine"
+    WaitForPrompt(expected_prompt)
+    lastline = LastNonEmptyLine(bufnr)
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
+  endfor
 
   # Double Toggle
-  # expected_prompt = 'In\s\[7\]:\s*$'
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+  WaitForAssert(() => assert_true(bufexists('JULIA')))
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+  WaitForAssert(() => assert_true(bufexists('JULIA')))
 
   # Remove cells
-  # exe "ReplicaRemoveCells"
-  # WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
+  exe "ReplicaRemoveCells"
+  WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
   # Restart repl
-  # exe "ReplicaConsoleRestart"
-  # expected_prompt = 'In\s\[2\]:\s*$'
-  # WaitForPrompt(expected_prompt)
-  # bufnr = term_list()[0]
-  # lastline = LastNonEmptyLine(bufnr)
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_match(expected_prompt, lastline))
+  exe "ReplicaConsoleRestart"
+  WaitForPrompt(expected_prompt)
+  bufnr = term_list()[0]
+  lastline = LastNonEmptyLine(bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
   # ReplicaSendFile
-  # exe "ReplicaSendFile"
-  # expected_prompt = 'In\s\[3\]:\s*$'
-  # WaitForPrompt(expected_prompt)
-  # lastline = LastNonEmptyLine(bufnr)
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_match(expected_prompt, lastline))
+  exe "ReplicaSendFile"
+  WaitForPrompt(expected_prompt)
+  lastline = LastNonEmptyLine(bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
   # Shutoff
-  # exe "ReplicaConsoleShutoff"
-  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('JULIA')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors)
     echoerr "Test failed!"
   endif
-  # :%bw!
-  # Cleanup_testfile(src_name)
+
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
 
 
 def g:Test_variable_explorer_basic()
   messages clear
 
-  const src_name = 'testfile.sh'
-  const lines =<< trim END
+  const src_name = 'testfile.jl'
+  const code_lines =<< trim END
       # Scalar
       FOO="hello world"
       _VIM_USER_VARS+=("FOO")
@@ -262,7 +283,7 @@ def g:Test_variable_explorer_basic()
       _VIM_USER_VARS+=("MY_ARRAY")
   END
 
-  Generate_testfile(lines, src_name)
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
