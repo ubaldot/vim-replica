@@ -19,203 +19,349 @@ def Cleanup_testfile(src_name: string)
   delete(src_name)
 enddef
 
-# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
-# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
-# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
-def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, 1, '$')
-  for ii in range(len(lines) - 1, 0, -1)
-    if trim(lines[ii]) !=# ''
-      return lines[ii]
-    endif
-  endfor
-  return ''
-enddef
-
-def WaitForPrompt(expected: string)
+def WaitForPrompt(expected_prompt: string)
   const buf_nr = term_list()[0]
   var counter = 0
-  const max_count = 50 * 2  # 20*(2*50ms) = 20 seconds max
+  const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
   var line = ''
 
   while counter < max_count
     line = LastNonEmptyLine(buf_nr)
-    if line =~# expected
+    if line =~# expected_prompt
       # Expected prompt appeared, return immediately
-      return
+      break
     endif
     sleep 50m
     counter += 1
   endwhile
 
   # Timeout reached, fail with actual last line
-  throw $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
+  if counter == max_count
+    throw $"Prompt not found: {expected_prompt}, got: {line} after waiting {counter * 50} ms"
+  endif
+enddef
+
+# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
+# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
+# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
+def LastNonEmptyLine(buf_nr: number): string
+  var lines = getbufline(buf_nr, 1, '$')
+  for l in reverse(lines)
+    if trim(l) !=# ''
+      return l
+    endif
+  endfor
+  return ''
+enddef
+
+def IsSymbolFound(buf_nr: number, symbol: string): bool
+  # Found a symbol in a chunk of lines, e.g.  in
+  #
+  #   julia> foo bar
+  #   symbol
+  #
+  #   julia>
+  #
+  var lines = getbufline(buf_nr, 1, '$')
+  return index(lines, symbol) != -1 ? true : false
+enddef
+
+def WaitForJuliaSymbol(symbol: string)
+  # The symbol is not necessarily the last line, because you are not reading
+  # the buffer continuously, but every N seconds. Hence, in N seconds you can
+  # have the following situation in the repl:
+  #
+  #   julia> foo bar
+  #   pippo
+  #
+  #   julia>
+  #
+  # If now you read the last line, it is 'julia>'.
+  #
+  # The last line is generally the prompt.
+  const buf_nr = term_list()[0]
+  const marker = '__VIM_REPLICA_READY__'
+  const max_count = 20
+  var counter = 0
+  var line = ''
+
+  while counter < max_count
+    term_sendkeys(
+      buf_nr,
+      $"println(\"{marker}:\", isdefined(Main, :{symbol}))\n"
+    )
+    sleep 200m
+    redraw!
+
+    if IsSymbolFound(buf_nr, $"{marker}:true")
+      break
+    endif
+
+    counter += 1
+  endwhile
+
+  if counter == max_count
+    throw $"Julia symbol not ready: {symbol}"
+  endif
 enddef
 
 # Tests start here
-def g:Test_zsh_basic()
+def g:Test_julia_basic()
 
-  # g:replica_debug = true
+  if exepath('julia')->empty()
+    throw "Skipped: 'julia' executable is not found in $PATH"
+  endif
+
+  v:errors = []
   messages clear
 
-  const src_name = 'testfile.sh'
-  const lines =<< trim END
-      # Scalar
-      FOO="hello world"
-      _VIM_USER_VARS+=("FOO")
+  const src_name = 'testfile.jl'
+  const code_lines =<< trim END
+"""
+Test file for vim-replica (Julia)
 
-      # Array
-      BAR=(a b c)
-      _VIM_USER_VARS+=("BAR")
+Includes:
+- Simple scalar variables
+- 1D, 2D, and 3D arrays
+- DataFrames
+"""
 
-      # Nested associative array
-      declare -A COMPLEX=( ['a']=1 ['b']=2 )
-      _VIM_USER_VARS+=("COMPLEX")
+using DataFrames
+using Dates
 
-      declare -A BAZ=( ['a']='ciao' ['b']='mare' )
-      _VIM_USER_VARS+=("BAZ")
 
-      # Float
-      declare -F PI=3.14159
-      _VIM_USER_VARS+=("PI")
+# %% -----------------
+# Simple variables
+# --------------------
+a_int   = 42
+a_float = 3.14159
+a_str   = "vim-replica test"
+a_bool  = true
+a_nothing = nothing
 
-      # Color / string style (like you had for prompt colors)
-      COLOR_DIR="%F{197}"
-      _VIM_USER_VARS+=("COLOR_DIR")
-      COLOR_DEF="%f"
-      _VIM_USER_VARS+=("COLOR_DEF")
 
-      # Empty array
-      EMPTY_ARRAY=()
-      _VIM_USER_VARS+=("EMPTY_ARRAY")
+# --------------------
+# 1D arrays (Vectors)
+# --------------------
+vec_int = [1, 2, 3, 4, 5]
+vec_float = [0.1, 0.2, 0.3]
+vec_mixed = [1.0, 2.5, 3.75]
 
-      MY_ARRAY=(banana, lampone, cetriolo)
-      _VIM_USER_VARS+=("MY_ARRAY")
-  END
 
-  Generate_testfile(lines, src_name)
+# %% -----------------
+# 2D arrays (Matrices)
+# --------------------
+mat_int = [
+    1 2 3
+    4 5 6
+]
+
+mat_float = [
+    0.1 0.2
+    0.3 0.4
+    0.5 0.6
+]
+
+
+# --------------------
+# 3D arrays
+# --------------------
+arr_3d = reshape(collect(1:8), 2, 2, 2)
+# Dimensions: (2, 2, 2)
+# arr_3d[:, :, 1] = [1 3; 2 4]
+# arr_3d[:, :, 2] = [5 7; 6 8]
+
+
+# --------------------
+# DataFrames
+# --------------------
+df_simple = DataFrame(
+    A = [1, 2, 3],
+    B = [4, 5, 6],
+)
+
+# %%
+df_mixed = DataFrame(
+    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
+    value = [0.1, 0.2, 0.3, 0.4],
+    flag  = [true, false, true, false],
+)
+
+df_categorical = DataFrame(
+    category = ["x", "x", "y", "y"],
+    id       = [1, 2, 1, 2],
+    value    = [10, 20, 30, 40],
+)
+END
+
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  echom assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # TODO: TO BE DONE
-  var expected_prompt = '$'
+  const expected_prompt = 'julia> '
   WaitForPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
   var lastline = LastNonEmptyLine(bufnr)
-  echom assert_match(expected_prompt, lastline)
+  assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
-  # var lines_prompts = {4: 'In\s\[3\]:\s*$', 7: 'In\s\[4\]:\s*$', 9: 'In\s\[5\]:\s*$'}
+  cursor(1, 1)
+  var expected_lines = [14, 32, 64]
 
-  # for [line, prompt] in items(lines_prompts)
-  #   exe "ReplicaSendCell"
-  #   WaitForPrompt(prompt)
-  #   lastline = LastNonEmptyLine(bufnr)
-  #   echom assert_match(prompt, lastline)
-  #   # Check that in the editor you end up in the correct line
-  #   echom assert_equal(str2nr(line), line('.'))
-  # endfor
+  for line in expected_lines
+    exe "ReplicaSendCell"
+    WaitForPrompt(expected_prompt)
+    WaitForJuliaSymbol("DataFrame")
+    lastline = LastNonEmptyLine(bufnr)
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
+  endfor
 
   # ReplicaSendLine
-  # cursor(1, 1)
-  # lines_prompts = {2: 'In\s\[6\]:\s*$', 3: 'In\s\[7\]:\s*$'}
+  cursor(17, 1)
+  expected_lines = [18, 19]
 
-  # for [line, prompt] in items(lines_prompts)
-  #   exe "ReplicaSendLine"
-  #   WaitForPrompt(prompt)
-  #   lastline = LastNonEmptyLine(bufnr)
-  #   echom assert_match(prompt, lastline)
-  #   # Check that in the editor you end up in the correct line
-  #   echom assert_equal(str2nr(line), line('.'))
-  # endfor
+  for line in expected_lines
+    exe "ReplicaSendLine"
+    WaitForPrompt(expected_prompt)
+    lastline = LastNonEmptyLine(bufnr)
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
+  endfor
 
   # Double Toggle
-  # expected_prompt = 'In\s\[7\]:\s*$'
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+  WaitForAssert(() => assert_true(bufexists('JULIA')))
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+  WaitForAssert(() => assert_true(bufexists('JULIA')))
 
   # Remove cells
-  # exe "ReplicaRemoveCells"
-  # WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
+  exe "ReplicaRemoveCells"
+  WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.python, 'cnw'), 0))
 
   # Restart repl
-  # exe "ReplicaConsoleRestart"
-  # expected_prompt = 'In\s\[2\]:\s*$'
-  # WaitForPrompt(expected_prompt)
-  # bufnr = term_list()[0]
-  # lastline = LastNonEmptyLine(bufnr)
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_match(expected_prompt, lastline))
+  exe "ReplicaConsoleRestart"
+  WaitForPrompt(expected_prompt)
+  bufnr = term_list()[0]
+  lastline = LastNonEmptyLine(bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
   # ReplicaSendFile
-  # exe "ReplicaSendFile"
-  expected_prompt = 'In\s\[3\]:\s*$'
+  exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
   # Shutoff
-  # exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('JULIA')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
 
   # :%bw!
   # Cleanup_testfile(src_name)
 enddef
 
 
-def g:Test_variable_explorer_basic()
+def g:Test_julia_variable_explorer_basic()
   messages clear
+  v:errors = []
 
-  const src_name = 'testfile.sh'
-  const lines =<< trim END
-      # Scalar
-      FOO="hello world"
-      _VIM_USER_VARS+=("FOO")
+  const src_name = 'testfile.jl'
+  const code_lines =<< trim END
+"""
+Test file for vim-replica (Julia)
 
-      # Array
-      BAR=(a b c)
-      _VIM_USER_VARS+=("BAR")
+Includes:
+- Simple scalar variables
+- 1D, 2D, and 3D arrays
+- DataFrames
+"""
 
-      # Nested associative array
-      declare -A COMPLEX=( ['a']=1 ['b']=2 )
-      _VIM_USER_VARS+=("COMPLEX")
+using DataFrames
+using Dates
 
-      declare -A BAZ=( ['a']='ciao' ['b']='mare' )
-      _VIM_USER_VARS+=("BAZ")
 
-      # Float
-      declare -F PI=3.14159
-      _VIM_USER_VARS+=("PI")
+# %% -----------------
+# Simple variables
+# --------------------
+a_int   = 42
+a_float = 3.14159
+a_str   = "vim-replica test"
+a_bool  = true
+a_nothing = nothing
 
-      # Color / string style (like you had for prompt colors)
-      COLOR_DIR="%F{197}"
-      _VIM_USER_VARS+=("COLOR_DIR")
-      COLOR_DEF="%f"
-      _VIM_USER_VARS+=("COLOR_DEF")
 
-      # Empty array
-      EMPTY_ARRAY=()
-      _VIM_USER_VARS+=("EMPTY_ARRAY")
+# --------------------
+# 1D arrays (Vectors)
+# --------------------
+vec_int = [1, 2, 3, 4, 5]
+vec_float = [0.1, 0.2, 0.3]
+vec_mixed = [1.0, 2.5, 3.75]
 
-      MY_ARRAY=(banana, lampone, cetriolo)
-      _VIM_USER_VARS+=("MY_ARRAY")
-  END
 
-  Generate_testfile(lines, src_name)
+# %% -----------------
+# 2D arrays (Matrices)
+# --------------------
+mat_int = [
+    1 2 3
+    4 5 6
+]
+
+mat_float = [
+    0.1 0.2
+    0.3 0.4
+    0.5 0.6
+]
+
+
+# --------------------
+# 3D arrays
+# --------------------
+arr_3d = reshape(collect(1:8), 2, 2, 2)
+# Dimensions: (2, 2, 2)
+# arr_3d[:, :, 1] = [1 3; 2 4]
+# arr_3d[:, :, 2] = [5 7; 6 8]
+
+
+# --------------------
+# DataFrames
+# --------------------
+df_simple = DataFrame(
+    A = [1, 2, 3],
+    B = [4, 5, 6],
+)
+
+# %%
+df_mixed = DataFrame(
+    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
+    value = [0.1, 0.2, 0.3, 0.4],
+    flag  = [true, false, true, false],
+)
+
+df_categorical = DataFrame(
+    category = ["x", "x", "y", "y"],
+    id       = [1, 2, 1, 2],
+    value    = [10, 20, 30, 40],
+)
+END
+
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
@@ -228,7 +374,7 @@ def g:Test_variable_explorer_basic()
   var bufnr = term_list()[0]
   var term_cursor_pos = term_getcursor(bufnr)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = 'In\s\[2\]:\s*$'
+  var expected_prompt = 'julia>\s$'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)
@@ -236,17 +382,19 @@ def g:Test_variable_explorer_basic()
 
   # Send current buffer
   exe "ReplicaSendFile"
+  WaitForPrompt(expected_prompt)
+  WaitForJuliaSymbol("DataFrame")
 
   # -- Test float
-  var expected_variable_explorer = ['110']
-  var buf_name = 'a'
+  var expected_variable_explorer = ['42', '']
+  var buf_name = 'a_int'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -269,83 +417,118 @@ def g:Test_variable_explorer_basic()
   # exe "norm \<esc>"
   # WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test np.ndarray
+  # -- Test array
   expected_variable_explorer = [
     "1\t2\t3",
-    "4\t5\t6"
+    "4\t5\t6",
+    ""
   ]
-  buf_name = 'A'
+  buf_name = 'mat_int'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # Test np.ndarray slice
-  expected_variable_explorer = ["1\t2\t3"]
+#   # -- Test array slice
+  expected_variable_explorer = ["1\t2\t3", ""]
 
-  buf_name = 'A[0, :]'
-  exe $"ReplicaInspect {buf_name}"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
-
-  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
-
-  # Test <esc> mapping
-  exe "norm \<esc>"
-  echom WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  # -- Test pd.DataFrame
-  expected_variable_explorer =<< END
-      a  b  c
-row1  1  2  3
-row2  4  5  6
-END
-
-  buf_name = 'df'
+  buf_name = 'mat_int[1, :]'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test pd.DataFrame slice (= pd.Series)
-  expected_variable_explorer =<< END
-row1    1
-row2    4
+#   # --- Test 3D array
+  expected_variable_explorer =<< trim END
+1	3
+2	4
+
+5	7
+6	8
+
 END
-  buf_name = "df['a']"
+  redraw
+  buf_name = 'arr_3d'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+#   # -- Test DataFrame
+  expected_variable_explorer =<< END
+4×3 DataFrame
+ Row │ time        value    flag
+     │ Date        Float64  Bool
+─────┼────────────────────────────
+   1 │ 2024-01-01      0.1   true
+   2 │ 2024-01-02      0.2  false
+   3 │ 2024-01-03      0.3   true
+   4 │ 2024-01-04      0.4  false
+
+END
+
+  buf_name = 'df_mixed'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # -- Test DataFrame slice
+  expected_variable_explorer =<< END
+true	false	true	false
+
+END
+
+  buf_name = "df_mixed.flag"
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Shutoff
-  wincmd p
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_false(bufexists('JULIA')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef
