@@ -6,7 +6,7 @@ vim9script
 # OBS! Sometimes these tests fail!
 
 # Uncomment for debug
-# import "../plugin/replica.vim"
+import "../plugin/replica.vim"
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert

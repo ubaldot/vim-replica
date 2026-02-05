@@ -30,8 +30,7 @@ echo "filetype plugin on" >> "$VIMRC"
 VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
 
 # Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
-# TESTS="test_replica_python.vim test_replica_julia.vim"
-TESTS="test_replica_python.vim"
+TESTS="test_replica_python.vim test_replica_julia.vim"
 
 RunTestsInFile() {
   testfile=$1

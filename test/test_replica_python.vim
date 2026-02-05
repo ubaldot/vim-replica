@@ -165,239 +165,239 @@ def g:Test_python_basic()
   Cleanup_testfile(src_name)
 enddef
 
-# def g:Test_unsupported_filetypes()
-#   # Test switching buffers of supported and unsupprted filetypes
-#   v:errors = []
-#   messages clear
+def g:Test_unsupported_filetypes()
+  # Test switching buffers of supported and unsupprted filetypes
+  v:errors = []
+  messages clear
 
-#   # Generate text file
-#   const text_filename = 'text_testfile.txt'
-#   const text_file_lines =<< trim END
-#       This is nothing, but just a simple text file used
-#       for the purpose of testing this plugin.
+  # Generate text file
+  const text_filename = 'text_testfile.txt'
+  const text_file_lines =<< trim END
+      This is nothing, but just a simple text file used
+      for the purpose of testing this plugin.
 
-#       Nothing more than that.
-#       Bye.
-#   END
+      Nothing more than that.
+      Bye.
+  END
 
-#   Generate_testfile(text_file_lines, text_filename)
-#   exe $"edit {text_filename}"
+  Generate_testfile(text_file_lines, text_filename)
+  exe $"edit {text_filename}"
 
-#   # Start console and fail, since 'text' filetype is not supported
-#   assert_fails('ReplicaConsoleToggle', 'E492:')
-#   # Check that the buffer variables are not set
-#   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
-#   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
+  # Start console and fail, since 'text' filetype is not supported
+  assert_fails('ReplicaConsoleToggle', 'E492:')
+  # Check that the buffer variables are not set
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
-#   # Generate python file
-#   const python_filename = 'python_testfile.py'
-#   const python_file_lines =<< trim END
-#       a = 2
-#       b = 3
+  # Generate python file
+  const python_filename = 'python_testfile.py'
+  const python_file_lines =<< trim END
+      a = 2
+      b = 3
 
-#       c = a + b
-#   END
+      c = a + b
+  END
 
-#   Generate_testfile(python_file_lines, python_filename)
+  Generate_testfile(python_file_lines, python_filename)
 
-#   # Edit python file
-#   exe $"edit {python_filename}"
+  # Edit python file
+  exe $"edit {python_filename}"
 
-#   # Check that the buffer variables are set
-#   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
-#   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+  # Check that the buffer variables are set
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
 
-#   # Start console
-#   exe "ReplicaConsoleToggle"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
-#   WaitForPrompt('In\s\[2\]:\s*$')
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForPrompt('In\s\[2\]:\s*$')
 
-#   # switch buffer: python -> text
-#   exe $"b {bufnr(text_filename)}"
+  # switch buffer: python -> text
+  exe $"b {bufnr(text_filename)}"
 
-#   # Start console and fail, since 'text' filetype is not supported
-#   assert_fails('ReplicaConsoleToggle', 'E492:')
-#   # Check that the buffer variables are not set
-#   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
-#   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
+  # Start console and fail, since 'text' filetype is not supported
+  assert_fails('ReplicaConsoleToggle', 'E492:')
+  # Check that the buffer variables are not set
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
-#   # switch buffer: text -> python
-#   exe $"b {bufnr(python_filename)}"
+  # switch buffer: text -> python
+  exe $"b {bufnr(python_filename)}"
 
-#   # # Check that the buffer variables are set
-#   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
-#   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
-#   # Close console
-#   exe "ReplicaConsoleToggle"
-#   WaitForAssert(() => assert_equal(1, winnr('$')))
+  # # Check that the buffer variables are set
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+  # Close console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
-#   exe "ReplicaConsoleShutoff"
+  exe "ReplicaConsoleShutoff"
 
-#   if !empty(v:errors)
-#     echoerr "Test failed!"
-#   endif
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
 
-#   :%bw!
-#   Cleanup_testfile(python_filename)
-#   Cleanup_testfile(text_filename)
-# enddef
+  :%bw!
+  Cleanup_testfile(python_filename)
+  Cleanup_testfile(text_filename)
+enddef
 
-# def g:Test_variable_explorer_basic()
-#   # g:replica_debug = true
-#   v:errors = []
-#   messages clear
+def g:Test_variable_explorer_basic()
+  # g:replica_debug = true
+  v:errors = []
+  messages clear
 
-#   const src_name = 'testfile.py'
-#   const lines =<< trim END
-#     import numpy as np
-#     import pandas as pd
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+    import numpy as np
+    import pandas as pd
 
-#     # Test single variable
-#     a = 110
+    # Test single variable
+    a = 110
 
-#     # Test numpy array
-#     A = np.array([[1, 2, 3], [4, 5, 6]])
+    # Test numpy array
+    A = np.array([[1, 2, 3], [4, 5, 6]])
 
-#     # Test pandas dataframe
-#     df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
-#   END
+    # Test pandas dataframe
+    df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
+  END
 
-#   Generate_testfile(lines, src_name)
-#   exe $"edit {src_name}"
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
 
-#   # Check that the buffer variables are set
-#   assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
-#   # Start console
-#   exe "ReplicaConsoleToggle"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   var bufnr = term_list()[0]
-#   var expected_prompt = 'In\s\[2\]:\s*$'
-#   WaitForPrompt(expected_prompt)
+  var bufnr = term_list()[0]
+  var expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
 
-#   var lastline = LastNonEmptyLine(bufnr)
-#   assert_match(expected_prompt, lastline)
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
 
-#   # Send current buffer
-#   exe "ReplicaSendFile"
+  # Send current buffer
+  exe "ReplicaSendFile"
 
-#   # -- Test float
-#   var expected_variable_explorer = ['110', '']
-#   var buf_name = 'a'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw
+  # -- Test float
+  var expected_variable_explorer = ['110', '']
+  var buf_name = 'a'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # --- test %whos
-#   #  TODO: test won't pass on Windows
-#   # OBS! The way %whos display variables, may change with the repl
-#   # versions, so you cannot really test it reliably. At most, you can check
-#   # that a split window happened
+  # --- test %whos
+  #  TODO: test won't pass on Windows
+  # OBS! The way %whos display variables, may change with the repl
+  # versions, so you cannot really test it reliably. At most, you can check
+  # that a split window happened
 
-#   # exe "ReplicaInspect"
-#   # WaitForAssert(() => assert_equal(3, winnr('$')))
-#   # redraw
+  # exe "ReplicaInspect"
+  # WaitForAssert(() => assert_equal(3, winnr('$')))
+  # redraw
 
-#   # buf_name = 'Workspace'
-#   # assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  # buf_name = 'Workspace'
+  # assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # # Test <esc> mapping
-#   # exe "norm \<esc>"
-#   # WaitForAssert(() => assert_equal(2, winnr('$')))
+  # # Test <esc> mapping
+  # exe "norm \<esc>"
+  # WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test np.ndarray
-#   expected_variable_explorer = [
-#     "1\t2\t3",
-#     "4\t5\t6",
-#     ""
-#   ]
-#   buf_name = 'A'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw
+  # -- Test np.ndarray
+  expected_variable_explorer = [
+    "1\t2\t3",
+    "4\t5\t6",
+    ""
+  ]
+  buf_name = 'A'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # Test np.ndarray slice
-#   expected_variable_explorer = ["1\t2\t3", ""]
+  # Test np.ndarray slice
+  expected_variable_explorer = ["1\t2\t3", ""]
 
-#   buf_name = 'A[0, :]'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
+  buf_name = 'A[0, :]'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test pd.DataFrame
-#   expected_variable_explorer =<< END
-#       a  b  c
-# row1  1  2  3
-# row2  4  5  6
+  # -- Test pd.DataFrame
+  expected_variable_explorer =<< END
+      a  b  c
+row1  1  2  3
+row2  4  5  6
 
-# END
+END
 
-#   buf_name = 'df'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw
+  buf_name = 'df'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test pd.DataFrame slice (= pd.Series)
-#   expected_variable_explorer =<< END
-# row1    1
-# row2    4
+  # -- Test pd.DataFrame slice (= pd.Series)
+  expected_variable_explorer =<< END
+row1    1
+row2    4
 
-# END
-#   buf_name = "df['a']"
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw
+END
+  buf_name = "df['a']"
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # Shutoff
-#   wincmd p
-#   exe "ReplicaConsoleShutoff"
-#   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-#   WaitForAssert(() => assert_equal(1, winnr('$')))
+  # Shutoff
+  wincmd p
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
-#   if !empty(v:errors)
-#     echoerr "Test failed!"
-#   endif
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
 
-#   :%bw!
-#   Cleanup_testfile(src_name)
-# enddef
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
