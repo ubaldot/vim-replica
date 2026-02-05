@@ -55,6 +55,9 @@ enddef
 
 # Tests start here
 def g:Test_python_basic()
+  # g:replica_debug = true
+  v:errors = []
+  messages clear
 
   if exepath('ipython')->empty()
     throw 'Skipped: repl_console is not found in $PATH'
@@ -91,7 +94,7 @@ def g:Test_python_basic()
 
   var bufnr = term_list()[0]
   var lastline = LastNonEmptyLine(bufnr)
-  echom assert_match(expected_prompt, lastline)
+  assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
   var lines_prompts = {4: 'In\s\[3\]:\s*$', 7: 'In\s\[4\]:\s*$', 9: 'In\s\[5\]:\s*$'}
@@ -100,9 +103,9 @@ def g:Test_python_basic()
     exe "ReplicaSendCell"
     WaitForPrompt(prompt)
     lastline = LastNonEmptyLine(bufnr)
-    echom assert_match(prompt, lastline)
+    assert_match(prompt, lastline)
     # Check that in the editor you end up in the correct line
-    echom assert_equal(str2nr(line), line('.'))
+    assert_equal(str2nr(line), line('.'))
   endfor
 
   # ReplicaSendLine
@@ -113,9 +116,9 @@ def g:Test_python_basic()
     exe "ReplicaSendLine"
     WaitForPrompt(prompt)
     lastline = LastNonEmptyLine(bufnr)
-    echom assert_match(prompt, lastline)
+    assert_match(prompt, lastline)
     # Check that in the editor you end up in the correct line
-    echom assert_equal(str2nr(line), line('.'))
+    assert_equal(str2nr(line), line('.'))
   endfor
 
   # Double Toggle
@@ -154,12 +157,18 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
+
   :%bw!
   Cleanup_testfile(src_name)
 enddef
 
 def g:Test_unsupported_filetypes()
   # Test switching buffers of supported and unsupprted filetypes
+  v:errors = []
+  messages clear
 
   # Generate text file
   const text_filename = 'text_testfile.txt'
@@ -175,7 +184,7 @@ def g:Test_unsupported_filetypes()
   exe $"edit {text_filename}"
 
   # Start console and fail, since 'text' filetype is not supported
-  echom assert_fails('ReplicaConsoleToggle', 'E492:')
+  assert_fails('ReplicaConsoleToggle', 'E492:')
   # Check that the buffer variables are not set
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
@@ -204,7 +213,7 @@ def g:Test_unsupported_filetypes()
   WaitForPrompt('In\s\[2\]:\s*$')
 
   # switch buffer: python -> text
-  exe "bnext"
+  exe $"b {bufnr(text_filename)}"
 
   # Start console and fail, since 'text' filetype is not supported
   assert_fails('ReplicaConsoleToggle', 'E492:')
@@ -213,9 +222,9 @@ def g:Test_unsupported_filetypes()
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
   # switch buffer: text -> python
-  exe "bnext"
+  exe $"b {bufnr(python_filename)}"
 
-  # Check that the buffer variables are set
+  # # Check that the buffer variables are set
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
   # Close console
@@ -224,12 +233,18 @@ def g:Test_unsupported_filetypes()
 
   exe "ReplicaConsoleShutoff"
 
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
+
   :%bw!
   Cleanup_testfile(python_filename)
   Cleanup_testfile(text_filename)
 enddef
 
 def g:Test_variable_explorer_basic()
+  # g:replica_debug = true
+  v:errors = []
   messages clear
 
   const src_name = 'testfile.py'
@@ -275,8 +290,8 @@ def g:Test_variable_explorer_basic()
   redraw
 
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -293,7 +308,7 @@ def g:Test_variable_explorer_basic()
   # redraw
 
   # buf_name = 'Workspace'
-  # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  # assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # # Test <esc> mapping
   # exe "norm \<esc>"
@@ -311,8 +326,8 @@ def g:Test_variable_explorer_basic()
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -326,12 +341,12 @@ def g:Test_variable_explorer_basic()
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
-  echom WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test pd.DataFrame
   expected_variable_explorer =<< END
@@ -347,8 +362,8 @@ END
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -366,8 +381,8 @@ END
   redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -378,6 +393,10 @@ END
   exe "ReplicaConsoleShutoff"
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  if !empty(v:errors)
+    echoerr "Test failed!"
+  endif
 
   :%bw!
   Cleanup_testfile(src_name)
