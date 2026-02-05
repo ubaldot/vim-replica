@@ -123,31 +123,30 @@ export enum On_Msg_Received
     return line_decoded
   enddef
 
-  def DecodeMultiLinePayload(line_debounced: string): list<string>
+def DecodeMultiLinePayload(line_debounced: string): list<string>
 
-    if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$'
-      # strip the prefix if the first line_debounced contains it
-      payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
-      collecting_payload = true
-    # Inside the payload block
-    elseif collecting_payload
-      # Check if this line_debounced ends the payload
-      if line_debounced =~# '__END__$'
-        payload_accum ..= line_debounced->substitute('__END__$', '', '')
-        # Decode final payload
-        var line_decoded = blob2str(base64_decode(payload_accum))
-        logger.Info("multi-line message successfully decoded")
-        # Reset all relevant script variables
-        payload_accum = ''
-        collecting_payload = false
-        return line_decoded
-      endif
-      # No end yet, accumulate:
-      payload_accum ..= line_debounced
+  if line_debounced =~# '^__VIM_PAYLOAD__'
+    payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
+    collecting_payload = true
+
+  elseif collecting_payload
+    payload_accum ..= line_debounced
+
+    if payload_accum =~# '__END__'
+      var payload_clean = payload_accum->substitute('__END__.*$', '', '')
+      payload_clean = payload_clean->substitute('_\s*', '', 'g')
+
+      var line_decoded = blob2str(base64_decode(payload_clean))
+      logger.Info('multi-line message successfully decoded')
+
+      payload_accum = ''
+      collecting_payload = false
+      return line_decoded
     endif
+  endif
 
-    return []
-  enddef
+  return []
+enddef
 
   def HandlePrompt(line_debounced: string)
     if line_debounced == last_prompt && incremental_prompt

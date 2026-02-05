@@ -466,62 +466,62 @@ END
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
-  # actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  # assert_equal(expected_variable_explorer, actual_variable_explorer)
-  # assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
 
-  # # Test <esc> mapping
-  # exe "norm \<esc>"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
 #   # -- Test DataFrame
-#   expected_variable_explorer =<< END
-# 4×3 DataFrame
-#  Row │ time        value    flag
-#      │ Date        Float64  Bool
-# ─────┼────────────────────────────
-#    1 │ 2024-01-01      0.1   true
-#    2 │ 2024-01-02      0.2  false
-#    3 │ 2024-01-03      0.3   true
-#    4 │ 2024-01-04      0.4  false
+  expected_variable_explorer =<< END
+4×3 DataFrame
+ Row │ time        value    flag
+     │ Date        Float64  Bool
+─────┼────────────────────────────
+   1 │ 2024-01-01      0.1   true
+   2 │ 2024-01-02      0.2  false
+   3 │ 2024-01-03      0.3   true
+   4 │ 2024-01-04      0.4  false
 
-# END
+END
 
-#   buf_name = 'df_mixed'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
+  buf_name = 'df_mixed'
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test DataFrame slice
-#   expected_variable_explorer =<< END
-# true	false	true	false
+  # -- Test DataFrame slice
+  expected_variable_explorer =<< END
+true	false	true	false
 
-# END
+END
 
-#   buf_name = "df_mixed.flag"
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw
+  buf_name = "df_mixed.flag"
+  exe $"ReplicaInspect {buf_name}"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # Shutoff
-#   exe "ReplicaConsoleShutoff"
-#   WaitForAssert(() => assert_false(bufexists('JULIA')))
-#   WaitForAssert(() => assert_equal(1, winnr('$')))
+  # Shutoff
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('JULIA')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors)
     echoerr "Test failed!"
