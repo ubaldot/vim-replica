@@ -6,7 +6,8 @@ SETLOCAL
 REM Define the paths and files
 SET "VIMPRG=vim.exe"
 SET "VIMRC=vimrc_for_tests"
-SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N --not-a-term"
+REM SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N --not-a-term"
+SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N"
 
 REM Create or overwrite the vimrc file with the initial setting
 echo set runtimepath+=.. > "%VIMRC%"
