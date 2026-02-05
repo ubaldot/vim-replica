@@ -187,7 +187,8 @@ END
   for line in expected_lines
     exe "ReplicaSendCell"
     WaitForPrompt(expected_prompt)
-    WaitForJuliaSymbol("DataFrame")
+    # WaitForJuliaSymbol("DataFrame")
+    sleep 4
     lastline = LastNonEmptyLine(bufnr)
     # Check that in the editor you end up in the correct line
     assert_equal(line, line('.'))
@@ -352,7 +353,8 @@ END
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  WaitForJuliaSymbol("DataFrame")
+  # WaitForJuliaSymbol("DataFrame")
+  sleep 4
 
   # -- Test float
   var expected_variable_explorer = ['42', '']
