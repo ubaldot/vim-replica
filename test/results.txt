@@ -1,2 +1,0 @@
-Test_julia_basic(): pass
-Test_julia_variable_explorer_basic(): pass

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Script to run the unit-tests for the vim-replica.vim
-# Copied and adapted from Vim LSP plugin
-
 GITHUB=1
 
 # No arguments passed, then no exit
@@ -22,54 +19,52 @@ fi
 # OBS: You can also run the following lines in the test file because it is
 # source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
-echo "set runtimepath+=.." > "$VIMRC"
-echo "filetype plugin on" >> "$VIMRC"
 
+echo "vim9script" > "$VIMRC"
+echo "">> "$VIMRC"
+echo "set runtimepath+=.." >> "$VIMRC"
+echo "filetype indent plugin on" >> "$VIMRC"
+
+# Display vimrc content
+echo "----- vimrc content ---------"
+cat $VIMRC
+echo ""
 # Construct the VIM_CMD with correct variable substitution and quoting
-# VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term"
 VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
 
-# Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
-TESTS="test_replica_python.vim test_replica_julia.vim"
+# Add test files here: OBS! <space> after ','
+TESTS_LIST="['test_replica_python.vim', \
+	'test_replica_julia.vim']"
 
-RunTestsInFile() {
-  testfile=$1
-  echo "Running tests in $testfile"
-  # If you want to see the output remove the & from the line below
-  eval $VIM_CMD " -c \"vim9cmd g:TestFiles = '$testfile'\" -S runner.vim"
+# All the tests are executed in the same Vim instance
+eval $VIM_CMD " -c \"vim9cmd g:TestFiles = $TESTS_LIST\" -S runner.vim"
 
-  if ! [ -f results.txt ]; then
-    echo "ERROR: Test results file 'results.txt' is not found."
-	if [ "$GITHUB" -eq 1 ]; then
-	   rm VIMRC
-	   exit 2
-	fi
-  fi
-
-  cat results.txt
-
-  if grep -qw FAIL results.txt; then
-    echo "ERROR: Some test(s) in $testfile failed."
-		if [ "$GITHUB" -eq 1 ]; then
-			exit 3
-		fi
-	else
-		echo "SUCCESS: All the tests in $testfile passed."
-		echo
-  fi
-}
-
-for testfile in $TESTS
-do
-  RunTestsInFile $testfile
-done
-
-echo "SUCCESS: All the tests passed."
-# UBA: uncomment the line below
-if [ "$GITHUB" -eq 1 ]; then
-  exit 0
+# Check that Vim started and that the runner did its job
+if [ $? -eq 0 ]; then
+    echo "Vim executed successfully.\n"
+else
+    echo "Vim execution failed with exit code $?.\n"
+		exit 1
 fi
 
-rm "$VIMRC"
+# Check the test results
+cat results.txt
+echo "-------------------------------"
+if grep -qw FAIL results.txt; then
+	echo "ERROR: Some test(s) failed."
+	echo
+	if [ "$GITHUB" -eq 1 ]; then
+		rm "$VIMRC"
+		rm results.txt
+		exit 3
+	fi
+else
+	echo "SUCCESS: All the tests  passed."
+	echo
+	rm "$VIMRC"
+	rm results.txt
+	exit 0
+fi
+
 # kill %- > /dev/null
 # vim: shiftwidth=2 softtabstop=2 noexpandtab
