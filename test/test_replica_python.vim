@@ -63,9 +63,6 @@ def g:Test_python_basic()
     throw "Skipped: 'ipython' is not found in $PATH"
   endif
 
-  g:replica_debug = true
-  messages clear
-
   const src_name = 'testfile.py'
   const lines =<< trim END
         a = 4
@@ -242,7 +239,7 @@ def g:Test_unsupported_filetypes()
   Cleanup_testfile(text_filename)
 enddef
 
-def g:Test_variable_explorer_basic()
+def g:Test_python_variable_explorer_basic()
   # g:replica_debug = true
   v:errors = []
   messages clear

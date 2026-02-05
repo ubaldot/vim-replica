@@ -463,8 +463,8 @@ END
 END
   buf_name = 'arr_3d'
   exe $"ReplicaInspect {buf_name}"
+  redraw!
   WaitForAssert(() => assert_equal(3, winnr('$')))
-  redraw
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
@@ -529,6 +529,6 @@ END
     echom "Test passed!"
   endif
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef
