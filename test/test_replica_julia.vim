@@ -273,8 +273,8 @@ END
     echoerr "Test failed!"
   endif
 
-  # :%bw!
-  # Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
 
 
@@ -529,6 +529,6 @@ END
     echom "Test passed!"
   endif
 
-  # :%bw!
-  # Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
