@@ -15,9 +15,12 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
 
-      - name: Precompile Julia packages
+      - name: Install Julia packages
         run: |
-          julia -e 'using DataFrames, PrettyTables'
+          julia -e '
+            using Pkg
+            Pkg.add(["DataFrames", "PrettyTables"])
+          '
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
@@ -61,9 +64,12 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
 
-      - name: Precompile Julia packages
+      - name: Install Julia packages
         run: |
-          julia -e 'using DataFrames, PrettyTables'
+          julia -e '
+            using Pkg
+            Pkg.add(["DataFrames", "PrettyTables"])
+          '
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
