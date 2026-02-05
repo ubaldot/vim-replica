@@ -81,7 +81,6 @@ def g:Test_julia_basic()
     throw "Skipped: 'julia' executable is not found in $PATH"
   endif
 
-  # g:replica_debug = true
   v:errors = []
   messages clear
 
@@ -183,7 +182,6 @@ END
 
   # ReplicaSendCell
   cursor(1, 1)
-  # var expected_lines = [14, 32, 64]
   var expected_lines = [14, 32, 64]
 
   for line in expected_lines
@@ -470,7 +468,7 @@ END
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test DataFrame slice
+  # -- Test DataFrame slice
   expected_variable_explorer =<< END
 true	false	true	false
 
