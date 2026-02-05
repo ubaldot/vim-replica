@@ -38,6 +38,7 @@ g:replica_log_level
 g:replica_log_max_size
 g:replica_log_filepath
 
+Limitation: repl at least 16 columns.
 # If you start dealing with extremely long payloads, consider splitting
 # payload in smaller chunks (modify init scripts)
 

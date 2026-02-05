@@ -123,7 +123,64 @@ export enum On_Msg_Received
     return line_decoded
   enddef
 
+# TODO: try this mechanism to be able to handle cases you receive
+# __VIM_PAYLOAD__ in multi-lines like the following:
+#
+# __VIM_P
+# AY
+# LOA
+# D_
+# _
+#
+# var buffer = ''
+# def FeedLine(line: string): list<string>
+#   var out: list<string> = []
+
+#   # Always append first
+#   buffer ..= line
+
+#   while true
+#     if !collecting
+#       # Look for START sentinel anywhere
+#       var s = buffer->match('__VIM_PAYLOAD__')
+#       if s < 0
+#         # Keep buffer bounded (optional safety)
+#         buffer = buffer[-50 :]
+#         break
+#       endif
+
+#       # Drop everything before START
+#       buffer = buffer[s + len('__VIM_PAYLOAD__') :]
+#       collecting = true
+#     else
+#       # Look for END sentinel
+#       var e = buffer->match('__END__')
+#       if e < 0
+#         break
+#       endif
+
+#       # Extract payload
+#       var payload = buffer[: e - 1]
+#       payload = payload->substitute('_\s*', '', 'g')
+
+#       out->add(blob2str(base64_decode(payload)))
+
+#       # Drop payload + END sentinel
+#       buffer = buffer[e + len('__END__') :]
+#       collecting = false
+#     endif
+#   endwhile
+
+#   return out
+# enddef
+
 def DecodeMultiLinePayload(line_debounced: string): list<string>
+  # TODO: min width of the repl must be at least 16 columns.
+  # This because it is expected the string '__VIM_PAYLOAD__' to be received
+  # all at once and not broken in multi-lines.
+  #
+  # The ideal would be to implement a FeedLines() like in the case of
+  # FeedChars() and recognize the delimites __VIM_PAYLOAD__ and __END__
 
   if line_debounced =~# '^__VIM_PAYLOAD__'
     payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
@@ -133,6 +190,8 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
     payload_accum ..= line_debounced
 
     if payload_accum =~# '__END__'
+      # TODO: Strip out everything after __END__. Not nice, but what to do?
+      # Time is over.
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
 
