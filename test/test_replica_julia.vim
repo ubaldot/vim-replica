@@ -19,18 +19,6 @@ def Cleanup_testfile(src_name: string)
   delete(src_name)
 enddef
 
-# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
-# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
-# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
-def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, 1, '$')
-  for ii in range(len(lines) - 1, 0, -1)
-    if trim(lines[ii]) !=# ''
-      return lines[ii]
-    endif
-  endfor
-  return ''
-enddef
 
 def WaitForPrompt(expected: string)
   const buf_nr = term_list()[0]
@@ -52,27 +40,51 @@ def WaitForPrompt(expected: string)
   throw $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
 enddef
 
+# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
+# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
+# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
+def LastNonEmptyLine(buf_nr: number): string
+  var lines = getbufline(buf_nr, 1, '$')
+  for ii in range(len(lines) - 1, 0, -1)
+    if trim(lines[ii]) !=# ''
+      return lines[ii]
+    endif
+  endfor
+  return ''
+enddef
+
+def IsSymbolFound(buf_nr: number, symbol: string): bool
+  # Sometimes symbols are skipped. If that is the case, don't check last
+  # line, but just check if a symbol actually appeared
+  var lines = getbufline(buf_nr, 1, '$')
+  return index(lines, symbol) != -1 ? true : false
+enddef
+
 def WaitForJuliaSymbol(symbol: string)
   const buf_nr = term_list()[0]
-  const marker = '__VIM_REPLICA_READY__:'
-  const max_count = 30
+  const marker = '__VIM_REPLICA_READY__'
+  const max_count = 20
   var counter = 0
   var line = ''
 
   while counter < max_count
     term_sendkeys(
       buf_nr,
-      $"println(\"{marker}\", isdefined(Main, :{symbol}))\n"
+      $"println(\"{marker}:\", isdefined(Main, :{symbol}))\n"
     )
-    sleep 100m
-    line = LastNonEmptyLine(buf_nr)
-    if line ==# $"{marker}true"
-      return
+    sleep 200m
+
+    if IsSymbolFound(buf_nr, $"{marker}:true")
+      break
     endif
+
     counter += 1
   endwhile
 
-  throw $"Julia symbol not ready: {symbol}"
+  echom "counter: " .. counter
+  if counter == max_count
+    throw $"Julia symbol not ready: {symbol}"
+  endif
 enddef
 # Tests start here
 def g:Test_julia_basic()
@@ -242,8 +254,8 @@ END
     echoerr "Test failed!"
   endif
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef
 
 

@@ -110,7 +110,7 @@ var replica_console_names_default = {
 # TODO: Not sure if you want the user to override this
 var replica_run_commands_default = {
   python: (filename) => $"run -i {filename}",
-  julia: (filename) => $'include("{filename}")',
+  julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
   sh: (filename) => $"source {filename}",
   zsh: (filename) => $"source {filename}"
 }
