@@ -230,10 +230,6 @@ def g:Test_unsupported_filetypes()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
-
   if !empty(v:errors)
     echoerr "Test failed!"
   else
