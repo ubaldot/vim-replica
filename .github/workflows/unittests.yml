@@ -16,7 +16,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
 
       - name: Install Julia packages
-        run: julia -e "using Pkg; Pkg.add([\"DataFrames\",\"PrettyTables\"])"
+        run: julia .github/scripts/packages.jl
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
@@ -61,7 +61,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
 
       - name: Install Julia packages
-        run: julia -e "using Pkg; Pkg.add([\"DataFrames\",\"PrettyTables\"])"
+        run: julia .github/scripts/packages.jl
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
