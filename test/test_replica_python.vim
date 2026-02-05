@@ -25,9 +25,9 @@ enddef
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
 def LastNonEmptyLine(buf_nr: number): string
   var lines = getbufline(buf_nr, 1, '$')
-  for ii in range(len(lines) - 1, 0, -1)
-    if trim(lines[ii]) !=# ''
-      return lines[ii]
+  for l in reverse(lines)
+    if trim(l) !=# ''
+      return l
     endif
   endfor
   return ''

@@ -19,8 +19,7 @@ def Cleanup_testfile(src_name: string)
   delete(src_name)
 enddef
 
-
-def WaitForPrompt(expected: string)
+def WaitForPrompt(expected_prompt: string)
   const buf_nr = term_list()[0]
   var counter = 0
   const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
@@ -28,16 +27,18 @@ def WaitForPrompt(expected: string)
 
   while counter < max_count
     line = LastNonEmptyLine(buf_nr)
-    if line =~# expected
+    if line =~# expected_prompt
       # Expected prompt appeared, return immediately
-      return
+      break
     endif
     sleep 50m
     counter += 1
   endwhile
 
   # Timeout reached, fail with actual last line
-  throw $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
+  if counter == max_count
+    throw $"Prompt not found: {expected_prompt}, got: {line} after waiting {counter * 50} ms"
+  endif
 enddef
 
 # When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
@@ -45,25 +46,42 @@ enddef
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
 def LastNonEmptyLine(buf_nr: number): string
   var lines = getbufline(buf_nr, 1, '$')
-  for ii in range(len(lines) - 1, 0, -1)
-    if trim(lines[ii]) !=# ''
-      return lines[ii]
+  for l in reverse(lines)
+    if trim(l) !=# ''
+      return l
     endif
   endfor
   return ''
 enddef
 
 def IsSymbolFound(buf_nr: number, symbol: string): bool
-  # Sometimes symbols are skipped. If that is the case, don't check last
-  # line, but just check if a symbol actually appeared
+  # Found a symbol in a chunk of lines, e.g.  in
+  #
+  #   julia> foo bar
+  #   symbol
+  #
+  #   julia>
+  #
   var lines = getbufline(buf_nr, 1, '$')
   return index(lines, symbol) != -1 ? true : false
 enddef
 
 def WaitForJuliaSymbol(symbol: string)
+  # The symbol is not necessarily the last line, because you are not reading
+  # the buffer continuously, but every N seconds. Hence, in N seconds you can
+  # have the following situation in the repl:
+  #
+  #   julia> foo bar
+  #   pippo
+  #
+  #   julia>
+  #
+  # If now you read the last line, it is 'julia>'.
+  #
+  # The last line is generally the prompt.
   const buf_nr = term_list()[0]
   const marker = '__VIM_REPLICA_READY__'
-  const max_count = 20
+  const max_count = 10
   var counter = 0
   var line = ''
 
@@ -73,6 +91,7 @@ def WaitForJuliaSymbol(symbol: string)
       $"println(\"{marker}:\", isdefined(Main, :{symbol}))\n"
     )
     sleep 200m
+    redraw!
 
     if IsSymbolFound(buf_nr, $"{marker}:true")
       break
@@ -81,11 +100,11 @@ def WaitForJuliaSymbol(symbol: string)
     counter += 1
   endwhile
 
-  echom "counter: " .. counter
   if counter == max_count
     throw $"Julia symbol not ready: {symbol}"
   endif
 enddef
+
 # Tests start here
 def g:Test_julia_basic()
 
@@ -473,8 +492,8 @@ END
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  echom assert_equal(expected_variable_explorer, actual_variable_explorer)
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
