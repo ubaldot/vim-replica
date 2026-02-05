@@ -35,7 +35,7 @@ enddef
 def WaitForPrompt(expected: string)
   const buf_nr = term_list()[0]
   var counter = 0
-  const max_count = 50 * 2  # 20*(2*50ms) = 20 seconds max
+  const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
   var line = ''
 
   while counter < max_count
@@ -55,7 +55,7 @@ enddef
 def WaitForJuliaSymbol(symbol: string)
   const buf_nr = term_list()[0]
   const marker = '__VIM_REPLICA_READY__:'
-  const max_count = 100
+  const max_count = 30
   var counter = 0
   var line = ''
 
@@ -189,9 +189,7 @@ END
   for line in expected_lines
     exe "ReplicaSendCell"
     WaitForPrompt(expected_prompt)
-    sleep 3
-    # TODO: make it better
-    # WaitForJuliaSymbol("DataFrame")
+    WaitForJuliaSymbol("DataFrame")
     lastline = LastNonEmptyLine(bufnr)
     # Check that in the editor you end up in the correct line
     assert_equal(line, line('.'))
@@ -356,9 +354,7 @@ END
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  sleep 3
-  # TODO: make it better
-  # WaitForJuliaSymbol("DataFrame")
+  WaitForJuliaSymbol("DataFrame")
 
   # -- Test float
   var expected_variable_explorer = ['42', '']
