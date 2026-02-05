@@ -210,7 +210,7 @@ def g:Test_unsupported_filetypes()
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForPrompt('In\s\[2\]:\s*$')
 
-  # switch buffer: python -> text
+  # switch window: python -> text
   exe "bnext"
 
   # Start console and fail, since 'text' filetype is not supported
@@ -219,17 +219,17 @@ def g:Test_unsupported_filetypes()
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
-  # switch buffer: text -> python
-  exe "bnext"
+  # switch window: text -> python
+  wincmd p
 
   # Check that the buffer variables are set
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
+
   # Close console
-  exe "ReplicaConsoleToggle"
+  exe "ReplicaConsoleShutoff"
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  exe "ReplicaConsoleShutoff"
 
   if !empty(v:errors)
     echoerr "Test failed!"
