@@ -166,6 +166,7 @@ enddef
 def g:Test_unsupported_filetypes()
   # Test switching buffers of supported and unsupprted filetypes
 
+  messages clear
   v:errors = []
 
   # Generate text file
@@ -230,9 +231,13 @@ def g:Test_unsupported_filetypes()
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors)
     echoerr "Test failed!"
+  else
+    echom "Test passed!"
   endif
 
   :%bw!
@@ -240,7 +245,7 @@ def g:Test_unsupported_filetypes()
   Cleanup_testfile(text_filename)
 enddef
 
-def g:Test_variable_explorer_basic()
+def g:Test_python_variable_explorer_basic()
   messages clear
   v:errors = []
 
@@ -393,7 +398,10 @@ END
 
   if !empty(v:errors)
     echoerr "Test failed!"
+  else
+    echom "Test passed!"
   endif
+
   :%bw!
   Cleanup_testfile(src_name)
 enddef
