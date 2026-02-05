@@ -36,7 +36,7 @@ RunTestsInFile() {
   testfile=$1
   echo "Running tests in $testfile"
   # If you want to see the output remove the & from the line below
-  eval $VIM_CMD " -c \"vim9cmd g:TestName = '$testfile'\" -S runner.vim"
+  eval $VIM_CMD " -c \"vim9cmd g:TestFiles = '$testfile'\" -S runner.vim"
 
   if ! [ -f results.txt ]; then
     echo "ERROR: Test results file 'results.txt' is not found."
