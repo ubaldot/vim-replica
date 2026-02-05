@@ -55,7 +55,7 @@ enddef
 def WaitForJuliaSymbol(symbol: string)
   const buf_nr = term_list()[0]
   const marker = '__VIM_REPLICA_READY__:'
-  const max_count = 40
+  const max_count = 100
   var counter = 0
   var line = ''
 
