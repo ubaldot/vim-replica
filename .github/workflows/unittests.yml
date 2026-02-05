@@ -12,6 +12,16 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Install Julia packages
+        run: |
+          julia -e '
+            using Pkg
+            Pkg.add(["DataFrames", "PrettyTables"])
+          '
+
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
         with:
@@ -19,7 +29,7 @@ jobs:
 
       - name: Install python packages
         run: |
-          pip install jupyter_console
+          pip install ipython
           pip install numpy
           pip install pandas
 
@@ -51,6 +61,16 @@ jobs:
           - v9.1.2125
 
     steps:
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Install Julia packages
+        run: |
+          julia -e '
+            using Pkg
+            Pkg.add(["DataFrames", "PrettyTables"])
+          '
+
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
         with:
@@ -58,7 +78,7 @@ jobs:
 
       - name: Install python packages
         run: |
-          pip install jupyter_console
+          pip install ipython
           pip install numpy
           pip install pandas
 
