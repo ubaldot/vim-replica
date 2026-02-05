@@ -12,6 +12,15 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
+      - name: Setup Vim
+        uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: ${{ matrix.vim }}
+
+      - name: Checkout vim-replica plugin code
+        uses: actions/checkout@v6
+
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
 
@@ -28,15 +37,6 @@ jobs:
           pip install ipython
           pip install numpy
           pip install pandas
-
-      - name: Setup Vim
-        uses: rhysd/action-setup-vim@v1
-        id: vim
-        with:
-          version: ${{ matrix.vim }}
-
-      - name: Checkout vim-replica plugin code
-        uses: actions/checkout@v6
 
       - name: Run Tests
         run: |
@@ -57,6 +57,15 @@ jobs:
           - v9.1.2125
 
     steps:
+      - name: Setup Vim
+        uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: ${{ matrix.vim }}
+
+      - name: Checkout vim-replica plugin code
+        uses: actions/checkout@v6
+
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
 
@@ -73,15 +82,6 @@ jobs:
           pip install ipython
           pip install numpy
           pip install pandas
-
-      - name: Setup Vim
-        uses: rhysd/action-setup-vim@v1
-        id: vim
-        with:
-          version: ${{ matrix.vim }}
-
-      - name: Checkout vim-replica plugin code
-        uses: actions/checkout@v6
 
       - name: Run Tests
         run: |
