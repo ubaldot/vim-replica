@@ -12,8 +12,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - name: Setup Lulia
-      - uses: julia-actions/setup-julia@v2
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
@@ -53,8 +53,8 @@ jobs:
           - v9.1.2125
 
     steps:
-      - name: Setup Lulia
-      - uses: julia-actions/setup-julia@v2
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
