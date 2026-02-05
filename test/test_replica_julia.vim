@@ -77,6 +77,10 @@ enddef
 # Tests start here
 def g:Test_julia_basic()
 
+  if exepath('julia')->empty()
+    throw "Skipped: 'julia' executable is not found in $PATH"
+  endif
+
   # g:replica_debug = true
   v:errors = []
   messages clear

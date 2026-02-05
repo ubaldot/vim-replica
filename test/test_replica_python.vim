@@ -60,7 +60,7 @@ def g:Test_python_basic()
   messages clear
 
   if exepath('ipython')->empty()
-    throw 'Skipped: repl_console is not found in $PATH'
+    throw "Skipped: 'ipython' is not found in $PATH"
   endif
 
   g:replica_debug = true
