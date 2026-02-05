@@ -23,7 +23,7 @@ type "%VIMRC%"
 
 REM Run Vim with the specified configuration and additional commands
 SET "TEST_FILES=['test_replica_python.vim', 'test_replica_julia.vim']"
-%VIM_CMD% -c "vim9cmd g:TestName =  %TEST_FILES%" -S "runner.vim"
+%VIM_CMD% -c "vim9cmd g:TestFiles =  %TEST_FILES%" -S "runner.vim"
 
 REM %VIM_CMD% -c "vim9cmd g:TestName = 'test_replica_python.vim'" -S "runner.vim"
 
