@@ -182,9 +182,9 @@ def g:Test_unsupported_filetypes()
   exe $"edit {text_filename}"
 
   # Start console and fail, since 'text' filetype is not supported
-  assert_fails('ReplicaConsoleToggle', 'E492:')
+  echom assert_fails('ReplicaConsoleToggle', 'E492:')
   # Check that the buffer variables are not set
-  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
   # Generate python file
@@ -202,7 +202,7 @@ def g:Test_unsupported_filetypes()
   exe $"edit {python_filename}"
 
   # Check that the buffer variables are set
-  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
 
   # Start console
@@ -216,14 +216,14 @@ def g:Test_unsupported_filetypes()
   # Start console and fail, since 'text' filetype is not supported
   assert_fails('ReplicaConsoleToggle', 'E492:')
   # Check that the buffer variables are not set
-  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_true(empty(getbufvar(bufnr(), "console_name"))))
 
   # switch buffer: text -> python
   exe "bnext"
 
   # Check that the buffer variables are set
-  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "kernel_name"))))
+  WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
   # Close console
   exe "ReplicaConsoleToggle"
@@ -241,6 +241,7 @@ def g:Test_unsupported_filetypes()
   Cleanup_testfile(python_filename)
   Cleanup_testfile(text_filename)
 enddef
+
 
 def g:Test_python_variable_explorer_basic()
   messages clear
