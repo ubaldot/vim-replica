@@ -281,11 +281,9 @@ def HandleLine(clean_line: string)
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
       DisplayVariable(line_decoded)
-    else
-      # TODO: fill in autocomplete
-      echo "TODO fill in autocomplete variable"
     endif
     on_msg_received = On_Msg_Received.Ready
+    echo "TODO fill in autocomplete variable"
 
   # Multi-line debounced payload
   elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
@@ -296,11 +294,9 @@ def HandleLine(clean_line: string)
     if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
       logger.Info($'on_msg_received: {on_msg_received.name}')
       DisplayVariable(line_decoded)
-    else
-      # TODO: fill in autocomplete
-      echo "TODO fill in autocomplete variable"
     endif
     on_msg_received = On_Msg_Received.Ready
+    echo "TODO fill in autocomplete variable"
 
   # Prompt is ready. Do something
   elseif line_debounced =~# repl_prompt
