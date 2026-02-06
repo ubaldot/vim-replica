@@ -44,7 +44,8 @@ Limitation: repl at least 16 columns.
 # payload in smaller chunks (modify init scripts)
 How to see log file, :exe "edit " .. g:replica_log_filepath
 
-For zsh, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
+For zsh and bash, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
+manually source ~/.zshrc
 
   bash --noprofile --norc -i
 If user wants his stuff, then use:
