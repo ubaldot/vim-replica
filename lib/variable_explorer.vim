@@ -84,8 +84,6 @@ export enum On_Msg_Received
 
     logger.Info('displaying variable')
 
-    echom "decoded_value: " .. string(decoded_value)
-
     if bufexists(variable_to_inspect)
       logger.Info("reusing existing vertical split")
       var buf = bufnr(variable_to_inspect)
@@ -207,241 +205,242 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
   return []
 enddef
 
-  def HandlePrompt(line_debounced: string)
-    if line_debounced == last_prompt && incremental_prompt
-      logger.Info($'Same prompt as before, no action')
-    endif
+def HandlePrompt(line_debounced: string)
+  if line_debounced == last_prompt && incremental_prompt
+    logger.Info($'Same prompt as before, no action')
+  endif
 
-    if on_msg_received == On_Msg_Received.InitializeConsole
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
+  if on_msg_received == On_Msg_Received.InitializeConsole
+    logger.Debug($'on_msg_received: {on_msg_received.name}')
 
-      on_msg_received = prompt_to_be_changed
-        ? On_Msg_Received.ChangePrompt
-        : On_Msg_Received.Ready
+    on_msg_received = prompt_to_be_changed
+      ? On_Msg_Received.ChangePrompt
+      : On_Msg_Received.Ready
 
-      SendInitScript(repl_init_script)
+    SendInitScript(repl_init_script)
 
-      logger.Info($"sending init script: {repl_init_script}")
-      logger.Debug($'on_msg_received: {on_msg_received.name}')
-    elseif on_msg_received == On_Msg_Received.ChangePrompt
-      logger.Info('Changing prompt')
-      repl_prompt = universal_prompt
+    logger.Info($"sending init script: {repl_init_script}")
+    logger.Debug($'on_msg_received: {on_msg_received.name}')
+  elseif on_msg_received == On_Msg_Received.ChangePrompt
+    logger.Info('Changing prompt')
+    repl_prompt = universal_prompt
+    on_msg_received = On_Msg_Received.Ready
+    prompt_to_be_changed = false
+  endif
+
+  # Update last_prompt, needed for incremental prompts like in IPython
+  last_prompt = line_debounced
+
+  logger.Debug($"last_prompt: {last_prompt}")
+enddef
+
+def HandleLine(clean_line: string)
+  # Lines received can be encoded messages or prompts
+
+  # You may have cases In [N]: In[N] on the same line
+  var line_debounced = clean_line->substitute($'\({repl_prompt}\)\s*\1\+', '\1', '')
+
+  logger.Info($"clean line: {clean_line}")
+  logger.Info($"line_debounced: {line_debounced}")
+
+  # Error handling
+  if line_debounced =~? 'error'
+    logger.Error($"Error from console: {line_debounced}")
+    repl.Echoerr($"Error from console: {line_debounced}")
+  # Single line_debounced payload
+  elseif line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
+
+    logger.Info($'decoding one-line payload')
+    var line_decoded = DecodeOneLinePayload(line_debounced)
+
+    logger.Info($'on_msg_received: {on_msg_received.name}')
+    if on_msg_received == On_Msg_Received.DisplayVariable
+      DisplayVariable(line_decoded)
       on_msg_received = On_Msg_Received.Ready
-      prompt_to_be_changed = false
     endif
 
-    # Update last_prompt, needed for incremental prompts like in IPython
-    last_prompt = line_debounced
+  # Multi-line debounced payload
+  elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
 
-    logger.Debug($"last_prompt: {last_prompt}")
-  enddef
+    logger.Info($'decoding multi-line payload')
+    var line_decoded = DecodeMultiLinePayload(line_debounced)
 
-  def HandleLine(clean_line: string)
-    # Lines received can be encoded messages or prompts
-
-    # You may have cases In [N]: In[N] on the same line
-    var line_debounced = clean_line->substitute('\(In \[\d\+\]: \)\s*\1\+', '\1', '')
-
-    logger.Info($"clean line: {clean_line}")
-    logger.Info($"line_debounced: {line_debounced}")
-
-    # Single line_debounced payload
-    if line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
-
-      logger.Info($'decoding one-line payload')
-      echom "line_debounced: " .. string(line_debounced)
-      var line_decoded = DecodeOneLinePayload(line_debounced)
-
-      echom "line_decoded prev: " .. string(line_decoded)
-
+    if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
       logger.Info($'on_msg_received: {on_msg_received.name}')
-      if on_msg_received == On_Msg_Received.DisplayVariable
-        DisplayVariable(line_decoded)
-        on_msg_received = On_Msg_Received.Ready
-      endif
-
-    # Multi-line debounced payload
-    elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
-
-      logger.Info($'decoding multi-line payload')
-      var line_decoded = DecodeMultiLinePayload(line_debounced)
-
-      if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
-        logger.Info($'on_msg_received: {on_msg_received.name}')
-        DisplayVariable(line_decoded)
-        on_msg_received = On_Msg_Received.Ready
-      endif
-
-    # Prompt is ready. Do something
-    elseif line_debounced =~# repl_prompt
-      logger.Info($'Prompt detected: {line_debounced}')
-      HandlePrompt(line_debounced)
+      DisplayVariable(line_decoded)
+      on_msg_received = On_Msg_Received.Ready
     endif
-  enddef
+
+  # Prompt is ready. Do something
+  elseif line_debounced =~# repl_prompt
+    logger.Info($'Prompt detected: {line_debounced}')
+    HandlePrompt(line_debounced)
+  endif
+enddef
 
 
-  def StripAnsiEscapeSequences(msg: string): string
-    # Strip ANSI escape sequences
-    var tmp = msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
-      # Normalize CR
-      ->substitute('\r\n\|\r', "\n", 'g')
-      # Remove BS
-      ->substitute('\%x08', '', 'g')
-    return tmp
-  enddef
+def StripAnsiEscapeSequences(msg: string): string
+  # Strip ANSI escape sequences
+  var tmp = msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
+    # Normalize CR
+    ->substitute('\r\n\|\r', "\n", 'g')
+    # Remove BS
+    ->substitute('\%x08', '', 'g')
+  return tmp
+enddef
 
-  def FeedChars(bytes: string)
+def FeedChars(bytes: string)
 
-    raw_buf ..= bytes
+  raw_buf ..= bytes
 
-    # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
-    while true
-      var idx = -1
-      var nbytes = -1
+  # Reconstruct lines based on when \n, \r and \n\r appear in the stdout stream
+  while true
+    var idx = -1
+    var nbytes = -1
 
-      logger.Debug($'is_utf16: {is_utf16}')
+    logger.Debug($'is_utf16: {is_utf16}')
 
-      # UTF-16LE case
-      if is_utf16
-        if len(raw_buf) < 2
-          break
-        endif
-
-        var idx_cr = match(raw_buf, "\x0D\x00")
-        var idx_lf = match(raw_buf, "\x0A\x00")
-
-        if idx_cr >= 0 && idx_lf == idx_cr + 2
-          idx = idx_cr
-          nbytes = 4
-        elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
-          idx = idx_cr
-          nbytes = 2
-        elseif idx_lf >= 0
-          idx = idx_lf
-          nbytes = 2
-        endif
-      # UTF-8 case
-      else
-        # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
-        # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
-        # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
-        # fixed.
-        var idx_cr = match(raw_buf, "\x0D")
-        var idx_lf = match(raw_buf, "\x0A")
-
-        if idx_cr >= 0 && idx_lf == idx_cr + 1
-          idx = idx_cr
-          nbytes = 2
-        elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
-          idx = idx_cr
-          nbytes = 1
-        elseif idx_lf >= 0
-          idx = idx_lf
-          nbytes = 1
-        endif
-      endif
-
-      if idx < 0
+    # UTF-16LE case
+    if is_utf16
+      if len(raw_buf) < 2
         break
       endif
 
-      var line = idx > 0 ? raw_buf[: idx - 1] : ''
-      logger.Debug($'unstripped line: {line}')
+      var idx_cr = match(raw_buf, "\x0D\x00")
+      var idx_lf = match(raw_buf, "\x0A\x00")
 
-      try
-        var clean_line = is_utf16
-          ? StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8'))
-          : StripAnsiEscapeSequences(line)
+      if idx_cr >= 0 && idx_lf == idx_cr + 2
+        idx = idx_cr
+        nbytes = 4
+      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+        idx = idx_cr
+        nbytes = 2
+      elseif idx_lf >= 0
+        idx = idx_lf
+        nbytes = 2
+      endif
+    # UTF-8 case
+    else
+      # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
+      # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
+      # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
+      # fixed.
+      var idx_cr = match(raw_buf, "\x0D")
+      var idx_lf = match(raw_buf, "\x0A")
 
-        HandleLine(clean_line)
-      catch
-        raw_buf = ''
-        logger.Error($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-        repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-        break
-      endtry
+      if idx_cr >= 0 && idx_lf == idx_cr + 1
+        idx = idx_cr
+        nbytes = 2
+      elseif idx_cr >= 0 && (idx_lf < 0 || idx_cr < idx_lf)
+        idx = idx_cr
+        nbytes = 1
+      elseif idx_lf >= 0
+        idx = idx_lf
+        nbytes = 1
+      endif
+    endif
 
-      raw_buf = raw_buf[idx + nbytes :]
-    endwhile
+    if idx < 0
+      break
+    endif
 
-    logger.Debug($'raw buffer: {raw_buf}')
-  enddef
+    var line = idx > 0 ? raw_buf[: idx - 1] : ''
+    logger.Debug($'unstripped line: {line}')
 
-
-  export def ReplicaOutCb(_: channel, msg: string)
-    # OBS! Issues may occur if:
-    #
-    #   A. A chunk from terminal match repl_prompt regex AND
-    #   B. HandleLine() do something with that
-    #
-    # Nevertheless, this is a very unlikely case.
-    #
-    # OBS! All the functions called by this callback, shall not use any b:
-    # variable. This because we may jump in a new buffer (like in
-    # DisplayVariable()) and all the b: are gone. Once returning from such a
-    # function the caller may still try to access b: variables!
-    #
-    # OBS! UTF-16BE encoding is not supported
-
-    # Using try/catch because you never know if the buffer with repl_prompt is
-    # still around while executing the terminal stdout callback function
     try
-      FeedChars(msg)
+      var clean_line = is_utf16
+        ? StripAnsiEscapeSequences(iconv(line, 'utf-16le', 'utf-8'))
+        : StripAnsiEscapeSequences(line)
 
-      # Handle Leftovers in the raw_buf, which is generally the prompt
-      var clean_tail = is_utf16
-        ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
-        : StripAnsiEscapeSequences(raw_buf)
-
-      if !empty(clean_tail) && clean_tail =~# repl_prompt && clean_tail !~# '\e'
-        try
-          HandleLine(clean_tail)
-          raw_buf = ''
-        catch
-          logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-          repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
-        endtry
-      endif
+      HandleLine(clean_line)
     catch
-      logger.Error('issues found inside ReplicaOutCb')
-      repl.Echoerr('issues found inside ReplicaOutCb')
+      raw_buf = ''
+      logger.Error($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+      repl.Echoerr($"Cannot convert {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+      break
     endtry
-  enddef
+
+    raw_buf = raw_buf[idx + nbytes :]
+  endwhile
+
+  logger.Debug($'raw buffer: {raw_buf}')
+enddef
 
 
-  export def VimInspect(
-    variable: string = '',
-    action: On_Msg_Received = On_Msg_Received.Ready
-    )
-  const whos_buf_name = 'Workspace'
+export def ReplicaOutCb(_: channel, msg: string)
+  # OBS! Issues may occur if:
+  #
+  #   A. A chunk from terminal match repl_prompt regex AND
+  #   B. HandleLine() do something with that
+  #
+  # Nevertheless, this is a very unlikely case.
+  #
+  # OBS! All the functions called by this callback, shall not use any b:
+  # variable. This because we may jump in a new buffer (like in
+  # DisplayVariable()) and all the b: are gone. Once returning from such a
+  # function the caller may still try to access b: variables!
+  #
+  # OBS! UTF-16BE encoding is not supported
 
-  logger.Info("inspecting variables")
+  # Using try/catch because you never know if the buffer with repl_prompt is
+  # still around while executing the terminal stdout callback function
+  try
+    FeedChars(msg)
 
-  # :tabonly secure that there is only one tab for variable explorer
-  # tabonly
-  if !empty(variable)
-    var variable_single_quoted = variable->substitute('"', "'", 'g')
-    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
-    variable_to_inspect = variable_single_quoted
-    on_msg_received = On_Msg_Received.DisplayVariable
+    # Handle Leftovers in the raw_buf, which is generally the prompt
+    var clean_tail = is_utf16
+      ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
+      : StripAnsiEscapeSequences(raw_buf)
 
-    logger.Info($'on_msg_received: {on_msg_received.name}')
-    logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
-  else
-    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
-    variable_to_inspect = whos_buf_name
-    on_msg_received = On_Msg_Received.DisplayVariable
+    if !empty(clean_tail) && clean_tail =~# repl_prompt && clean_tail !~# '\e'
+      try
+        HandleLine(clean_tail)
+        raw_buf = ''
+      catch
+        logger.Error($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+        repl.Echoerr($"Cannot convert prompt {is_utf16 ? 'utf-16le' : 'utf-8'} string")
+      endtry
+    endif
+  catch
+    logger.Error('issues found inside ReplicaOutCb')
+    repl.Echoerr('issues found inside ReplicaOutCb')
+  endtry
+enddef
 
-    logger.Info($'on_msg_received: {on_msg_received.name}')
-    logger.Info($'sent: __vim_whos()')
-  endif
 
-  # Capture eventual errors
-  if !empty(v:errmsg)
-    logger.Error(v:errmsg)
-  endif
+export def VimInspect(
+  variable: string = '',
+  action: On_Msg_Received = On_Msg_Received.Ready
+  )
+const whos_buf_name = 'Workspace'
 
-  # Clean up console
-  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-  logger.Info("sent: <c-l>")
-  enddef
+logger.Info("inspecting variables")
+
+# :tabonly secure that there is only one tab for variable explorer
+# tabonly
+if !empty(variable)
+  var variable_single_quoted = variable->substitute('"', "'", 'g')
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
+  variable_to_inspect = variable_single_quoted
+  on_msg_received = On_Msg_Received.DisplayVariable
+
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
+else
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
+  variable_to_inspect = whos_buf_name
+  on_msg_received = On_Msg_Received.DisplayVariable
+
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($'sent: __vim_whos()')
+endif
+
+# Capture eventual errors
+if !empty(v:errmsg)
+  logger.Error(v:errmsg)
+endif
+
+# Clean up console
+term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
+logger.Info("sent: <c-l>")
+enddef
