@@ -81,7 +81,7 @@ def WaitForJuliaSymbol(symbol: string)
   # The last line is generally the prompt.
   const buf_nr = term_list()[0]
   const marker = '__VIM_REPLICA_READY__'
-  const max_count = 20
+  const max_count = 30
   var counter = 0
   var line = ''
 
