@@ -138,7 +138,9 @@ def DisplayVariablePopup(decoded_value: list<string>)
   }
 
   var popup_id = popup_create(decoded_value, opts)
-  win_execute(popup_id, "setlocal number")
+  if len(decoded_value) > 1
+    win_execute(popup_id, "setlocal number")
+  endif
 enddef
 
 def DisplayVariable(decoded_value: list<string>)
