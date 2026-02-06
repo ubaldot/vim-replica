@@ -14,6 +14,7 @@ import "../lib/logger.vim"
 # For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
 var payload_accum: string
+var collecting_error_msg: bool
 var variable_to_inspect: string
 
 # OBS! universal_prompt shall be the same in the language initialization scripts
@@ -34,92 +35,92 @@ export enum On_Msg_Received
   DisplayVariable,
   endenum
 
-  export var on_msg_received: On_Msg_Received
+export var on_msg_received: On_Msg_Received
 
-  # Accumulator for bytes coming from the terminal
-  export var raw_buf: string
-  var is_utf16: bool
+# Accumulator for bytes coming from the terminal
+export var raw_buf: string
+var is_utf16: bool
 
-  export def Init()
-    logger.Info('variable explorer script initialization')
+export def Init()
+  logger.Info('variable explorer script initialization')
 
-    raw_buf = ''
-    collecting_payload = false
-    payload_accum = ''
-    variable_to_inspect = ''
-    on_msg_received = On_Msg_Received.Ready
-    # OBS! This shall be the same in the language initialization scripts
-    universal_prompt = '^vim_replica> $'
+  raw_buf = ''
+  collecting_payload = false
+  payload_accum = ''
+  variable_to_inspect = ''
+  on_msg_received = On_Msg_Received.Ready
+  # OBS! This shall be the same in the language initialization scripts
+  universal_prompt = '^vim_replica> $'
 
-    is_utf16 = exists('g:replica_use_utf16')
-      ? g:replica_use_utf16
-      : has('win32') || has('win64')
+  is_utf16 = exists('g:replica_use_utf16')
+    ? g:replica_use_utf16
+    : has('win32') || has('win64')
 
-    # This should executed only once
-    repl_prompt = b:repl_prompt
-    incremental_prompt = b:incremental_prompt
-    prompt_to_be_changed = b:prompt_to_be_changed
-    repl_init_script = b:repl_init_script
+  # This should executed only once
+  repl_prompt = b:repl_prompt
+  incremental_prompt = b:incremental_prompt
+  prompt_to_be_changed = b:prompt_to_be_changed
+  repl_init_script = b:repl_init_script
 
-    logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
-    logger.Info($'raw_buf: {raw_buf}')
-    logger.Info($'collecting_payload: {collecting_payload}')
-    logger.Info($'payload_accum: {payload_accum}')
-    logger.Info($'variable_to_inspect: {variable_to_inspect}')
-    logger.Info($'on_msg_received: {on_msg_received.name}')
-    logger.Info($'last_prompt: {last_prompt}')
-    logger.Info($"universal prompt: '{universal_prompt}'")
-    logger.Info($"init script: '{repl_init_script}'")
-    logger.Info('variable explorer script initialized')
-    logger.Info("-----------------------------------")
-  enddef
+  logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
+  logger.Info($'raw_buf: {raw_buf}')
+  logger.Info($'collecting_payload: {collecting_payload}')
+  logger.Info($'payload_accum: {payload_accum}')
+  logger.Info($'variable_to_inspect: {variable_to_inspect}')
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($'last_prompt: {last_prompt}')
+  logger.Info($"universal prompt: '{universal_prompt}'")
+  logger.Info($"init script: '{repl_init_script}'")
+  logger.Info('variable explorer script initialized')
+  logger.Info("-----------------------------------")
+enddef
 
-  def SendInitScript(filename: string)
-    writefile(readfile(filename), g:replica_tmp_filepath)
-    term_sendkeys(bufnr($'^{b:console_name}$'),
-      $"{b:run_command(g:replica_tmp_filepath)}\n")
-  enddef
+def SendInitScript(filename: string)
+  writefile(readfile(filename), g:replica_tmp_filepath)
+  term_sendkeys(bufnr($'^{b:console_name}$'),
+    $"{b:run_command(g:replica_tmp_filepath)}\n")
+enddef
 
-  def DisplayVariable(decoded_value: list<string>)
+def DisplayVariable(decoded_value: list<string>)
 
-    logger.Info('displaying variable')
+  logger.Info('displaying variable')
 
-    if bufexists(variable_to_inspect)
-      logger.Info("reusing existing vertical split")
-      var buf = bufnr(variable_to_inspect)
-      setbufvar(buf, '&modifiable', true)
-      deletebufline(buf, 1, "$")
-      setbufline(buf, 1, decoded_value)
-      setbufvar(buf, '&modifiable', false)
-    else
-      logger.Info("creating a vertical split")
+  if bufexists(variable_to_inspect)
+    logger.Info("reusing existing vertical split")
+    var buf = bufnr(variable_to_inspect)
+    setbufvar(buf, '&modifiable', true)
+    deletebufline(buf, 1, "$")
+    setbufline(buf, 1, decoded_value)
+    setbufvar(buf, '&modifiable', false)
+  else
+    logger.Info("creating a vertical split")
 
-      vnew
-      var buf = bufnr('$')
-      setbufvar(buf, '&buftype', 'nofile')
-      setbufvar(buf, '&swapfile', false)
+    vnew
+    var buf = bufnr('$')
+    setbufvar(buf, '&buftype', 'nofile')
+    setbufvar(buf, '&swapfile', false)
 
-      exe $"file {variable_to_inspect}"
+    exe $"file {variable_to_inspect}"
 
-      setbufline(buf, 1, decoded_value)
+    setbufline(buf, 1, decoded_value)
 
-      setbufvar(buf, '&modifiable', false)
-      setbufvar(buf, '&bufhidden', 'wipe')
-      setbufvar(buf, '&winfixbuf', true)
-      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+    setbufvar(buf, '&modifiable', false)
+    setbufvar(buf, '&bufhidden', 'wipe')
+    setbufvar(buf, '&winfixbuf', true)
+    setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
 
-      nnoremap <buffer> <silent> <esc> <cmd>close<cr>
-    endif
+    nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+  endif
 
-    logger.Info($"displayed variable value: {decoded_value}")
-  enddef
+  logger.Info($"displayed variable value: {decoded_value}")
+enddef
 
-  def DecodeOneLinePayload(line_debounced: string): list<string>
-    var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-    var line_decoded = blob2str(base64_decode(payload))
-    logger.Info("one-line message successfully decoded")
-    return line_decoded
-  enddef
+def DecodeOneLinePayload(line_debounced: string): list<string>
+  var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
+  var line_decoded = blob2str(base64_decode(payload))
+  logger.Info("one-line message successfully decoded")
+  return line_decoded
+enddef
 
 # TODO: try this mechanism to be able to handle cases you receive
 # __VIM_PAYLOAD__ in multi-lines like the following:
@@ -234,6 +235,25 @@ def HandlePrompt(line_debounced: string)
   logger.Debug($"last_prompt: {last_prompt}")
 enddef
 
+def HandleConsoleError(line_debounced: string)
+
+  if line_debounced =~? 'error'
+    logger.Error($"Error from console: {line_debounced}")
+    repl.Echoerr($"Error from console: {line_debounced}")
+
+    collecting_error_msg = true
+
+  elseif collecting_error_msg
+
+    if line_debounced =~# repl_prompt
+      collecting_error_msg = false
+    else
+      logger.Error(line_debounced)
+      repl.Echoerr(line_debounced)
+    endif
+  endif
+enddef
+
 def HandleLine(clean_line: string)
   # Lines received can be encoded messages or prompts
 
@@ -244,9 +264,8 @@ def HandleLine(clean_line: string)
   logger.Info($"line_debounced: {line_debounced}")
 
   # Error handling
-  if line_debounced =~? 'error'
-    logger.Error($"Error from console: {line_debounced}")
-    repl.Echoerr($"Error from console: {line_debounced}")
+  if line_debounced =~? 'error' || collecting_error_msg
+    HandleConsoleError(line_debounced)
   # Single line_debounced payload
   elseif line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
 
