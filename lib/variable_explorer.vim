@@ -232,7 +232,6 @@ def HandlePrompt(line_debounced: string)
 
   # Update last_prompt, needed for incremental prompts like in IPython
   last_prompt = line_debounced
-
   logger.Debug($"last_prompt: {last_prompt}")
 enddef
 
@@ -272,6 +271,7 @@ def HandleLine(clean_line: string)
   # Error handling
   if line_debounced =~? 'error' || collecting_error_msg
     HandleConsoleError(line_debounced)
+
   # Single line_debounced payload
   elseif line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced =~# '__END__$'
 
@@ -281,8 +281,11 @@ def HandleLine(clean_line: string)
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
       DisplayVariable(line_decoded)
-      on_msg_received = On_Msg_Received.Ready
+    else
+      # TODO: fill in autocomplete
+      echo "TODO fill in autocomplete variable"
     endif
+    on_msg_received = On_Msg_Received.Ready
 
   # Multi-line debounced payload
   elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
@@ -293,8 +296,11 @@ def HandleLine(clean_line: string)
     if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
       logger.Info($'on_msg_received: {on_msg_received.name}')
       DisplayVariable(line_decoded)
-      on_msg_received = On_Msg_Received.Ready
+    else
+      # TODO: fill in autocomplete
+      echo "TODO fill in autocomplete variable"
     endif
+    on_msg_received = On_Msg_Received.Ready
 
   # Prompt is ready. Do something
   elseif line_debounced =~# repl_prompt
@@ -447,14 +453,14 @@ if !empty(variable)
   var variable_single_quoted = variable->substitute('"', "'", 'g')
   term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
   variable_to_inspect = variable_single_quoted
-  on_msg_received = On_Msg_Received.DisplayVariable
+  on_msg_received = action
 
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
 else
   term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
   variable_to_inspect = whos_buf_name
-  on_msg_received = On_Msg_Received.DisplayVariable
+  on_msg_received = action
 
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'sent: __vim_whos()')
