@@ -207,6 +207,7 @@ def g:Test_unsupported_filetypes()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  redraw
   WaitForPrompt('In\s\[2\]:\s*$')
 
   # switch buffer: python -> text
@@ -221,7 +222,7 @@ def g:Test_unsupported_filetypes()
   # switch buffer: text -> python
   exe $"b {bufnr(python_filename)}"
 
-  # # Check that the buffer variables are set
+  # Check that the buffer variables are set
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "repl_name"))))
   WaitForAssert(() => assert_false(empty(getbufvar(bufnr(), "console_name"))))
   # Close console

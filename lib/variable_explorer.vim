@@ -61,6 +61,7 @@ export def Init()
   incremental_prompt = b:incremental_prompt
   prompt_to_be_changed = b:prompt_to_be_changed
   repl_init_script = b:repl_init_script
+  last_prompt = ''
 
   logger.Info($'encoding: {is_utf16 ? "utf-16" : "utf-8"}')
   logger.Info($'raw_buf: {raw_buf}')
@@ -258,7 +259,12 @@ def HandleLine(clean_line: string)
   # Lines received can be encoded messages or prompts
 
   # You may have cases In [N]: In[N] on the same line
-  var line_debounced = clean_line->substitute($'\({repl_prompt}\)\s*\1\+', '\1', '')
+  logger.Info($"repl prompt regex: {repl_prompt}")
+
+  # repl_prompt typically ends with '$'. Hence, prompts of the form
+  # In [1]: In [1]: will not match the regex in the substitute function.
+  # We have to drop the trailing $, that is why we have repl_prompt[: -2]
+  var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}\)\s*\1\+', '\1', '')
 
   logger.Info($"clean line: {clean_line}")
   logger.Info($"line_debounced: {line_debounced}")
