@@ -25,7 +25,6 @@ var prompt_to_be_changed: bool
 var repl_init_script: string
 var last_prompt: string
 
-# TODO: use appropriate type
 # To decide what to do when a console prompt is ready
 # Startup sequence: Ready → InitializeConsole → ChangePrompt (optional) → Ready
 # Operational sequence: Ready → DisplayVariable → Ready
@@ -360,7 +359,6 @@ def HandleLine(clean_line: string)
       endif
       on_msg_received = On_Msg_Received.Ready
     endif
-    echo "TODO fill in autocomplete variable"
 
   # Multi-line debounced payload
   elseif (line_debounced =~# '^__VIM_PAYLOAD__' && line_debounced !~# '__END__$') || collecting_payload
@@ -377,7 +375,6 @@ def HandleLine(clean_line: string)
       endif
       on_msg_received = On_Msg_Received.Ready
     endif
-    echo "TODO fill in autocomplete variable"
 
   # Prompt is ready. Do something
   elseif line_debounced =~# repl_prompt
