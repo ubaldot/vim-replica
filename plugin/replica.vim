@@ -97,7 +97,7 @@ var replica_repls_default = {
   python: "ipython",
   julia: "julia",
   sh: "bash --noprofile --norc -i",
-  zsh: "zsh"
+  zsh: "zsh -f -i"
 }
 
 var replica_console_names_default = {
