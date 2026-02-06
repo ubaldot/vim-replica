@@ -78,8 +78,8 @@ for test_file in g:TestFiles
 		RunTests(test_file)
 		writefile([''], 'results.txt', 'a')
 	catch
-		writefile(['FAIL: Tests in ' .. test_file .. ' failed with exception '
-						.. v:exception .. ' at ' .. v:throwpoint], 'results.txt', 'a')
+		writefile([$'FAIL: Tests in {test_file} failed with exception '
+						.. $'{v:exception} at {v:throwpoint}'], 'results.txt', 'a')
 	endtry
 endfor
 
