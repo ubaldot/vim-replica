@@ -281,8 +281,8 @@ def HandleLine(clean_line: string)
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
       DisplayVariable(line_decoded)
+      on_msg_received = On_Msg_Received.Ready
     endif
-    on_msg_received = On_Msg_Received.Ready
     echo "TODO fill in autocomplete variable"
 
   # Multi-line debounced payload
@@ -294,8 +294,8 @@ def HandleLine(clean_line: string)
     if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
       logger.Info($'on_msg_received: {on_msg_received.name}')
       DisplayVariable(line_decoded)
+      on_msg_received = On_Msg_Received.Ready
     endif
-    on_msg_received = On_Msg_Received.Ready
     echo "TODO fill in autocomplete variable"
 
   # Prompt is ready. Do something
