@@ -32,8 +32,8 @@ export enum On_Msg_Received
   Ready,
   InitializeConsole,
   ChangePrompt,
-  DisplayVariable,
-  endenum
+  DisplayVariable
+endenum
 
 export var on_msg_received: On_Msg_Received
 
