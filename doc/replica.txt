@@ -41,6 +41,7 @@ g:replica_log_filepath
 Limitation: repl at least 16 columns.
 # If you start dealing with extremely long payloads, consider splitting
 # payload in smaller chunks (modify init scripts)
+How to see log file, :exe "edit " .. g:replica_log_filepath
 
 For zsh, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
 
