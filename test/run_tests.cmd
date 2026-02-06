@@ -19,7 +19,10 @@ if NOT EXIST "%VIMRC%" (
 )
 
 REM Display the contents of VIMRC (for debugging purposes)
+echo/
+echo ----- dummy_vimrc content -------
 type "%VIMRC%"
+echo/
 
 REM Run Vim with the specified configuration and additional commands
 SET "TEST_FILES=['test_replica_python.vim', 'test_replica_julia.vim']"
@@ -29,6 +32,7 @@ REM Check the exit code of Vim command
 if %ERRORLEVEL% EQU 0 (
     echo Vim command executed successfully.
 ) else (
+    echo/
     echo ERROR: Vim command failed with exit code %ERRORLEVEL%.
     del %VIMRC%
     exit /b 1
@@ -47,6 +51,7 @@ if %ERRORLEVEL% EQU 0 (
 ) else (
     echo All tests passed.
 )
+echo/
 
 REM Exit script with success
 del %VIMRC%
