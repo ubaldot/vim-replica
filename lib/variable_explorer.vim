@@ -25,6 +25,7 @@ var prompt_to_be_changed: bool
 var repl_init_script: string
 var last_prompt: string
 
+# TODO: use appropriate type
 # To decide what to do when a console prompt is ready
 # Startup sequence: Ready → InitializeConsole → ChangePrompt (optional) → Ready
 # Operational sequence: Ready → DisplayVariable → Ready
@@ -49,7 +50,7 @@ export def Init()
   payload_accum = ''
   variable_to_inspect = ''
   on_msg_received = On_Msg_Received.Ready
-  # OBS! This shall be the same in the language initialization scripts
+  # OBS!
   universal_prompt = '^vim_replica> $'
 
   is_utf16 = exists('g:replica_use_utf16')
@@ -82,21 +83,92 @@ def SendInitScript(filename: string)
     $"{b:run_command(g:replica_tmp_filepath)}\n")
 enddef
 
+def PopupFilter(id: number, key: string): bool
+  # To handle the keys when release notes popup is visible
+  # Close
+  if key ==# 'q' || key ==# "\<esc>"
+    popup_close(id)
+  # Move down
+  elseif ["\<C-n>", "\<Down>", "j", "\<ScrollWheelDown>"]->index(key) != -1
+    win_execute(id, "normal! \<c-e>")
+  # Move up
+  elseif ["\<C-p>", "\<Up>", "k", "\<ScrollWheelUp>"]->index(key) != -1
+    win_execute(id, "normal! \<c-y>")
+  # Jump down
+  elseif key == "\<C-f>"
+    win_execute(id, "normal! \<c-f>")
+  # Jump up
+  elseif key == "\<C-b>"
+    win_execute(id, "normal! \<c-b>")
+  elseif key == "G"
+    win_execute(id, "normal! G")
+  elseif key == "g"
+    win_execute(id, "normal! gg")
+  elseif key == "l"
+    win_execute(id, "normal! zl")
+  elseif key == "h"
+    win_execute(id, "normal! zh")
+  elseif key == "$"
+    win_execute(id, "normal! $")
+  elseif key == "0"
+    win_execute(id, "normal! 0")
+  else
+    return false
+  endif
+  return true
+enddef
+
+def DisplayVariablePopup(decoded_value: list<string>)
+
+  var opts = {
+    title: $" {variable_to_inspect} ",
+    pos: 'center',
+    border: [1, 1, 1, 1],
+    borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
+    # maxheight: popup_height
+    # minheight: popup_height,
+    # minwidth: popup_width,
+    # maxwidth: popup_width,
+    filter: PopupFilter,
+    scrollbar: 0,
+    cursorline: 0,
+    mapping: 0,
+    wrap: 0,
+    drag: 0,
+  }
+
+  var popup_id = popup_create(decoded_value, opts)
+  win_execute(popup_id, "setlocal number")
+enddef
+
 def DisplayVariable(decoded_value: list<string>)
 
   logger.Info('displaying variable')
 
   if bufexists(variable_to_inspect)
-    logger.Info("reusing existing vertical split")
+    logger.Info($"reusing existing {g:replica_display_variables}")
     var buf = bufnr(variable_to_inspect)
     setbufvar(buf, '&modifiable', true)
     deletebufline(buf, 1, "$")
     setbufline(buf, 1, decoded_value)
     setbufvar(buf, '&modifiable', false)
   else
-    logger.Info("creating a vertical split")
+    logger.Info($"creating a {g:replica_display_variables}")
 
-    vnew
+    if g:replica_display_variables == 'split'
+      new
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+    elseif g:replica_display_variables == 'vsplit'
+      vnew
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+    elseif g:replica_display_variables == 'tab'
+      tabnew
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
+    endif
+
     var buf = bufnr('$')
     setbufvar(buf, '&buftype', 'nofile')
     setbufvar(buf, '&swapfile', false)
@@ -108,9 +180,6 @@ def DisplayVariable(decoded_value: list<string>)
     setbufvar(buf, '&modifiable', false)
     setbufvar(buf, '&bufhidden', 'wipe')
     setbufvar(buf, '&winfixbuf', true)
-    setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
-
-    nnoremap <buffer> <silent> <esc> <cmd>close<cr>
   endif
 
   logger.Info($"displayed variable value: {decoded_value}")
@@ -280,7 +349,11 @@ def HandleLine(clean_line: string)
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
-      DisplayVariable(line_decoded)
+      if g:replica_display_variables == 'popup'
+        DisplayVariablePopup(line_decoded)
+      else
+        DisplayVariable(line_decoded)
+      endif
       on_msg_received = On_Msg_Received.Ready
     endif
     echo "TODO fill in autocomplete variable"
@@ -293,7 +366,11 @@ def HandleLine(clean_line: string)
 
     if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
       logger.Info($'on_msg_received: {on_msg_received.name}')
-      DisplayVariable(line_decoded)
+      if g:replica_display_variables == 'popup'
+        DisplayVariablePopup(line_decoded)
+      else
+        DisplayVariable(line_decoded)
+      endif
       on_msg_received = On_Msg_Received.Ready
     endif
     echo "TODO fill in autocomplete variable"

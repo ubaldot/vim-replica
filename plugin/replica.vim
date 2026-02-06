@@ -221,6 +221,12 @@ endif
 
 import "../lib/highlight.vim"
 
+# --- variable explorer setup ----
+
+if !exists('g:replica_display_variables')
+  g:replica_display_variables = 'vsplit'
+endif
+
 # ---- set autocmds ------
 # The following variable won't change during run-time
 def InitBuffers()
