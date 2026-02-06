@@ -46,6 +46,11 @@ How to see log file, :exe "edit " .. g:replica_log_filepath
 
 For zsh, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
 
+  bash --noprofile --norc -i
+If user wants his stuff, then use:
+  let g:repl_option = '--rcfile ~/.bashrc'
+
+
 Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
 way.
 

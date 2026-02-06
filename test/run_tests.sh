@@ -34,7 +34,8 @@ VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
 
 # Add test files here: OBS! <space> after ','
 TESTS_LIST="['test_replica_python.vim', \
-	'test_replica_julia.vim']"
+	'test_replica_julia.vim', \
+	'test_replica_sh.vim']"
 
 # All the tests are executed in the same Vim instance
 eval $VIM_CMD " -c \"vim9cmd g:TestFiles = $TESTS_LIST\" -S runner.vim"

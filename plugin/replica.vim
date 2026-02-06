@@ -96,14 +96,14 @@ endif
 var replica_repls_default = {
   python: "ipython",
   julia: "julia",
-  sh: "bash",
+  sh: "bash --noprofile --norc -i",
   zsh: "zsh"
 }
 
 var replica_console_names_default = {
   python: "IPYTHON",
   julia: "JULIA",
-  sh: "SH",
+  sh: "BASH",
   zsh: "ZSH"
 }
 
@@ -118,7 +118,7 @@ var replica_run_commands_default = {
 var replica_repl_init_scripts_default = {
   python: $"{replica_path}/languages/python/ipython_init.py",
   julia: $"{replica_path}/languages/julia/julia_init.jl",
-  sh: "",
+  sh: $"{replica_path}/languages/sh/sh_init.sh",
   zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
 }
 
@@ -242,7 +242,7 @@ def InitBuffers()
   # Functions to poll variable_explorer data from the repl
   # Consider to make another two dictionaries as the number of languages
   # increases
-  if index(['zsh'], &filetype) != -1
+  if index(['zsh', 'sh'], &filetype) != -1
     # Functions in zsh, bash, etc. are called without parenthesis,
     # e.g. __vim_whos instead of __vim_whos()
     b:vim_inspect_function = (x) => $"__vim_inspect {x}\n"
@@ -258,7 +258,7 @@ def InitBuffers()
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
-  if index(['zsh'], &filetype) != -1
+  if index(['zsh', 'sh'], &filetype) != -1
     b:prompt_to_be_changed = true
   else
     b:prompt_to_be_changed = false

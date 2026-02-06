@@ -284,8 +284,8 @@ def HandlePrompt(line_debounced: string)
     logger.Info($'Same prompt as before, no action')
   endif
 
+  logger.Info($'on_msg_received: {on_msg_received.name}')
   if on_msg_received == On_Msg_Received.InitializeConsole
-    logger.Debug($'on_msg_received: {on_msg_received.name}')
 
     on_msg_received = prompt_to_be_changed
       ? On_Msg_Received.ChangePrompt
@@ -294,7 +294,7 @@ def HandlePrompt(line_debounced: string)
     SendInitScript(repl_init_script)
 
     logger.Info($"sending init script: {repl_init_script}")
-    logger.Debug($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'on_msg_received: {on_msg_received.name}')
   elseif on_msg_received == On_Msg_Received.ChangePrompt
     logger.Info('Changing prompt')
     repl_prompt = universal_prompt
