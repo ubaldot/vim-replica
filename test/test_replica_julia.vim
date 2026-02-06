@@ -386,7 +386,7 @@ END
   WaitForJuliaSymbol("DataFrame")
 
   # -- Test float
-  var expected_variable_explorer = ['42', '']
+  var expected_variable_explorer = ['42']
   var buf_name = 'a_int'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
@@ -421,7 +421,6 @@ END
   expected_variable_explorer = [
     "1\t2\t3",
     "4\t5\t6",
-    ""
   ]
   buf_name = 'mat_int'
   exe $"ReplicaInspect {buf_name}"
@@ -437,7 +436,7 @@ END
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
 #   # -- Test array slice
-  expected_variable_explorer = ["1\t2\t3", ""]
+  expected_variable_explorer = ["1\t2\t3"]
 
   buf_name = 'mat_int[1, :]'
   exe $"ReplicaInspect {buf_name}"
@@ -459,7 +458,6 @@ END
 
 5	7
 6	8
-
 END
   redraw
   buf_name = 'arr_3d'
@@ -484,7 +482,6 @@ END
    2 │ 2024-01-02      0.2  false
    3 │ 2024-01-03      0.3   true
    4 │ 2024-01-04      0.4  false
-
 END
 
   buf_name = 'df_mixed'
@@ -502,7 +499,6 @@ END
   # -- Test DataFrame slice
   expected_variable_explorer =<< END
 true	false	true	false
-
 END
 
   buf_name = "df_mixed.flag"

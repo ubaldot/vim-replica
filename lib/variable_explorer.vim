@@ -187,7 +187,8 @@ enddef
 
 def DecodeOneLinePayload(line_debounced: string): list<string>
   var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
-  var line_decoded = blob2str(base64_decode(payload))
+  # Paylod shall always finish with a blank line, hence [: -2]
+  var line_decoded = blob2str(base64_decode(payload))[: -2]
   logger.Info("one-line message successfully decoded")
   return line_decoded
 enddef
@@ -264,7 +265,8 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
 
-      var line_decoded = blob2str(base64_decode(payload_clean))
+      # Paylod shall always finish with a blank line, hence [: -2]
+      var line_decoded = blob2str(base64_decode(payload_clean))[: -2]
       logger.Info('multi-line message successfully decoded')
 
       payload_accum = ''

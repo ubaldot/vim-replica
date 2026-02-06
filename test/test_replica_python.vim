@@ -281,7 +281,7 @@ def g:Test_python_variable_explorer_basic()
   exe "ReplicaSendFile"
 
   # -- Test float
-  var expected_variable_explorer = ['110', '']
+  var expected_variable_explorer = ['110']
   var buf_name = 'a'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
@@ -316,7 +316,6 @@ def g:Test_python_variable_explorer_basic()
   expected_variable_explorer = [
     "1\t2\t3",
     "4\t5\t6",
-    ""
   ]
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
@@ -332,7 +331,7 @@ def g:Test_python_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Test np.ndarray slice
-  expected_variable_explorer = ["1\t2\t3", ""]
+  expected_variable_explorer = ["1\t2\t3"]
 
   buf_name = 'A[0, :]'
   exe $"ReplicaInspect {buf_name}"
@@ -351,7 +350,6 @@ def g:Test_python_variable_explorer_basic()
       a  b  c
 row1  1  2  3
 row2  4  5  6
-
 END
 
   buf_name = 'df'
@@ -371,7 +369,6 @@ END
   expected_variable_explorer =<< END
 row1    1
 row2    4
-
 END
   buf_name = "df['a']"
   exe $"ReplicaInspect {buf_name}"
