@@ -2,11 +2,13 @@ vim9script
 
 # Uncomment for manual tests.
 # The global variable g:TestFiles is a list containing all the tests filenames.
-# if !exists('g:TestFiles')
-# 	g:TestFiles = ['test_replica_python.vim', 'test_replica_julia.vim']
-# endif
+ # if !exists('g:TestFiles')
+ 	# # g:TestFiles = ['test_links.vim', 'test_tables.vim', 'test_regex.vim']
+ 	# g:TestFiles = ['test_tables.vim']
+ # endif
 
-delete('results.txt')
+const test_path = expand('<sfile>:h')
+delete($'{test_path}/results.txt')
 
 def RunTests(test_file: string)
   set nomore
@@ -44,43 +46,34 @@ def RunTests(test_file: string)
 	# Execute the test functions
   # writefile(['Executed test:'], 'results.txt', 'a')
   for test in test_functions
-		echom "current test: " .. test
-		messages clear
-    v:errors = []
-		# no need because you only see the last message. Better to use messages.
-    # v:errmsg = ''
+		v:errors = []
     try
       :%bw!
       exe $'call {test}'
     catch
-      add(v:errors, $'Error: Test {test} failed with exception {v:exception} at {v:throwpoint}')
-    endtry
-
-    # if v:errmsg != ''
-    #   add(v:errmsg, $'Error: Test {test} generated error {v:errmsg}')
-    # endif
-    if !v:errors->empty()
-			writefile(['messages log:', '--------------------'], 'results.txt', 'a')
-			writefile(execute('messages')->split("\n"), 'results.txt', 'a')
-			writefile(['', 'Assertions errors:', '--------------------'], 'results.txt', 'a')
+			# In a catch block v:exception is written instead of v:errmsg
+			if !empty(v:exception)
+				writefile(['Vim errors:', '--------------------'], 'results.txt', 'a')
+				writefile([v:exception, ''], 'results.txt', 'a')
+			else
+				writefile(['v:exception is empty'], 'results.txt', 'a')
+			endif
+      # add(v:errors, $'Error: Test {test} failed with exception {v:exception} at {v:throwpoint}')
+			writefile(['Asserions errors:', '--------------------'], 'results.txt', 'a')
       writefile(v:errors, 'results.txt', 'a')
       writefile([$'{test}: FAIL', ''], 'results.txt', 'a')
-    else
-      writefile([$'{test}: pass'], 'results.txt', 'a')
-    endif
+			break
+    endtry
+
+		writefile([$'{test}: pass'], 'results.txt', 'a')
+
   endfor
-	# Test results separator
 enddef
 
 # To test in stand-alone, remove the try block from the following
 for test_file in g:TestFiles
-	try
-		RunTests(test_file)
-		writefile([''], 'results.txt', 'a')
-	catch
-		writefile([$'FAIL: Tests in {test_file} failed with exception '
-						.. $'{v:exception} at {v:throwpoint}'], 'results.txt', 'a')
-	endtry
+	RunTests(test_file)
+	writefile([''], 'results.txt', 'a')
 endfor
 
 qall!

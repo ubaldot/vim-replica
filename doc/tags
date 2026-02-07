@@ -29,4 +29,5 @@ g:replica_names	replica.txt	/*g:replica_names*
 g:replica_python_options	replica.txt	/*g:replica_python_options*
 g:replica_run_commands	replica.txt	/*g:replica_run_commands*
 g:replica_tmp_filename	replica.txt	/*g:replica_tmp_filename*
+g:replica_use_utf16	replica.txt	/*g:replica_use_utf16*
 replica.txt	replica.txt	/*replica.txt*
