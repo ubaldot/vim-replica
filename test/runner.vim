@@ -46,22 +46,15 @@ def RunTests(test_file: string)
 	# Execute the test functions
   # writefile(['Executed test:'], 'results.txt', 'a')
   for test in test_functions
-		v:errors = []
     try
       :%bw!
       exe $'call {test}'
     catch
 			# In a catch block v:exception is written instead of v:errmsg
-			if !empty(v:exception)
-				writefile(['Vim errors:', '--------------------'], 'results.txt', 'a')
-				writefile([v:exception, ''], 'results.txt', 'a')
-			else
-				writefile(['v:exception is empty'], 'results.txt', 'a')
-			endif
-      # add(v:errors, $'Error: Test {test} failed with exception {v:exception} at {v:throwpoint}')
-			writefile(['Asserions errors:', '--------------------'], 'results.txt', 'a')
-      writefile(v:errors, 'results.txt', 'a')
-      writefile([$'{test}: FAIL', ''], 'results.txt', 'a')
+			writefile(['FAIL', '--------------------'], 'results.txt', 'a')
+			writefile([v:throwpoint], 'results.txt', 'a')
+			writefile([v:exception, ''], 'results.txt', 'a')
+
 			break
     endtry
 

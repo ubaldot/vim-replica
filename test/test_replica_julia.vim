@@ -113,6 +113,7 @@ def g:Test_julia_basic()
   endif
 
   v:errors = []
+  v:errmsg = ''
   messages clear
 
   const src_name = 'testfile.jl'
@@ -269,8 +270,11 @@ END
   WaitForAssert(() => assert_false(bufexists('JULIA')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
+  else
+    echom "Test passed!"
   endif
 
   :%bw!
@@ -279,8 +283,9 @@ enddef
 
 
 def g:Test_julia_variable_explorer_basic()
-  messages clear
   v:errors = []
+  v:errmsg = ''
+  messages clear
 
   const src_name = 'testfile.jl'
   const code_lines =<< trim END
@@ -519,8 +524,9 @@ END
   WaitForAssert(() => assert_false(bufexists('JULIA')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
   else
     echom "Test passed!"
   endif

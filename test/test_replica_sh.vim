@@ -225,12 +225,15 @@ END
   WaitForAssert(() => assert_false(bufexists('BASH')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
+  else
+    echom "Test passed!"
   endif
 
-  # :%bw!
-  # Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
 
 

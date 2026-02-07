@@ -57,6 +57,7 @@ enddef
 def g:Test_python_basic()
   # g:replica_debug = true
   v:errors = []
+  v:errmsg = ''
   messages clear
 
   if exepath('ipython')->empty()
@@ -154,8 +155,11 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
+  else
+    echom "Test passed!"
   endif
 
   :%bw!
@@ -231,8 +235,11 @@ def g:Test_unsupported_filetypes()
 
   exe "ReplicaConsoleShutoff"
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
+  else
+    echom "Test passed!"
   endif
 
   :%bw!
@@ -389,8 +396,11 @@ END
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors)
-    echoerr "Test failed!"
+  # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    silent throw string(v:errors)
+  else
+    echom "Test passed!"
   endif
 
   :%bw!
