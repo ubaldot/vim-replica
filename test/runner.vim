@@ -6,7 +6,8 @@ vim9script
 # 	g:TestFiles = ['test_replica_python.vim', 'test_replica_julia.vim']
 # endif
 
-const test_results_filepath = $'{expand('<sfile>:h')}/results.txt'
+const base_path = $'{expand('<sfile>:h:h')}'
+const test_results_filepath = $'{base_path}/test/results.txt'
 delete(test_results_filepath)
 
 def RunTests(test_file: string)
@@ -43,8 +44,6 @@ def RunTests(test_file: string)
 	# Execute the test functions
   for test in test_functions
 		messages clear
-    v:errors = []
-		v:errmsg = ''
 
 		try
 			exe $'call {test}'
@@ -52,12 +51,14 @@ def RunTests(test_file: string)
       writefile([$'{test}: FAIL'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
 			writefile([v:exception], test_results_filepath, 'a')
+			# echoerr, throw and errors, always populate :messages. Hence, when an
+			# error is thrown, it is always good idea to check :messages
 			writefile(['', 'Other errors log:', '--------------------'], test_results_filepath, 'a')
 			writefile(execute('messages')->split("\n"), test_results_filepath, 'a')
 			break
 		endtry
 
-		writefile([$'{test}: SUCCESS'], test_results_filepath, 'a')
+		writefile([$'{test}: OK'], test_results_filepath, 'a')
   endfor
 enddef
 
