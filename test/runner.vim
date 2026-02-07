@@ -46,25 +46,18 @@ def RunTests(test_file: string)
     v:errors = []
 		v:errmsg = ''
 
-		exe $'call {test}'
-
-		if !empty(v:errors) || !empty(v:errmsg)
+		try
+			exe $'call {test}'
+		catch
       writefile([$'{test}: FAIL'], test_results_filepath, 'a')
-		endif
-
-    if !empty(v:errors)
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
-      writefile(v:errors, test_results_filepath, 'a')
-		endif
-
-		if !empty(v:errmsg)
+			writefile([v:exception], test_results_filepath, 'a')
 			writefile(['', 'Other errors log:', '--------------------'], test_results_filepath, 'a')
 			writefile(execute('messages')->split("\n"), test_results_filepath, 'a')
-		endif
+			break
+		endtry
 
-		if empty(v:errors) && empty(v:errmsg)
-      writefile([$'{test}: SUCCESS'], test_results_filepath, 'a')
-		endif
+		writefile([$'{test}: SUCCESS'], test_results_filepath, 'a')
   endfor
 enddef
 
