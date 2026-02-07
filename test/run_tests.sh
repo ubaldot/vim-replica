@@ -54,8 +54,8 @@ echo "-------------------------------"
 if grep -qw FAIL results.txt; then
 	echo "ERROR: Some test(s) failed."
 	echo
+	rm "$VIMRC"
 	if [ "$GITHUB" -eq 1 ]; then
-		rm "$VIMRC"
 		rm results.txt
 		exit 3
 	fi

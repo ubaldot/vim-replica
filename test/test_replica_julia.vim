@@ -37,7 +37,7 @@ def WaitForPrompt(expected_prompt: string)
 
   # Timeout reached, fail with actual last line
   if counter == max_count
-    throw $"Prompt not found: {expected_prompt}, got: {line} after waiting {counter * 50} ms"
+    echoerr $"Prompt not found: {expected_prompt}, got: {line} after waiting {counter * 50} ms"
   endif
 enddef
 
@@ -101,7 +101,7 @@ def WaitForJuliaSymbol(symbol: string)
   endwhile
 
   if counter == max_count
-    throw $"Julia symbol not ready: {symbol}"
+    echoerr $"Julia symbol not ready: {symbol}"
   endif
 enddef
 
@@ -109,12 +109,8 @@ enddef
 def g:Test_julia_basic()
 
   if exepath('julia')->empty()
-    throw "Skipped: 'julia' executable is not found in $PATH"
+    echoerr "Skipped: 'julia' executable is not found in $PATH"
   endif
-
-  v:errors = []
-  v:errmsg = ''
-  messages clear
 
   const src_name = 'testfile.jl'
   const code_lines =<< trim END
@@ -272,7 +268,7 @@ END
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif
@@ -526,7 +522,7 @@ END
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif

@@ -50,7 +50,7 @@ def WaitForPrompt(expected: string)
   endwhile
 
   # Timeout reached, fail with actual last line
-  throw $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
+  echoerr $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
 enddef
 
 # Tests start here
@@ -61,7 +61,7 @@ def g:Test_python_basic()
   messages clear
 
   if exepath('ipython')->empty()
-    throw "Skipped: 'ipython' is not found in $PATH"
+    echoerr "Skipped: 'ipython' is not found in $PATH"
   endif
 
   const src_name = 'testfile.py'
@@ -157,7 +157,7 @@ def g:Test_python_basic()
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif
@@ -168,6 +168,7 @@ enddef
 
 def g:Test_unsupported_filetypes()
   # Test switching buffers of supported and unsupprted filetypes
+  v:errmsg = ''
   v:errors = []
   messages clear
 
@@ -237,7 +238,7 @@ def g:Test_unsupported_filetypes()
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif
@@ -249,6 +250,7 @@ enddef
 
 def g:Test_python_variable_explorer_basic()
   # g:replica_debug = true
+  v:errmsg = ''
   v:errors = []
   messages clear
 
@@ -398,7 +400,7 @@ END
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif

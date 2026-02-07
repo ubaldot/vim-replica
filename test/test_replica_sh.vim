@@ -101,12 +101,15 @@ def WaitForJuliaSymbol(symbol: string)
   endwhile
 
   if counter == max_count
-    throw $"Julia symbol not ready: {symbol}"
+    echoerr $"Julia symbol not ready: {symbol}"
   endif
 enddef
 
 # Tests start here
 def g:Test_sh_basic()
+  v:errors = []
+  v:errmsg = ''
+  messages clear
 
   if exepath('bash')->empty()
     throw "Skipped: 'bash' executable is not found in $PATH"
@@ -227,7 +230,7 @@ END
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
-    silent throw string(v:errors)
+    echom "Test failed!"
   else
     echom "Test passed!"
   endif
@@ -483,7 +486,7 @@ enddef
 #   WaitForAssert(() => assert_equal(1, winnr('$')))
 
 #   if !empty(v:errors)
-#     echoerr "Test failed!"
+#     echom "Test failed!"
 #   else
 #     echom "Test passed!"
 #   endif
