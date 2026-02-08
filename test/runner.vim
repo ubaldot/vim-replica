@@ -50,7 +50,7 @@ def RunTests(test_file: string)
 		messages clear
 
 		try
-			exe $'call {test}'
+			silent! exe $'call {test}'
 		catch
 			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
