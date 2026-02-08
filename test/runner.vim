@@ -6,13 +6,17 @@ vim9script
 # 	g:TestFiles = ['test_replica_python.vim', 'test_replica_julia.vim']
 # endif
 
+const RED = "\033[31m"
+const GREEN = "\033[32m"
+const END = "\033[0m"
+
 const base_path = $'{expand('<sfile>:h:h')}'
 const test_results_filepath = $'{base_path}/test/results.txt'
 delete(test_results_filepath)
 
 def RunTests(test_file: string)
-  set nomore
-  set debug=beep
+	set nomore
+	set debug=beep
 
 	writefile([$'o {test_file}'], test_results_filepath, 'a')
 
@@ -28,27 +32,27 @@ def RunTests(test_file: string)
 
 	# Check is user defined some function name erroneously
 	var wrong_test_functions = copy(all_functions)->filter('v:val !~ "^Test_"')
-  if !empty(wrong_test_functions)
+	if !empty(wrong_test_functions)
 		writefile([$'WARNING: The following tests are skipped: {wrong_test_functions}'], test_results_filepath, 'a')
 		writefile([''], test_results_filepath, 'a')
 	endif
 
 	# Pick the good functions
 	var test_functions = copy(all_functions)->filter('v:val =~ "^Test_"')
-  if empty(test_functions)
-    # No tests are found
+	if empty(test_functions)
+		# No tests are found
 		writefile([$'No tests are found in {test_file}'], test_results_filepath, 'a')
-    return
-  endif
+		return
+	endif
 
 	# Execute the test functions
-  for test in test_functions
+	for test in test_functions
 		messages clear
 
 		try
 			exe $'call {test}'
 		catch
-      writefile([$'{test}: FAIL'], test_results_filepath, 'a')
+			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
 			writefile([v:exception], test_results_filepath, 'a')
 			# echoerr, throw and errors, always populate :messages. Hence, when an
@@ -58,14 +62,14 @@ def RunTests(test_file: string)
 			break
 		endtry
 
-		writefile([$'{test}: OK'], test_results_filepath, 'a')
-  endfor
+		writefile([$'{test}: {GREEN}OK{END}'], test_results_filepath, 'a')
+	endfor
 enddef
 
 # To test in stand-alone, remove the try block from the following
 for test_file in g:TestFiles
-		RunTests(test_file)
-    writefile([''], test_results_filepath, 'a')
+	RunTests(test_file)
+	writefile([''], test_results_filepath, 'a')
 endfor
 
 qall!
