@@ -12,7 +12,11 @@ const END = "\033[0m"
 
 const base_path = $'{expand('<sfile>:h:h')}'
 const test_results_filepath = $'{base_path}/test/results.txt'
+
 delete(test_results_filepath)
+
+const logfile = g:replica_log_filepath
+delete(logfile)
 
 def RunTests(test_file: string)
 	set nomore
@@ -52,11 +56,24 @@ def RunTests(test_file: string)
 		try
 			silent! exe $'call {test}'
 		catch
+			# From test assertions
 			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
 			writefile([v:exception], test_results_filepath, 'a')
 			# echoerr, throw and errors, always populate :messages. Hence, when an
 			# error is thrown, it is always good idea to check :messages
+
+			# From eventual loggers. g:logfile shall be set from the .vimrc used in
+			# test
+			if exists('logfile') && filereadable(logfile)
+				const log = readfile(logfile)
+				if !empty(log)
+					writefile(['', 'Logged errors:', '--------------------'], test_results_filepath, 'a')
+					writefile(log, test_results_filepath, 'a')
+				endif
+			endif
+
+			# From :messages
 			writefile(['', 'Other errors log:', '--------------------'], test_results_filepath, 'a')
 			writefile(execute('messages')->split("\n"), test_results_filepath, 'a')
 			break
@@ -72,6 +89,7 @@ for test_file in g:TestFiles
 	writefile([''], test_results_filepath, 'a')
 endfor
 
+delete(logfile)
 qall!
 
 # vim: shiftwidth=2 softtabstop=2 noexpandtab

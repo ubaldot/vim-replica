@@ -311,7 +311,6 @@ def HandleConsoleError(line_debounced: string)
 
   if line_debounced =~? 'error'
     logger.Error($"Error from console: {line_debounced}")
-    repl.Echoerr($"Error from console: {line_debounced}")
 
     collecting_error_msg = true
 
@@ -321,7 +320,7 @@ def HandleConsoleError(line_debounced: string)
       collecting_error_msg = false
     else
       logger.Error(line_debounced)
-      repl.Echoerr(line_debounced)
+      redraw
     endif
   endif
 enddef

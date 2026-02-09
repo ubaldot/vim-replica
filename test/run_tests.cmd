@@ -6,11 +6,23 @@ SETLOCAL
 REM Define the paths and files
 SET "VIMPRG=vim.exe"
 SET "VIMRC=vimrc_for_tests"
-SET "VIM_CMD=%VIMPRG% --clean -u %VIMRC% -N --not-a-term"
+SET VIM_CMD=%VIMPRG% --clean -u "%VIMRC%" -i NONE -N --not-a-term -S "runner.vim"
 
 REM Create or overwrite the vimrc file with the initial setting
-echo set runtimepath+=.. > "%VIMRC%"
-echo filetype plugin on >> "%VIMRC%"
+(
+  echo vim9script
+  echo/
+  echo set runtimepath+=..
+  echo filetype indent plugin on
+  echo/
+  echo/ g:replica_debug = true
+  echo/ g:replica_log_level = 'Error'
+  echo/
+  echo g:TestFiles = [
+  echo 		'test_replica_python.vim',
+  echo 		'test_replica_julia.vim',
+  echo   ]
+) > "%VIMRC%"
 
 REM Check if the vimrc file was created successfully
 if NOT EXIST "%VIMRC%" (
@@ -24,9 +36,8 @@ echo ----- dummy_vimrc content -------
 type "%VIMRC%"
 echo/
 
-REM Run Vim with the specified configuration and additional commands
-SET "TEST_FILES=['test_replica_python.vim', 'test_replica_julia.vim']"
-%VIM_CMD% -c "vim9cmd g:TestFiles =  %TEST_FILES%" -S "runner.vim"
+REM Run Vim with the specified configuration
+%VIM_CMD%
 
 REM Check the exit code of Vim command
 if %ERRORLEVEL% EQU 0 (

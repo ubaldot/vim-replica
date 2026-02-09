@@ -8,6 +8,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 VIM_PRG=${VIM_PRG:=$(which vim)}
+
 if [ -z "$VIM_PRG" ]; then
   echo "ERROR: vim (\$VIM_PRG) is not found in PATH"
   if [ "$GITHUB" -eq 1 ]; then
@@ -20,25 +21,48 @@ fi
 # source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
 
-echo "vim9script" > "$VIMRC"
-echo "">> "$VIMRC"
-echo "set runtimepath+=.." >> "$VIMRC"
-echo "filetype indent plugin on" >> "$VIMRC"
+tmp="$(mktemp "${VIMRC}.XXXX")"
+
+cat >"$tmp" <<'EOF' &&
+vim9script
+
+set runtimepath+=..
+filetype indent plugin on
+
+g:replica_debug = true
+g:replica_log_level = 'Error'
+
+silent! delete(g:replica_log_filepath)
+g:logfile = g:replica_log_filepath
+
+g:TestFiles = [
+		'test_replica_python.vim',
+		'test_replica_julia.vim',
+		'test_replica_sh.vim'
+  ]
+
+EOF
+
+mv "$tmp" "$VIMRC"
 
 # Display vimrc content
 echo "----- vimrc content ---------"
 cat $VIMRC
 echo ""
-# Construct the VIM_CMD with correct variable substitution and quoting
-VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
 
-# Add test files here: OBS! <space> after ','
-TESTS_LIST="['test_replica_python.vim', \
-	'test_replica_julia.vim', \
-	'test_replica_sh.vim']"
+# Build command: this may change depending on the plugin
+VIM_CMD=(
+    "$VIM_PRG"
+    --clean
+    -u "$VIMRC"
+    -i NONE
+    -N
+    --not-a-term
+    -S runner.vim
+)
 
-# All the tests are executed in the same Vim instance
-eval $VIM_CMD " -c \"vim9cmd g:TestFiles = $TESTS_LIST\" -S runner.vim"
+# Execute Vim
+"${VIM_CMD[@]}"
 
 # Check that Vim started and that the runner did its job
 if [ $? -eq 0 ]; then
