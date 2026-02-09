@@ -15,6 +15,7 @@ const test_results_filepath = $'{base_path}/test/results.txt'
 
 delete(test_results_filepath)
 
+# OBS! If the plugin has no logger, this can be removed.
 const logfile = g:replica_log_filepath
 delete(logfile)
 
