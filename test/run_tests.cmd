@@ -50,7 +50,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 REM Check test results
-echo REPLICA unit test results
+echo REPLICA unit test results:
 powershell -NoProfile -Command "Get-Content -Encoding UTF8 results.txt"
 
 REM Check for FAIL in results.txt

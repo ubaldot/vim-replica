@@ -54,17 +54,14 @@ def RunTests(test_file: string)
 		messages clear
 
 		try
-			silent! exe $'call {test}'
+			exe $'call {test}'
 		catch
 			# From test assertions
 			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
 			writefile([v:exception], test_results_filepath, 'a')
-			# echoerr, throw and errors, always populate :messages. Hence, when an
-			# error is thrown, it is always good idea to check :messages
 
-			# From eventual loggers. g:logfile shall be set from the .vimrc used in
-			# test
+			# From eventual loggers.
 			if exists('logfile') && filereadable(logfile)
 				const log = readfile(logfile)
 				if !empty(log)
@@ -74,7 +71,9 @@ def RunTests(test_file: string)
 			endif
 
 			# From :messages
-			writefile(['', 'Other errors log:', '--------------------'], test_results_filepath, 'a')
+			# echoerr, throw and errors, always populate :messages. Hence, when an
+			# error is thrown, it is always good idea to check :messages
+			writefile(['', 'messages:', '------------'], test_results_filepath, 'a')
 			writefile(execute('messages')->split("\n"), test_results_filepath, 'a')
 			break
 		endtry
