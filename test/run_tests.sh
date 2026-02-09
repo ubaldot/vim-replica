@@ -32,15 +32,11 @@ filetype indent plugin on
 g:replica_debug = true
 g:replica_log_level = 'Error'
 
-silent! delete(g:replica_log_filepath)
-g:logfile = g:replica_log_filepath
-
 g:TestFiles = [
 		'test_replica_python.vim',
 		'test_replica_julia.vim',
 		'test_replica_sh.vim'
   ]
-
 EOF
 
 mv "$tmp" "$VIMRC"
