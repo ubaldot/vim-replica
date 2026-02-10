@@ -4,12 +4,12 @@ import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 
 def GetCompleteList(A: string, L: string, P: number): list<string>
+  variable_explorer.ResetCompleteList()
   variable_explorer.GetReplVariablesNames()
-  while empty(variable_explorer.complete_list)
+  while empty(variable_explorer.GetCompleteList())
     sleep 1m
   endwhile
-  var tmp = variable_explorer.complete_list
-  variable_explorer.complete_list = []
+  var tmp = variable_explorer.GetCompleteList()
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
 

@@ -43,7 +43,14 @@ export var on_msg_received: On_Msg_Received
 export var raw_buf: string
 var is_utf16: bool
 
-export var complete_list: list<string>
+var complete_list: list<string>
+export def ResetCompleteList()
+  complete_list = []
+enddef
+
+export def GetCompleteList(): list<string>
+  return complete_list
+enddef
 
 export def Init()
   logger.Info('variable explorer script initialization')
