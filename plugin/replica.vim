@@ -45,7 +45,9 @@ g:replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
 # --- logger setup -----
 
 # File used for logging
-g:replica_log_filepath = $'{data_dir}/vim_replica.log'
+if !exists('g:replica_log_filepath')
+  g:replica_log_filepath = $'{data_dir}/vim_replica.log'
+endif
 
 if !exists('g:replica_log_max_size')
    g:replica_log_max_size = 1024 * 1024 # 1 MB
