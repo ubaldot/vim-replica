@@ -284,6 +284,10 @@ def InitBuffers()
     augroup END
   endif
 
+  if g:replica_debug
+    command! -buffer -nargs=0 ReplicaLogEdit exe $"edit {g:replica_log_filepath}"
+  endif
+
   # -- command and mappings init ----
   ftcommands_mappings.InstallConsoleCommands()
   ftcommands_mappings.InstallSendCommands()
