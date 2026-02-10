@@ -364,7 +364,7 @@ def HandleLine(clean_line: string)
       on_msg_received = On_Msg_Received.Ready
     elseif on_msg_received == On_Msg_Received.CompleteList
       complete_list = line_decoded
-      ftcm.semaphore_custom_list = false
+      echom "complete_list: " .. string(complete_list)
       on_msg_received = On_Msg_Received.Ready
     endif
 
@@ -532,6 +532,10 @@ export def GetReplVariablesNames()
 
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'sent: __vim_get_variables()')
+
+  # Clean up console
+  # term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
+  # logger.Info("sent: <c-l>")
 enddef
 
 export def VimInspect(
