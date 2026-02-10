@@ -90,4 +90,4 @@ jobs:
           $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
           & $Env:VIMPRG --version
           cd test
-          .\run_tests.cmd
+          .\run_tests.ps1

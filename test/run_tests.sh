@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# On GITHUB we call the script with an argument to secure the runner to quit
+# when there is an error.
+# Locally, we don't need to shut off everything when there is an error.
+
 GITHUB=1
 
 # No arguments passed, then no exit
@@ -86,6 +90,7 @@ if grep -qw FAIL results.txt; then
 	echo "ERROR: Some test(s) failed."
 	echo
 	rm "$VIMRC"
+	rm "$LOGGER_DEF_FILE"
 	if [ "$GITHUB" -eq 1 ]; then
 		rm results.txt
 		exit 3
@@ -94,6 +99,7 @@ else
 	echo "SUCCESS: All the tests  passed."
 	echo
 	rm "$VIMRC"
+	rm "$LOGGER_DEF_FILE"
 	rm results.txt
 	exit 0
 fi
