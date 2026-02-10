@@ -39,6 +39,7 @@ g:replica_log_max_size
 g:replica_log_filepath
 g:replica_display_variables
 :ReplicaLogEdit
+:ReplicaLogDelete
 
 Limitation: repl at least 16 columns.
 # If you start dealing with extremely long payloads, consider splitting

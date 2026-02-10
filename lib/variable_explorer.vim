@@ -10,6 +10,7 @@ vim9script
 
 import "../lib/repl.vim"
 import "../lib/logger.vim"
+import "../lib/ftcommands_mappings.vim" as ftcm
 
 # For parsing the message from the terminal upon __vim_inspect() call
 var collecting_payload: bool
@@ -32,6 +33,7 @@ export enum On_Msg_Received
   Ready,
   InitializeConsole,
   ChangePrompt,
+  CompleteList,
   DisplayVariable
 endenum
 
@@ -40,6 +42,8 @@ export var on_msg_received: On_Msg_Received
 # Accumulator for bytes coming from the terminal
 export var raw_buf: string
 var is_utf16: bool
+
+export var complete_list: list<string>
 
 export def Init()
   logger.Info('variable explorer script initialization')
@@ -51,6 +55,7 @@ export def Init()
   on_msg_received = On_Msg_Received.Ready
   # OBS!
   universal_prompt = '^vim_replica> $'
+  complete_list = ['']
 
   is_utf16 = exists('g:replica_use_utf16')
     ? g:replica_use_utf16
@@ -357,6 +362,10 @@ def HandleLine(clean_line: string)
         DisplayVariable(line_decoded)
       endif
       on_msg_received = On_Msg_Received.Ready
+    elseif on_msg_received == On_Msg_Received.CompleteList
+      complete_list = line_decoded
+      ftcm.semaphore_custom_list = false
+      on_msg_received = On_Msg_Received.Ready
     endif
 
   # Multi-line debounced payload
@@ -365,14 +374,19 @@ def HandleLine(clean_line: string)
     logger.Info($'decoding multi-line payload')
     var line_decoded = DecodeMultiLinePayload(line_debounced)
 
-    if !empty(line_decoded) && on_msg_received == On_Msg_Received.DisplayVariable
-      logger.Info($'on_msg_received: {on_msg_received.name}')
-      if g:replica_display_variables == 'popup'
-        DisplayVariablePopup(line_decoded)
-      else
-        DisplayVariable(line_decoded)
+    if !empty(line_decoded)
+      if on_msg_received == On_Msg_Received.DisplayVariable
+        logger.Info($'on_msg_received: {on_msg_received.name}')
+        if g:replica_display_variables == 'popup'
+          DisplayVariablePopup(line_decoded)
+        else
+          DisplayVariable(line_decoded)
+        endif
+        on_msg_received = On_Msg_Received.Ready
+      elseif on_msg_received == On_Msg_Received.CompleteList
+        complete_list = line_decoded
+        on_msg_received = On_Msg_Received.Ready
       endif
-      on_msg_received = On_Msg_Received.Ready
     endif
 
   # Prompt is ready. Do something
@@ -511,40 +525,49 @@ export def ReplicaOutCb(_: channel, msg: string)
   endtry
 enddef
 
+export def GetReplVariablesNames()
+  logger.Info("getting variables for complete list")
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function(1))
+  on_msg_received = On_Msg_Received.CompleteList
+
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($'sent: __vim_get_variables()')
+enddef
 
 export def VimInspect(
-  variable: string = '',
-  action: On_Msg_Received = On_Msg_Received.Ready
-  )
-const whos_buf_name = 'Workspace'
+    variable: string = '',
+    action: On_Msg_Received = On_Msg_Received.Ready
+    )
+  const whos_buf_name = 'Workspace'
 
-logger.Info("inspecting variables")
+  logger.Info("inspecting variables")
 
-# :tabonly secure that there is only one tab for variable explorer
-# tabonly
-if !empty(variable)
-  var variable_single_quoted = variable->substitute('"', "'", 'g')
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
-  variable_to_inspect = variable_single_quoted
-  on_msg_received = action
+  # :tabonly secure that there is only one tab for variable explorer
+  # tabonly
+  if !empty(variable)
+    var variable_single_quoted = variable->substitute('"', "'", 'g')
+    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
+    variable_to_inspect = variable_single_quoted
+    on_msg_received = action
 
-  logger.Info($'on_msg_received: {on_msg_received.name}')
-  logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
-else
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
-  variable_to_inspect = whos_buf_name
-  on_msg_received = action
+    logger.Info($'on_msg_received: {on_msg_received.name}')
+    logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
+  else
+    # Pass empty string to mean names_only=False
+    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function(''))
+    variable_to_inspect = whos_buf_name
+    on_msg_received = action
 
-  logger.Info($'on_msg_received: {on_msg_received.name}')
-  logger.Info($'sent: __vim_whos()')
-endif
+    logger.Info($'on_msg_received: {on_msg_received.name}')
+    logger.Info($'sent: __vim_whos(0)')
+  endif
 
-# Capture eventual errors
-if !empty(v:errmsg)
-  logger.Error(v:errmsg)
-endif
+  # Capture eventual errors
+  if !empty(v:errmsg)
+    logger.Error(v:errmsg)
+  endif
 
-# Clean up console
-term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-logger.Info("sent: <c-l>")
+  # Clean up console
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
+  logger.Info("sent: <c-l>")
 enddef

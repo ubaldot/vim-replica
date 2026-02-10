@@ -252,10 +252,10 @@ def InitBuffers()
   elseif &filetype ==# 'julia'
     # VimReplica is the module name of ./lib/languages/init_julia.jl
     b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
-    b:vim_whos_function = () => "VimReplica.__vim_whos()\n"
+    b:vim_whos_function = (x) => $"VimReplica.__vim_whos(\"{x}\")\n"
   else
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
-    b:vim_whos_function = () => "__vim_whos()\n"
+    b:vim_whos_function = (x) => $"__vim_whos(\"{x}\")\n"
   endif
 
   # Standard prompt for filetypes with problematic prompts like zsh
@@ -286,6 +286,7 @@ def InitBuffers()
 
   if g:replica_debug
     command! -buffer -nargs=0 ReplicaLogEdit exe $"edit {g:replica_log_filepath}"
+    command! -buffer -nargs=0 ReplicaLogDelete delete(g:replica_log_filepath)
   endif
 
   # -- command and mappings init ----

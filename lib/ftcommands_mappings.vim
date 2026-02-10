@@ -3,6 +3,17 @@ vim9script
 import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 
+export var semaphore_custom_list = false
+
+  def GetCompleteList(A: string, L: string, P: number): list<string>
+    variable_explorer.GetReplVariablesNames()
+    semaphore_custom_list = true
+    while semaphore_custom_list
+      sleep 1m
+    endwhile
+    return variable_explorer.complete_list->filter($'v:val =~ "^{A}"')
+  enddef
+
 #  ------------
 #  Mappings
 #  ------------
@@ -65,13 +76,10 @@ export def InstallConsoleCommands()
       command -buffer ReplicaConsoleShutoff repl.ConsoleShutoff()
   endif
 
-  # TODO: fix -complete with %whos
   if !exists(":ReplicaInspect")
-      command -buffer -nargs=?
-            \ ReplicaInspect variable_explorer.VimInspect(
-              \ <q-args>,
-              \ variable_explorer.On_Msg_Received.DisplayVariable
-            \ )
+      command -complete=customlist,GetCompleteList -nargs=? -buffer
+            \ ReplicaInspect
+            \ variable_explorer.VimInspect(<q-args>, variable_explorer.On_Msg_Received.DisplayVariable)
   endif
 enddef
 

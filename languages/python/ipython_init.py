@@ -1,7 +1,7 @@
 import io
 import contextlib
 import base64
-import sys
+import sys, types
 
 # import time
 from IPython import get_ipython
@@ -69,11 +69,14 @@ def __vim_inspect(expr: str):
     # print(payload[400:] + _VIM_SENTINEL_END)
 
 
-def __vim_whos():
+def __vim_whos(names_only: bool = False):
     """
     Run `%whos` in the current IPython session and send its textual
     output to Vim via stdout using a sentinel + base64 frame.
+
+    If `names_only=True`, only the variable names are included in the payload.
     """
+
     ip: InteractiveShell | None = get_ipython()
     if ip is None:
         print("[vim_whos error] Not running inside IPython")
@@ -83,19 +86,32 @@ def __vim_whos():
 
     with contextlib.redirect_stdout(buf):
         try:
-            ip.run_line_magic("whos", "")
+            if names_only:
+                EXCLUDE_TYPES = (
+                    types.ModuleType,  # modules
+                    types.FunctionType,  # functions
+                    type(pd.DataFrame()),  # Pandas DataFrame
+                    # You can add more types here, e.g., np.ndarray if needed
+                )
+
+                # Optional: list of exact names to exclude
+                EXCLUDE_NAMES = {"In", "Out", "exit", "quit", "get_ipython"}
+
+                names = [
+                    n
+                    for n, v in ip.user_ns.items()
+                    if not n.startswith("_")  # skip _ and __ vars
+                    and n not in EXCLUDE_NAMES  # skip common internals
+                    and not isinstance(
+                        v, EXCLUDE_TYPES
+                    )  # skip modules, functions, DataFrames...
+                ]
+
+                print("\n".join(names))
+            else:
+                ip.run_line_magic("whos", "")
         except Exception as e:
             print(f"[vim_whos error] {e!r}")
 
     payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
-    # Note that the payload is always on one-line.
-    # If you start dealing with extremely long payloads, consider splitting
-    # payload in smaller chunks (see commented lines below)
     print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
-
-    # For testing multi-line payloads
-    # print(_VIM_SENTINEL_START + payload[:200])
-    # time.sleep(0.1)
-    # print(payload[200:400])
-    # time.sleep(0.1)
-    # print(payload[400:] + _VIM_SENTINEL_END)
