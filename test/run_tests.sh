@@ -20,7 +20,17 @@ fi
 # OBS: You can also run the following lines in the test file because it is
 # source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
+LOGGER_DEF_FILE="logger.vim"
 
+# Fix logger file to be used by runner.vim
+cat >"$LOGGER_DEF_FILE" <<'EOF' &&
+vim9script
+
+g:logger = g:replica_log_filepath
+EOF
+
+
+# Fix .vimrc - make atomic write (overkill to me, but still...)
 tmp="$(mktemp "${VIMRC}.XXXX")"
 
 cat >"$tmp" <<'EOF' &&
@@ -54,6 +64,7 @@ VIM_CMD=(
     -i NONE
     -N
     --not-a-term
+		-S "$LOGGER_DEF_FILE"
     -S runner.vim
 )
 

@@ -14,10 +14,9 @@ const base_path = $'{expand('<sfile>:h:h')}'
 const test_results_filepath = $'{base_path}/test/results.txt'
 
 delete(test_results_filepath)
-
-# OBS! If the plugin has no logger, this can be removed.
-const logfile = g:replica_log_filepath
-delete(logfile)
+if exists('g:logger') &&  filereadable(g:logger)
+	delete(g:logger)
+endif
 
 def RunTests(test_file: string)
 	set nomore
@@ -63,8 +62,8 @@ def RunTests(test_file: string)
 			writefile([v:exception], test_results_filepath, 'a')
 
 			# From eventual loggers.
-			if exists('logfile') && filereadable(logfile)
-				const log = readfile(logfile)
+			if exists('g:logger') && filereadable(g:logger)
+				const log = readfile(g:logger)
 				if !empty(log)
 					writefile(['', 'Logged errors:', '--------------------'], test_results_filepath, 'a')
 					writefile(log, test_results_filepath, 'a')
@@ -89,7 +88,10 @@ for test_file in g:TestFiles
 	writefile([''], test_results_filepath, 'a')
 endfor
 
-delete(logfile)
+if exists('g:logger') &&  filereadable(g:logger)
+	delete(g:logger)
+endif
+
 qall!
 
 # vim: shiftwidth=2 softtabstop=2 noexpandtab
