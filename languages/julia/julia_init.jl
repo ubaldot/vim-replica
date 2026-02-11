@@ -98,7 +98,7 @@ function __vim_variable_names()
 
     # Iterate over all names in Main
     for name in names(Main, all=true)
-      # Skip if not defined first
+      # Skip if name is not defined
       if !isdefined(Main, name)
         continue
       end
