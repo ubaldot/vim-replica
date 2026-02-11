@@ -7,6 +7,7 @@ vim9script
 
 # Uncomment for debug
 import "../plugin/replica.vim"
+import "../lib/ftcommands_mappings.vim" as ftcm
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
@@ -521,6 +522,150 @@ END
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
+
+def g:Test_julia_getcompletion()
+  # g:replica_debug = true
+  v:errmsg = ''
+  v:errors = []
+  messages clear
+
+  const src_name = 'testfile.jl'
+  const code_lines =<< trim END
+"""
+Test file for vim-replica (Julia)
+
+Includes:
+- Simple scalar variables
+- 1D, 2D, and 3D arrays
+- DataFrames
+"""
+
+using DataFrames
+using Dates
+
+
+# %% -----------------
+# Simple variables
+# --------------------
+a_int   = 42
+a_float = 3.14159
+a_str   = "vim-replica test"
+a_bool  = true
+a_nothing = nothing
+
+
+# --------------------
+# 1D arrays (Vectors)
+# --------------------
+vec_int = [1, 2, 3, 4, 5]
+vec_float = [0.1, 0.2, 0.3]
+vec_mixed = [1.0, 2.5, 3.75]
+
+
+# %% -----------------
+# 2D arrays (Matrices)
+# --------------------
+mat_int = [
+    1 2 3
+    4 5 6
+]
+
+mat_float = [
+    0.1 0.2
+    0.3 0.4
+    0.5 0.6
+]
+
+
+# --------------------
+# 3D arrays
+# --------------------
+arr_3d = reshape(collect(1:8), 2, 2, 2)
+# Dimensions: (2, 2, 2)
+# arr_3d[:, :, 1] = [1 3; 2 4]
+# arr_3d[:, :, 2] = [5 7; 6 8]
+
+
+# --------------------
+# DataFrames
+# --------------------
+df_simple = DataFrame(
+    A = [1, 2, 3],
+    B = [4, 5, 6],
+)
+
+# %%
+df_mixed = DataFrame(
+    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
+    value = [0.1, 0.2, 0.3, 0.4],
+    flag  = [true, false, true, false],
+)
+
+df_categorical = DataFrame(
+    category = ["x", "x", "y", "y"],
+    id       = [1, 2, 1, 2],
+    value    = [10, 20, 30, 40],
+)
+END
+
+  Generate_testfile(code_lines, src_name)
+  exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  const expected_prompt = 'julia> '
+  WaitForPrompt(expected_prompt)
+
+  var bufnr = term_list()[0]
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
+
+  # ReplicaSendCell
+  # Now the game starts
+  exe 'ReplicaSendFile'
+  redraw
+
+  # test start
+  const expected_value = [
+    'a_bool',
+    'a_float',
+    'a_int',
+    'a_str',
+    'arr_3d',
+    'df_categorical',
+    'df_mixed',
+    'df_simple',
+    'mat_float',
+    'mat_int',
+    'vec_float',
+    'vec_int',
+    'vec_mixed'
+  ]
+
+  g:XXX = ftcm.funcs_dict.GetCompleteList
+  const actual_value = getcompletion('', 'customlist,XXX')
+
+  assert_equal(expected_value, actual_value)
+
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('JULIA')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
   else

@@ -114,10 +114,16 @@ def __vim_variable_names():
             EXCLUDE_TYPES = (
                 types.ModuleType,  # modules
                 types.FunctionType,  # functions
-                type(pd.DataFrame()),  # pandas DataFrame
             )
 
-            EXCLUDE_NAMES = {"In", "Out", "exit", "quit", "get_ipython"}
+            EXCLUDE_NAMES = {
+                "In",
+                "Out",
+                "exit",
+                "quit",
+                "get_ipython",
+                "InteractiveShell",
+            }
 
             names = [
                 n

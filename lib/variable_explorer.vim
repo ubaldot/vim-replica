@@ -339,7 +339,10 @@ def HandleLine(clean_line: string)
   # repl_prompt typically ends with '$'. Hence, prompts of the form
   # In [1]: In [1]: will not match the regex in the substitute function.
   # We have to drop the trailing $, that is why we have repl_prompt[: -2]
-  var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}\)\s*\1\+', '\1', '')
+  # var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}\)\s*\1\+', '\1', '')
+  var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}.*\)\s*\1\+', '\1', '')
+
+  # var line_debounced = clean_line->substitute('\(' .. escape(repl_prompt, '\') .. '\)\s*\1\+', '\1', '')
 
   logger.Info($"clean line: {clean_line}")
   logger.Info($"line_debounced: {line_debounced}")

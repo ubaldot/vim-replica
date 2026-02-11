@@ -11,6 +11,9 @@ import "../plugin/replica.vim"
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
+import "../lib/variable_explorer.vim"
+import "../lib/logger.vim"
+import "../lib/ftcommands_mappings.vim" as ftcm
 
 def Generate_testfile(lines: list<string>, src_name: string)
   writefile(lines, src_name)
@@ -399,6 +402,71 @@ END
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
+
+def g:Test_python_getcompletion()
+  # g:replica_debug = true
+  v:errmsg = ''
+  v:errors = []
+  messages clear
+
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+    import numpy as np
+    import pandas as pd
+
+    # Test single variable
+    a = 110
+
+    # Test numpy array
+    A = np.array([[1, 2, 3], [4, 5, 6]])
+
+    # Test pandas dataframe
+    df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
+  END
+
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  var bufnr = term_list()[0]
+  var expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
+
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
+
+  # Now the game starts
+  exe 'ReplicaSendFile'
+  redraw
+
+  # test start
+  const expected_value = ['a', 'A', 'df']
+
+  g:XXX = ftcm.funcs_dict.GetCompleteList
+  const actual_value = getcompletion('', 'customlist,XXX')
+
+  assert_equal(expected_value, actual_value)
+
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
   else

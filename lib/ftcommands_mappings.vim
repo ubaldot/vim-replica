@@ -6,7 +6,7 @@ import "../lib/logger.vim"
 
 # TODO: to test it, you must wrap it in a g: function, e.g. g:FOO =
 # GetCompleteList
-def GetCompleteList(A: string, L: string, P: number): list<string>
+export def GetCompleteList(A: string, L: string, P: number): list<string>
 
   variable_explorer.variable_names = []
   logger.Info("sent completion list request")
@@ -119,3 +119,8 @@ export def InstallSendCommands()
           \ variable_explorer.VimInspect(<q-args>)
   endif
 enddef
+
+# Used for unit-tests
+export const funcs_dict = {
+  GetCompleteList: GetCompleteList
+}
