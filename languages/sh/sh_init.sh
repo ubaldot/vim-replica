@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# OBS! The payload shall finish with \n
+#
 _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 

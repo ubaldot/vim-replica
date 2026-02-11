@@ -7,6 +7,9 @@ const _VIM_SENTINEL_START = "__VIM_PAYLOAD__"
 const _VIM_SENTINEL_END = "__END__"
 
 function __vim_inspect(expr::AbstractString)
+  """
+    OBS! The payload shall finish with \n
+  """
   io_buf = IOBuffer()
   try
     # Evaluate in Main explicitly
@@ -50,13 +53,14 @@ function __vim_inspect(expr::AbstractString)
   payload = base64encode(String(take!(io_buf)))
   println("$_VIM_SENTINEL_START$payload$_VIM_SENTINEL_END")
 end
-"""
-    __vim_whos()
 
-Print textual information about all variables in Main using
-a sentinel + base64 frame.
-"""
 function __vim_whos()
+  """
+  Print textual information about all variables in Main using
+  a sentinel + base64 frame.
+
+  OBS! The payload shall finish with \n
+  """
   io_buf = IOBuffer()
   try
     # Iterate over all names in Main
@@ -85,6 +89,8 @@ function __vim_variable_names()
   Return user-defined variable names in the current Main module,
   excluding modules, functions, DataFrames, and common internals.
   Output is sent to Vim via stdout using a sentinel + base64 frame.
+
+  OBS! The payload shall finish with \n
   """
 
   io_buf = IOBuffer()

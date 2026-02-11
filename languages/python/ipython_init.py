@@ -15,6 +15,8 @@ def __vim_inspect(expr: str):
     """
     Evaluate `expr` in the current REPL and send its textual
     representation to Vim via stdout using a sentinel + base64 frame.
+
+    OBS! The payload shall finish with \n
     """
     buf = io.StringIO()
 
@@ -73,6 +75,8 @@ def __vim_whos():
     """
     Run `%whos` in the current IPython session and send its textual
     output to Vim via stdout using a sentinel + base64 frame.
+
+    OBS! The payload shall finish with \n
     """
 
     ip: InteractiveShell | None = get_ipython()
@@ -95,8 +99,10 @@ def __vim_whos():
 def __vim_variable_names():
     """
     Return user-defined variable names from the current IPython session,
-    excluding modules, functions, DataFrames, and common internals.
+    excluding modules, functions, and common internals.
     Output is sent to Vim via stdout using a sentinel + base64 frame.
+
+    OBS! The payload shall finish with \n
     """
 
     ip: InteractiveShell | None = get_ipython()
