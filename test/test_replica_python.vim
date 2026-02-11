@@ -12,7 +12,6 @@ import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
 import "../lib/variable_explorer.vim"
-import "../lib/logger.vim"
 import "../lib/ftcommands_mappings.vim" as ftcm
 
 def Generate_testfile(lines: list<string>, src_name: string)

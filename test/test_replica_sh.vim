@@ -7,6 +7,7 @@ vim9script
 
 # Uncomment for debug
 import "../plugin/replica.vim"
+import "../lib/ftcommands_mappings.vim" as ftcm
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
@@ -494,3 +495,92 @@ enddef
 #   # :%bw!
 #   # Cleanup_testfile(src_name)
 # enddef
+#
+
+def g:Test_sh_getcompletion()
+  # g:replica_debug = true
+  v:errmsg = ''
+  v:errors = []
+  messages clear
+
+  const src_name = 'testfile.sh'
+  const lines =<< trim END
+_VIM_USER_VARS=()
+
+# ─────────────────────────────
+# Portable types
+
+FOO="Hello"
+_VIM_USER_VARS+=("FOO")
+
+BAR=42
+_VIM_USER_VARS+=("BAR")
+
+ARR=("apple" "banana" "cherry")
+_VIM_USER_VARS+=("ARR")
+
+# %% ─────────────────────────────
+# Shell-specific types
+
+if [ -n "${BASH_VERSION:-}" ]; then
+    # Bash associative array
+    declare -A MAP=(
+        [name]="bash"
+        [type]="assoc"
+    )
+    _VIM_USER_VARS+=("MAP")
+
+elif [ -n "${ZSH_VERSION:-}" ]; then
+    # Zsh associative array
+    typeset -A MAP
+    MAP=(
+        name zsh
+        type assoc
+    )
+    _VIM_USER_VARS+=("MAP")
+fi
+  END
+
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  var bufnr = term_list()[0]
+  var expected_prompt = 'vim_replica> $'
+  WaitForPrompt(expected_prompt)
+
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
+
+  # Now the game starts
+  exe 'ReplicaSendFile'
+  redraw
+
+  # test start
+  const expected_value = ['FOO', 'BAR', 'APP', 'MAP']
+
+  g:XXX = ftcm.funcs_dict.GetCompleteList
+  const actual_value = getcompletion('', 'customlist,XXX')
+
+  assert_equal(expected_value, actual_value)
+
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+
+  # :%bw!
+  # Cleanup_testfile(src_name)
+enddef
