@@ -195,7 +195,7 @@ def DecodeOneLinePayload(line_debounced: string): list<string>
   var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
   # Paylod shall always finish with a blank line, hence [: -2]
   var line_decoded = blob2str(base64_decode(payload))[: -2]
-  logger.Info("one-line message successfully decoded")
+  logger.Info($"one-line message successfully decoded: {line_decoded}")
   return line_decoded
 enddef
 

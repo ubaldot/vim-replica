@@ -56,14 +56,14 @@ __vim_inspect() {
       eval "
         for k in \"\${!$var[@]}\"; do
           v=\"\${$var[\$k]}\"
-          output+=\"\$k=\$v\"\$'\\n'
+          output+=\"\$k=\$v\"\$'\n'
         done
       "
       output="${output%$'\n'}"
       ;;
   esac
 
-  payload=$(printf '%s' "$output" | base64)
+  payload=$(printf '%s\n' "$output" | base64)
   echo "${_VIM_SENTINEL_START}${payload}${_VIM_SENTINEL_END}"
 }
 
@@ -90,7 +90,8 @@ __vim_whos() {
         out+="$name=${!name}"$'\n'
         ;;
       array)
-        eval "out+=\"$name=(\${$name[*]})\""$'\n'
+        eval "out+=\"$name=(\${$name[*]})\""
+        out+=$'\n'
         ;;
       associative)
         local kv="" k v
@@ -106,6 +107,23 @@ __vim_whos() {
     esac
   done
 
-  out="${out%$'\n'}"
-  printf '%s' "${_VIM_SENTINEL_START}$(printf '%s' "$out" | base64)${_VIM_SENTINEL_END}"
+  out="${out}"
+  printf '%s' "${_VIM_SENTINEL_START}$(printf '%s\n' "$out" | base64)${_VIM_SENTINEL_END}"
+}
+
+__vim_variable_names() {
+    # Check if _VIM_USER_VARS exists
+    if [ "${_VIM_USER_VARS+x}" ]; then
+        # Build a string with one variable name per line
+        local out=""
+        for var in "${_VIM_USER_VARS[@]}"; do
+            out+="$var"$'\n'
+        done
+
+        # Encode in Base64 and wrap with Vim sentinel markers
+        printf '%s' "${_VIM_SENTINEL_START}$(printf '%s' "$out" | base64)${_VIM_SENTINEL_END}"
+    else
+        printf 'No _VIM_USER_VARS defined.\n' >&2
+        return 1
+    fi
 }

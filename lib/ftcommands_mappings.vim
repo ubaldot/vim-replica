@@ -2,17 +2,29 @@ vim9script
 
 import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
+import "../lib/logger.vim"
 
 # TODO: to test it, you must wrap it in a g: function, e.g. g:FOO =
 # GetCompleteList
 def GetCompleteList(A: string, L: string, P: number): list<string>
 
   variable_explorer.variable_names = []
+  logger.Info("sent completion list request")
   variable_explorer.GetReplVariablesNames()
 
-  while empty(variable_explorer.variable_names)
+  var counter = 0
+  while empty(variable_explorer.variable_names) && counter < 10000
     sleep 5m
   endwhile
+
+  if counter >= 10000
+    repl.Echoerr('get completion time out')
+    logger.Error('get completion time out')
+    return []
+  endif
+
+  redraw
+  logger.Info($"completion list received: {variable_explorer.variable_names}")
 
   var tmp = variable_explorer.variable_names
   return tmp->filter($'v:val =~ "^{A}"')

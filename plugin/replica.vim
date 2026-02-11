@@ -249,6 +249,7 @@ def InitBuffers()
     # e.g. __vim_whos instead of __vim_whos()
     b:vim_inspect_function = (x) => $"__vim_inspect {x}\n"
     b:vim_whos_function = () => "__vim_whos\n"
+    b:vim_variable_names = () => "__vim_variable_names\n"
   elseif &filetype ==# 'julia'
     # VimReplica is the module name of ./lib/languages/init_julia.jl
     b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
