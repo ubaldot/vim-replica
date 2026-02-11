@@ -7,9 +7,11 @@ def GetCompleteList(A: string, L: string, P: number): list<string>
 
   variable_explorer.variable_names = []
   variable_explorer.GetReplVariablesNames()
+
   while empty(variable_explorer.variable_names)
-    sleep 1m
+    sleep 5m
   endwhile
+
   var tmp = variable_explorer.variable_names
   return tmp->filter($'v:val =~ "^{A}"')
 enddef

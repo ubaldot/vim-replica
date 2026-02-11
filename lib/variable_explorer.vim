@@ -565,7 +565,7 @@ export def VimInspect(
     on_msg_received = On_Msg_Received.DisplayVariable
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
-    logger.Info($'sent: __vim_whos(0)')
+    logger.Info($'sent: __vim_whos()')
   endif
 
   # Capture eventual errors

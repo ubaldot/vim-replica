@@ -256,7 +256,7 @@ def InitBuffers()
   else
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => $"__vim_whos()\n"
-    b:variabls_names = () => $"__vim_variable_names()"
+    b:vim_variable_names = () => $"__vim_variable_names()\n"
   endif
 
   # Standard prompt for filetypes with problematic prompts like zsh

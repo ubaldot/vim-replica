@@ -92,7 +92,7 @@ def __vim_whos():
     print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
 
 
-def __variable_names():
+def __vim_variable_names():
     """
     Return user-defined variable names from the current IPython session,
     excluding modules, functions, DataFrames, and common internals.
