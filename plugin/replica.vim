@@ -253,6 +253,7 @@ def InitBuffers()
     # VimReplica is the module name of ./lib/languages/init_julia.jl
     b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => $"VimReplica.__vim_whos()\n"
+    b:vim_variable_names = () => $"VimReplica.__vim_variable_names()\n"
   else
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => $"__vim_whos()\n"

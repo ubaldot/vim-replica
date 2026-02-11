@@ -537,8 +537,8 @@ export def GetReplVariablesNames()
   logger.Info($'sent: __vim_get_variables()')
 
   # Clean up console
-  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-  logger.Info("sent: <c-l>")
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>\n")
+  logger.Info("sent: <c-l>\\n")
 enddef
 
 export def VimInspect(
@@ -574,6 +574,6 @@ export def VimInspect(
   endif
 
   # Clean up console
-  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-  logger.Info("sent: <c-l>")
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>\n")
+  logger.Info("sent: <c-l>\\n")
 enddef
