@@ -41,6 +41,9 @@ g:replica_display_variables
 :ReplicaLogEdit
 :ReplicaLogDelete
 
+
+install.packages("base64enc")
+
 Limitation: repl at least 16 columns.
 # If you start dealing with extremely long payloads, consider splitting
 # payload in smaller chunks (modify init scripts)

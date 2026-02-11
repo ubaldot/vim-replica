@@ -98,6 +98,7 @@ endif
 var replica_repls_default = {
   python: "ipython",
   julia: "julia",
+  r: "R",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"
 }
@@ -105,6 +106,7 @@ var replica_repls_default = {
 var replica_console_names_default = {
   python: "IPYTHON",
   julia: "JULIA",
+  r: "R",
   sh: "BASH",
   zsh: "ZSH"
 }
@@ -113,6 +115,7 @@ var replica_console_names_default = {
 var replica_run_commands_default = {
   python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}",
   julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
+  r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
   sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
   zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
 }
@@ -120,6 +123,7 @@ var replica_run_commands_default = {
 var replica_repl_init_scripts_default = {
   python: $"{replica_path}/languages/python/ipython_init.py",
   julia: $"{replica_path}/languages/julia/julia_init.jl",
+  r: $"{replica_path}/languages/r/r_init.R",
   sh: $"{replica_path}/languages/sh/sh_init.sh",
   zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
 }
@@ -127,6 +131,7 @@ var replica_repl_init_scripts_default = {
 var replica_repl_options_default = {
   python: "",
   julia: "",
+  r: "",
   sh: "",
   zsh: ""
 }
@@ -141,6 +146,7 @@ var replica_repl_options_default = {
 var replica_repl_prompts_default = {
   python: '^In\s\[\d\+\]:\s$',
   julia: "^julia>\\s*$",
+  r: "^> ",
   sh: ".*[\$#>]\\s*$",
   zsh: ".*[\$#>]\\s*$"
 }
@@ -199,6 +205,7 @@ import "../lib/ftcommands_mappings.vim"
 var replica_cells_delimiters_default = {
   python: "# %%",
   julia: "# %%",
+  r: "# %%",
   sh: "# %%",
   zsh: "# %%"
 }
@@ -255,7 +262,12 @@ def InitBuffers()
     b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => $"VimReplica.__vim_whos()\n"
     b:vim_variable_names = () => $"VimReplica.__vim_variable_names()\n"
+  elseif &filetype ==# 'r'
+    b:vim_inspect_function = (x) => $".vim_inspect(\"{x}\")\n"
+    b:vim_whos_function = () => $".vim_whos()\n"
+    b:vim_variable_names = () => $".vim_variable_names()\n"
   else
+    # python
     b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
     b:vim_whos_function = () => $"__vim_whos()\n"
     b:vim_variable_names = () => $"__vim_variable_names()\n"
@@ -263,7 +275,7 @@ def InitBuffers()
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
-  if index(['zsh', 'sh'], &filetype) != -1
+  if index(['zsh', 'sh', 'r'], &filetype) != -1
     b:prompt_to_be_changed = true
   else
     b:prompt_to_be_changed = false
@@ -302,7 +314,8 @@ enddef
 augroup REPLICA_INIT_BUFFERS
   autocmd!
   for val in keys(g:replica_repls)
-    exe $"autocmd FileType {val} InitBuffers()"
+    # I cannot interpolate string otherwise 'r' won't be picked
+    exe "autocmd FileType " .. val .. " InitBuffers()"
   endfor
 augroup END
 
