@@ -4,12 +4,13 @@ import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 
 def GetCompleteList(A: string, L: string, P: number): list<string>
-  variable_explorer.ResetCompleteList()
+
+  variable_explorer.complete_list = []
   variable_explorer.GetReplVariablesNames()
-  while empty(variable_explorer.GetCompleteList())
+  while empty(variable_explorer.complete_list)
     sleep 1m
   endwhile
-  var tmp = variable_explorer.GetCompleteList()
+  var tmp = variable_explorer.complete_list
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
 
@@ -75,11 +76,6 @@ export def InstallConsoleCommands()
     command -buffer ReplicaConsoleShutoff repl.ConsoleShutoff()
   endif
 
-  if !exists(":ReplicaInspect")
-    command -complete=customlist,GetCompleteList -nargs=? -buffer
-          \ ReplicaInspect
-          \ variable_explorer.VimInspect(<q-args>, variable_explorer.On_Msg_Received.DisplayVariable)
-  endif
 enddef
 
 export def InstallSendCommands()
@@ -99,5 +95,11 @@ export def InstallSendCommands()
 
   if !exists(":ReplicaRemoveCells")
     command -buffer ReplicaRemoveCells repl.RemoveCells()
+  endif
+
+  if !exists(":ReplicaInspect")
+    command -complete=customlist,GetCompleteList -nargs=? -buffer
+          \ ReplicaInspect
+          \ variable_explorer.VimInspect(<q-args>, variable_explorer.On_Msg_Received.DisplayVariable)
   endif
 enddef
