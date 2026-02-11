@@ -69,12 +69,10 @@ def __vim_inspect(expr: str):
     # print(payload[400:] + _VIM_SENTINEL_END)
 
 
-def __vim_whos(names_only: bool = False):
+def __vim_whos():
     """
     Run `%whos` in the current IPython session and send its textual
     output to Vim via stdout using a sentinel + base64 frame.
-
-    If `names_only=True`, only the variable names are included in the payload.
     """
 
     ip: InteractiveShell | None = get_ipython()
@@ -86,32 +84,53 @@ def __vim_whos(names_only: bool = False):
 
     with contextlib.redirect_stdout(buf):
         try:
-            if names_only:
-                EXCLUDE_TYPES = (
-                    types.ModuleType,  # modules
-                    types.FunctionType,  # functions
-                    type(pd.DataFrame()),  # Pandas DataFrame
-                    # You can add more types here, e.g., np.ndarray if needed
-                )
-
-                # Optional: list of exact names to exclude
-                EXCLUDE_NAMES = {"In", "Out", "exit", "quit", "get_ipython"}
-
-                names = [
-                    n
-                    for n, v in ip.user_ns.items()
-                    if not n.startswith("_")  # skip _ and __ vars
-                    and n not in EXCLUDE_NAMES  # skip common internals
-                    and not isinstance(
-                        v, EXCLUDE_TYPES
-                    )  # skip modules, functions, DataFrames...
-                ]
-
-                print("\n".join(names))
-            else:
-                ip.run_line_magic("whos", "")
+            ip.run_line_magic("whos", "")
         except Exception as e:
             print(f"[vim_whos error] {e!r}")
+
+    payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
+    print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")
+
+
+def __variable_names():
+    """
+    Return user-defined variable names from the current IPython session,
+    excluding modules, functions, DataFrames, and common internals.
+    Output is sent to Vim via stdout using a sentinel + base64 frame.
+    """
+
+    ip: InteractiveShell | None = get_ipython()
+    if ip is None:
+        print("[vim_get_variables error] Not running inside IPython")
+        return
+
+    buf = io.StringIO()
+
+    with contextlib.redirect_stdout(buf):
+        # Optional deps
+        np = sys.modules.get("numpy")
+        pd = sys.modules.get("pandas")
+        try:
+            EXCLUDE_TYPES = (
+                types.ModuleType,  # modules
+                types.FunctionType,  # functions
+                type(pd.DataFrame()),  # pandas DataFrame
+            )
+
+            EXCLUDE_NAMES = {"In", "Out", "exit", "quit", "get_ipython"}
+
+            names = [
+                n
+                for n, v in ip.user_ns.items()
+                if not n.startswith("_")
+                and n not in EXCLUDE_NAMES
+                and not isinstance(v, EXCLUDE_TYPES)
+            ]
+
+            print("\n".join(names))
+
+        except Exception as e:
+            print(f"[vim_get_variables error] {e!r}")
 
     payload = base64.b64encode(buf.getvalue().encode("utf-8")).decode("ascii")
     print(f"{_VIM_SENTINEL_START}{payload}{_VIM_SENTINEL_END}")

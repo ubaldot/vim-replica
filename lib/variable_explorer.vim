@@ -43,7 +43,7 @@ export var on_msg_received: On_Msg_Received
 export var raw_buf: string
 var is_utf16: bool
 
-export var complete_list: list<string>
+export var variable_names: list<string>
 
 export def Init()
   logger.Info('variable explorer script initialization')
@@ -55,7 +55,7 @@ export def Init()
   on_msg_received = On_Msg_Received.Ready
   # OBS!
   universal_prompt = '^vim_replica> $'
-  complete_list = ['']
+  variable_names = ['']
 
   is_utf16 = exists('g:replica_use_utf16')
     ? g:replica_use_utf16
@@ -363,8 +363,7 @@ def HandleLine(clean_line: string)
       endif
       on_msg_received = On_Msg_Received.Ready
     elseif on_msg_received == On_Msg_Received.CompleteList
-      complete_list = line_decoded
-      echom "complete_list: " .. string(complete_list)
+      variable_names = line_decoded
       on_msg_received = On_Msg_Received.Ready
     endif
 
@@ -384,7 +383,7 @@ def HandleLine(clean_line: string)
         endif
         on_msg_received = On_Msg_Received.Ready
       elseif on_msg_received == On_Msg_Received.CompleteList
-        complete_list = line_decoded
+        variable_names = line_decoded
         on_msg_received = On_Msg_Received.Ready
       endif
     endif
@@ -525,22 +524,25 @@ export def ReplicaOutCb(_: channel, msg: string)
   endtry
 enddef
 
+# ================================
+# Functions injected to the REPL
+# ================================
+
 export def GetReplVariablesNames()
-  logger.Info("getting variables for complete list")
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function(1))
+  logger.Info("getting variable names for complete list")
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_variable_names())
   on_msg_received = On_Msg_Received.CompleteList
 
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'sent: __vim_get_variables()')
 
   # Clean up console
-  # term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
-  # logger.Info("sent: <c-l>")
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>")
+  logger.Info("sent: <c-l>")
 enddef
 
 export def VimInspect(
     variable: string = '',
-    action: On_Msg_Received = On_Msg_Received.Ready
     )
   const whos_buf_name = 'Workspace'
 
@@ -552,15 +554,15 @@ export def VimInspect(
     var variable_single_quoted = variable->substitute('"', "'", 'g')
     term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))
     variable_to_inspect = variable_single_quoted
-    on_msg_received = action
+    on_msg_received = On_Msg_Received.DisplayVariable
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
     logger.Info($"sent: __vim_inspect(\"{variable_single_quoted}\")")
   else
     # Pass empty string to mean names_only=False
-    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function(''))
+    term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_whos_function())
     variable_to_inspect = whos_buf_name
-    on_msg_received = action
+    on_msg_received = On_Msg_Received.DisplayVariable
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
     logger.Info($'sent: __vim_whos(0)')

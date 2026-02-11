@@ -5,12 +5,12 @@ import "../lib/variable_explorer.vim"
 
 def GetCompleteList(A: string, L: string, P: number): list<string>
 
-  variable_explorer.complete_list = []
+  variable_explorer.variable_names = []
   variable_explorer.GetReplVariablesNames()
-  while empty(variable_explorer.complete_list)
+  while empty(variable_explorer.variable_names)
     sleep 1m
   endwhile
-  var tmp = variable_explorer.complete_list
+  var tmp = variable_explorer.variable_names
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
 
@@ -100,6 +100,6 @@ export def InstallSendCommands()
   if !exists(":ReplicaInspect")
     command -complete=customlist,GetCompleteList -nargs=? -buffer
           \ ReplicaInspect
-          \ variable_explorer.VimInspect(<q-args>, variable_explorer.On_Msg_Received.DisplayVariable)
+          \ variable_explorer.VimInspect(<q-args>)
   endif
 enddef
