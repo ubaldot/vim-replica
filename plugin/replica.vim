@@ -5,9 +5,9 @@ vim9script
 # License: BSD3-Clause
 # GetLatestVimScripts: 6067 1 :AutoInstall: replica.vim
 
-if !has('vim9script') ||  v:version < 900
+if !has('patch-9.1.2125')
   # Needs Vim version 9.0 and above
-  echo "You need at least Vim 9.0"
+  echoerr "[vim-replica]: You need at least Vim 9.1.2125"
   finish
 endif
 
