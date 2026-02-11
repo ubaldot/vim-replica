@@ -3,6 +3,8 @@ vim9script
 import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 
+# TODO: to test it, you must wrap it in a g: function, e.g. g:FOO =
+# GetCompleteList
 def GetCompleteList(A: string, L: string, P: number): list<string>
 
   variable_explorer.variable_names = []
