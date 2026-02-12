@@ -21,7 +21,7 @@ const LEVELS_MAP = {
   Error: LEVELS.Error,
 }
 
-const user_level_str = get(g:replica_config, 'replica_log_level', 'Error')
+const user_level_str = get(g:replica_config, 'log_level', 'Error')
 
 # Check if this message should be logged
 def ShouldLog(level: LEVELS): bool

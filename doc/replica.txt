@@ -42,6 +42,21 @@ g:replica_display_variables
 :ReplicaLogDelete
 
 
+
+['log_level',
+'console_width',
+'console_height',
+'display_variables',
+'debug',
+'enable_highlight',
+'alt_highlight',
+'log_filepath',
+'console_position',
+'use_default_mapping',
+'tmp_filepath',
+'display_range',
+'log_max_size']
+
 install.packages("base64enc")
 
 Limitation: repl at least 16 columns.
@@ -154,6 +169,41 @@ Send the current cell to the REPL.
 
 ==============================================================================
 CONFIGURATION                                        *ReplicaConfiguration*
+
+                                                        *g:replica_config*
+The plugin configuration is controlled through the |g:replica_config|
+dictionary.
+Make sure to create the empty dictionary first (|g:replica_config| = {}) before
+adding any keys.
+
+      Available keys:
+        "tmp_filepath"    The temp file that is used when using the command
+                          |:ReplicaSendCell| and |:ReplicaSendFile|.
+
+            "log_level"   Logging level of the logger. Possible values are
+                          'Debug', 'Info', 'Warn' and 'Error'. Default: 'Error'
+
+        "console_width"   Width of the repl console when opened in vertical
+                          split.
+
+        "console_height"  Width of the repl console when opened in
+                          horizontal split.
+
+     "display_variables"  How the variable explorer is opened. Possible
+                          values are 'split', 'vsplit', 'tab' and 'popup'.
+                          Default: 'vsplit'
+
+                          Note: For large tabular data, it is not advisable
+                          to use 'popup' because Vim popups currently cannot
+                          scroll horizontally.
+
+                 "debug"  Set it to true to enable the replica |logger|.
+                          Useful for debugging. Default: 'false'
+
+     "enable_highlight"   Highlight cells. Default: 'true'
+
+        "alt_highlight"   Lightweight highlighting. Use it if you experience
+                          unacceptable lags. Default: 'false'
 
                                                    *g:replica_tmp_filename*
 Type: 'string'
