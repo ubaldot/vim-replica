@@ -15,6 +15,32 @@ g:loaded_replica = true
 
 const replica_path = expand('<sfile>:h:h')
 
+ # ----- DeprecationWarnings --------------------
+def DeprecationWarnings(param: string)
+  if exists(param)
+    echoerr $"[vim-replica]: '{param}' is deprecated. See :h g:replica_config"
+    finish
+  endif
+enddef
+
+const old_config_param = ['g:replica_names', 'g:replica_kernels',
+  'g:replica_use_utf16', 'g:replica_run_commands', 'g:replica_tmp_filename',
+  'g:replica_alt_highlight', 'g:replica_console_width', 'g:replica_display_range',
+  'g:replica_console_height', 'g:replica_python_options',
+  'g:replica_cells_delimiters',
+  'g:replica_console_position', 'g:replica_enable_highlight',
+  'g:replica_jupyter_console_options']
+
+for param in old_config_param
+  DeprecationWarnings(param)
+endfor
+
+# ----------------------------------------------------
+
+if !exists('g:replica_config')
+  g:replica_config = {}
+endif
+
 # tmp file used for ReplicaSendCell() & friends
 # Deterministic filepath (so, if Vim crashes, we know where the file is)
 def GetDataDir(): string
@@ -36,61 +62,62 @@ if !isdirectory(data_dir)
 endif
 
 # File used for SendCell() & friends
-g:replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
+g:replica_config.replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
 
 # Remove possibly the existing tmp file
-if exists('g:replica_tmp_filepath') && filereadable(g:replica_tmp_filepath)
-  delete(g:replica_tmp_filepath)
+if exists('g:replica_config.replica_tmp_filepath')
+    && filereadable(g:replica_config.replica_tmp_filepath)
+  delete(g:replica_config.replica_tmp_filepath)
 endif
 
 # --- logger setup -----
 # File used for logging
-if !exists('g:replica_log_filepath')
-  g:replica_log_filepath = $'{data_dir}/vim_replica.log'
+if !exists('g:replica_config.replica_log_filepath')
+  g:replica_config.replica_log_filepath = $'{data_dir}/vim_replica.log'
 endif
 
-if !exists('g:replica_log_max_size')
-   g:replica_log_max_size = 1024 * 1024 # 1 MB
+if !exists('g:replica_config.replica_log_max_size')
+   g:replica_config.replica_log_max_size = 1024 * 1024 # 1 MB
 endif
 
-if !exists('g:replica_debug')
-  g:replica_debug = false
+if !exists('g:replica_config.replica_debug')
+  g:replica_config.replica_debug = false
 endif
 
-if g:replica_debug
+if g:replica_config.replica_debug
   const head = [
   '',
   'Vim-replica-log:',
   $'{strftime("%d %b %Y %X")}',
   '---------------------'
   ]
-  writefile(head, g:replica_log_filepath, 'a')
+  writefile(head, g:replica_config.replica_log_filepath, 'a')
 endif
 
-if !exists('g:replica_log_level')
-  g:replica_log_level = 'Error'
+if !exists('g:replica_config.replica_log_level')
+  g:replica_config.replica_log_level = 'Error'
 endif
 
 # ----- repl.vim setup -----
-if !exists('g:replica_console_position')
-  g:replica_console_position = "L"
-elseif index(["H", "J", "K", "L"], g:replica_console_position) == -1
-  echoerr "[vim-replica]: 'g:replica_console_position' must be one of 'HJKL'"
+if !exists('g:replica_config.replica_console_position')
+  g:replica_config.replica_console_position = "L"
+elseif index(["H", "J", "K", "L"], g:replica_config.replica_console_position) == -1
+  echoerr "[vim-replica]: 'g:replica_config.replica_console_position' must be one of 'HJKL'"
 endif
 
-if !exists('g:replica_console_width')
-  if index(["H", "L"], g:replica_console_position) >= 0
-    g:replica_console_width = &columns / 2
+if !exists('g:replica_config.replica_console_width')
+  if index(["H", "L"], g:replica_config.replica_console_position) >= 0
+    g:replica_config.replica_console_width = &columns / 2
   else
-    g:replica_console_width = &columns
+    g:replica_config.replica_console_width = &columns
   endif
 endif
 
-if !exists('g:replica_console_height')
-  if index(["H", "L"], g:replica_console_position) >= 0
-    g:replica_console_height = &lines
+if !exists('g:replica_config.replica_console_height')
+  if index(["H", "L"], g:replica_config.replica_console_position) >= 0
+    g:replica_config.replica_console_height = &lines
   else
-    g:replica_console_height = &lines / 4
+    g:replica_config.replica_console_height = &lines / 4
   endif
 endif
 
@@ -176,8 +203,8 @@ var vim_variable_names_functions = {
 }
 
 # ---- ftcommands_mappings.vim setup ------
-if !exists('g:replica_use_default_mapping')
-  g:replica_use_default_mapping = false
+if !exists('g:replica_config.replica_use_default_mapping')
+  g:replica_config.replica_use_default_mapping = false
 endif
 
 import "../lib/ftcommands_mappings.vim"
@@ -191,24 +218,24 @@ var cell_delimiters = {
   zsh: "# %%"
 }
 
-if !exists('g:replica_display_range')
-  g:replica_display_range = true
+if !exists('g:replica_config.replica_display_range')
+  g:replica_config.replica_display_range = true
 endif
 
-if !exists('g:replica_enable_highlight')
-  g:replica_enable_highlight = true
+if !exists('g:replica_config.replica_enable_highlight')
+  g:replica_config.replica_enable_highlight = true
 endif
 
-if !exists('g:replica_alt_highlight')
-  g:replica_alt_highlight = false
+if !exists('g:replica_config.replica_alt_highlight')
+  g:replica_config.replica_alt_highlight = false
 endif
 
 import "../lib/highlight.vim"
 
 # --- variable explorer setup ----
 
-if !exists('g:replica_display_variables')
-  g:replica_display_variables = 'vsplit'
+if !exists('g:replica_config.replica_display_variables')
+  g:replica_config.replica_display_variables = 'vsplit'
 endif
 
 # ---- set autocmds ------
@@ -226,7 +253,7 @@ def InitBuffers()
   b:vim_whos_function = vim_whos_functions[&filetype]
   b:vim_variable_names_function = vim_variable_names_functions[&filetype]
 
-  b:repl_options = exists('g:replica_repl_options') ? g:replica_repl_options[&filetype] : ''
+  b:repl_options = exists('g:replica_config.replica_repl_options') ? g:replica_config.replica_repl_options[&filetype] : ''
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
@@ -244,7 +271,7 @@ def InitBuffers()
 
   # -- highlight init ----
   b:cells_delimiter = cell_delimiters[&filetype]
-  if g:replica_enable_highlight
+  if g:replica_config.replica_enable_highlight
     augroup highlight_cells
       autocmd! * <buffer>
       autocmd BufEnter,BufWinEnter,WinEnter,WinLeave <buffer>
@@ -255,9 +282,9 @@ def InitBuffers()
   endif
 
   # The following exists only if we operate in debug mode
-  if g:replica_debug
-    command! -buffer -nargs=0 ReplicaLogEdit exe $"edit {g:replica_log_filepath}"
-    command! -buffer -nargs=0 ReplicaLogDelete delete(g:replica_log_filepath)
+  if g:replica_config.replica_debug
+    command! -buffer -nargs=0 ReplicaLogEdit exe $"edit {g:replica_config.replica_log_filepath}"
+    command! -buffer -nargs=0 ReplicaLogDelete delete(g:replica_config.replica_log_filepath)
   endif
 
   # -- command and mappings init ----
@@ -277,5 +304,5 @@ augroup REPLICA_INIT_BUFFERS
 augroup END
 
 augroup REPLICA_DELETE_TMP_FILE
-  autocmd VimLeave * delete(g:replica_tmp_filepath)
+  autocmd VimLeave * delete(g:replica_config.replica_tmp_filepath)
 augroup END

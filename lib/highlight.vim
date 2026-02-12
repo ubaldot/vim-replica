@@ -26,7 +26,7 @@ export def GetExtremes(display_range: bool = false): list<number>
     line_out = line("$")
   endif
   # Display range only if some cell has been found
-  if (line_in != 1 || line_out != line("$")) && display_range && g:replica_display_range
+  if (line_in != 1 || line_out != line("$")) && display_range && g:replica_config.replica_display_range
     echo $"cell_range=[{line_in}, {line_out}]"
   endif
   return [line_in, line_out]
@@ -43,7 +43,7 @@ export def HighlightCell(display_range: bool = false)
   var line_out = extremes[1]
 
   # Decide highlight group
-  var hlgroup = g:replica_alt_highlight
+  var hlgroup = g:replica_config.replica_alt_highlight
     ? "ReplicaConsoleHlFast"
     : "ReplicaConsoleHl"
 
@@ -60,7 +60,7 @@ export def HighlightCell(display_range: bool = false)
       endfor
 
       # Compute new lines to highlight
-      if g:replica_alt_highlight
+      if g:replica_config.replica_alt_highlight
         list_sign_id = [line_in, line_out]
       else
     # Highlight lines before the cell

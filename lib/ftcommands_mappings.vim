@@ -52,7 +52,7 @@ export def InstallMappings()
   noremap <buffer> <Plug>ReplicaSendCell
         \ <ScriptCmd>repl.SendCell()<cr>
 
-  if g:replica_use_default_mapping == true
+  if g:replica_config.replica_use_default_mapping == true
     if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
       nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle
       # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
