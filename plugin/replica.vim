@@ -151,6 +151,31 @@ var replica_repl_prompts_default = {
   zsh: ".*[\$#>]\\s*$"
 }
 
+# The items of the following dicts shall match what is in ./languages scripts
+var vim_inspect_functions = {
+  python: (x) => $"__vim_inspect(\"{x}\")\n",
+  julia: (x) => $"VimReplica.__vim_inspect(\"{x}\")\n",
+  r: (x) => $".vim_inspect(\"{x}\")\n",
+  sh: (x) => $"__vim_inspect {x}\n",
+  zsh: (x) => $"__vim_inspect {x}\n"
+}
+
+var vim_whos_functions = {
+  python: () => $"__vim_whos()\n",
+  julia: () => $"VimReplica.__vim_whos()\n",
+  r: () => $".vim_whos()\n",
+  sh: () => "__vim_whos\n",
+  zsh: () => "__vim_whos\n"
+}
+
+var vim_variable_names_functions = {
+  python: () => $"__vim_variable_names()\n",
+  julia: () => $"VimReplica.__vim_variable_names()\n",
+  r: () => $".vim_variable_names()\n",
+  sh: () => "__vim_variable_names\n",
+  zsh: () => "__vim_variable_names\n"
+}
+
 # User is allowed to change only replica_repls and replica_cells_delimiters
 if exists('g:replica_repls')
   extend(replica_repls_default, g:replica_repls, "force")
@@ -248,30 +273,9 @@ def InitBuffers()
   b:repl_prompt = g:replica_repl_prompts[&filetype]
   b:repl_init_script = g:replica_repl_init_scripts[&filetype]
 
-  # Functions to poll variable_explorer data from the repl
-  # Consider to make another two dictionaries as the number of languages
-  # increases
-  if index(['zsh', 'sh'], &filetype) != -1
-    # Functions in zsh, bash, etc. are called without parenthesis,
-    # e.g. __vim_whos instead of __vim_whos()
-    b:vim_inspect_function = (x) => $"__vim_inspect {x}\n"
-    b:vim_whos_function = () => "__vim_whos\n"
-    b:vim_variable_names = () => "__vim_variable_names\n"
-  elseif &filetype ==# 'julia'
-    # VimReplica is the module name of ./lib/languages/init_julia.jl
-    b:vim_inspect_function = (x) => $"VimReplica.__vim_inspect(\"{x}\")\n"
-    b:vim_whos_function = () => $"VimReplica.__vim_whos()\n"
-    b:vim_variable_names = () => $"VimReplica.__vim_variable_names()\n"
-  elseif &filetype ==# 'r'
-    b:vim_inspect_function = (x) => $".vim_inspect(\"{x}\")\n"
-    b:vim_whos_function = () => $".vim_whos()\n"
-    b:vim_variable_names = () => $".vim_variable_names()\n"
-  else
-    # python
-    b:vim_inspect_function = (x) => $"__vim_inspect(\"{x}\")\n"
-    b:vim_whos_function = () => $"__vim_whos()\n"
-    b:vim_variable_names = () => $"__vim_variable_names()\n"
-  endif
+  b:vim_inspect_function = vim_inspect_functions[&filetype]
+  b:vim_whos_function = vim_whos_functions[&filetype]
+  b:vim_variable_names = vim_variable_names_functions[&filetype]
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
