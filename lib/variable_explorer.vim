@@ -313,6 +313,25 @@ def HandlePrompt(line_debounced: string)
 enddef
 
 def HandleConsoleError(line_debounced: string)
+  # TODO: This is a bit flaky because programs may not return the keyword
+  # 'error' (for example python often only return 'traceback' and shell may
+  # return... whatever). But on the other hand, terminals merge stdout and
+  # stderr in the same PTY, so it is impossible to separate them once merged.
+  # If you separate them, for example using out_cb, you lose all the nice
+  # colors and such from the terminal.
+  #
+  # However, this function is only needed for debugging and logging in
+  # unit-tests. It won't bother functionality or user experience at all.
+  # Not Vim, nor the REPL take any visible action inside this function.
+  #
+  # A more robust solution to detect REPL errors would be to use tee, e.g.:
+  #   ipython 2> >(tee /tmp/ipython_err.log >&2)
+  #
+  # In this way, the terminal preserve colors and user-experience, and the
+  # errors are correctly log.
+
+  # TODO use a list of keyword that may suggest errors, such as ['error',
+  # 'traceback', etc.] and check line_debounced against such a list.
 
   if line_debounced =~? 'error'
     logger.Error($"Error from console: {line_debounced}")
