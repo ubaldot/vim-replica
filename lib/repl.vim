@@ -171,7 +171,7 @@ def ConsoleOpen()
     # For VimInspect() and friend
     setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
     setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
-    setbufvar(bufnr('$'), 'vim_variable_names', b:vim_variable_names)
+    setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
   else
     logger.Error($"Filetype {&filetype} not supported")
     Echoerr($"[vim-replica]: Filetype {&filetype} not supported")

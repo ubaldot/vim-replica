@@ -15,11 +15,7 @@ g:loaded_replica = true
 
 const replica_path = expand('<sfile>:h:h')
 
-# Remove the existing tnp file needed for SendCell() & friends, if it exists
-if exists('g:replica_tmp_filepath') && filereadable(g:replica_tmp_filepath)
-  delete(g:replica_tmp_filepath)
-endif
-
+# tmp file used for ReplicaSendCell() & friends
 # Deterministic filepath (so, if Vim crashes, we know where the file is)
 def GetDataDir(): string
   if exists('$XDG_DATA_HOME')
@@ -42,8 +38,12 @@ endif
 # File used for SendCell() & friends
 g:replica_tmp_filepath = $'{data_dir}/vim_replica.tmp'
 
-# --- logger setup -----
+# Remove possibly the existing tmp file
+if exists('g:replica_tmp_filepath') && filereadable(g:replica_tmp_filepath)
+  delete(g:replica_tmp_filepath)
+endif
 
+# --- logger setup -----
 # File used for logging
 if !exists('g:replica_log_filepath')
   g:replica_log_filepath = $'{data_dir}/vim_replica.log'
@@ -95,7 +95,7 @@ if !exists('g:replica_console_height')
 endif
 
 # Dicts. Keys must be Vim filetypes
-var replica_repls_default = {
+var repl_names = {
   python: "ipython",
   julia: "julia",
   r: "R",
@@ -103,7 +103,7 @@ var replica_repls_default = {
   zsh: "zsh -f -i"
 }
 
-var replica_console_names_default = {
+var console_names = {
   python: "IPYTHON",
   julia: "JULIA",
   r: "R",
@@ -111,8 +111,7 @@ var replica_console_names_default = {
   zsh: "ZSH"
 }
 
-# TODO: Not sure if you want the user to override this
-var replica_run_commands_default = {
+var run_commands = {
   python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}",
   julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
   r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
@@ -120,7 +119,7 @@ var replica_run_commands_default = {
   zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
 }
 
-var replica_repl_init_scripts_default = {
+var repl_init_scripts = {
   python: $"{replica_path}/languages/python/ipython_init.py",
   julia: $"{replica_path}/languages/julia/julia_init.jl",
   r: $"{replica_path}/languages/r/r_init.R",
@@ -128,7 +127,7 @@ var replica_repl_init_scripts_default = {
   zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
 }
 
-var replica_repl_options_default = {
+var repl_options = {
   python: "",
   julia: "",
   r: "",
@@ -141,9 +140,9 @@ var replica_repl_options_default = {
 # especially in case of zsh, bash, etc. This makes impossible to parse a
 # prompt.
 # For this reason, after startup we try to guess a prompt and then we
-# forcibly set one that is easy to parse, e.g. __VIM_REPLICA__$
-# Nevertheless, the regex used for parsing the prompt won't change.
-var replica_repl_prompts_default = {
+# forcibly set one that is easy to parse, e.g.
+# vim_replica> '
+var repl_prompts = {
   python: '^In\s\[\d\+\]:\s$',
   julia: "^julia>\\s*$",
   r: "^> ",
@@ -176,49 +175,6 @@ var vim_variable_names_functions = {
   zsh: () => "__vim_variable_names\n"
 }
 
-# User is allowed to change only replica_repls and replica_cells_delimiters
-if exists('g:replica_repls')
-  extend(replica_repls_default, g:replica_repls, "force")
-endif
-
-if exists('g:replica_console_names')
-  extend(replica_console_names_default, g:replica_console_names, "keep")
-endif
-
-if exists('g:replica_repl_options')
-  extend(replica_repl_options_default, g:replica_repl_options, "force")
-endif
-
-# If a user wants to add more languages
-if exists('g:replica_run_commands')
-  extend(replica_run_commands_default, g:replica_run_commands, "keep")
-endif
-
-if exists('g:replica_repl_prompts')
-  extend(replica_repl_prompts_default, g:replica_repl_prompts, "keep")
-endif
-
-if exists('g:replica_repl_init_scripts')
-  extend(replica_repl_init_scripts_default, g:replica_repl_init_scripts, "keep")
-endif
-
-g:replica_repls = replica_repls_default
-g:replica_console_names = replica_console_names_default
-g:replica_repl_options = replica_repl_options_default
-g:replica_run_commands = replica_run_commands_default
-g:replica_repl_prompts = replica_repl_prompts_default
-g:replica_repl_init_scripts = replica_repl_init_scripts_default
-
-# TODO at the moment the term is started directly with
-# repl console ... but a user may want to do something before opening the
-# console. One could
-# a. use b:precommand = g:replica_pre_commands[&filtype] in ft files
-# b. Update ConsoleOpen() function with term_start(b:precommand .. "repl
-# console ..."
-# g:replica_precommands = {
-#             \ "python": "source ~/pippo && ",
-#             \ "julia": ""}
-
 # ---- ftcommands_mappings.vim setup ------
 if !exists('g:replica_use_default_mapping')
   g:replica_use_default_mapping = false
@@ -227,19 +183,13 @@ endif
 import "../lib/ftcommands_mappings.vim"
 
 # --- highlight setup ------
-var replica_cells_delimiters_default = {
+var cell_delimiters = {
   python: "# %%",
   julia: "# %%",
   r: "# %%",
   sh: "# %%",
   zsh: "# %%"
 }
-
-# If a user wants to add a new language
-if exists('g:replica_cells_delimiters')
-  extend(replica_cells_delimiters_default, g:replica_cells_delimiters, "keep")
-endif
-g:replica_cells_delimiters = replica_cells_delimiters_default
 
 if !exists('g:replica_display_range')
   g:replica_display_range = true
@@ -266,16 +216,17 @@ endif
 def InitBuffers()
 
   # -- REPL init ----
-  b:repl_name = g:replica_repls[&filetype]
-  b:console_name = g:replica_console_names[&filetype]
-  b:repl_options = g:replica_repl_options[&filetype]
-  b:run_command = g:replica_run_commands[&filetype]
-  b:repl_prompt = g:replica_repl_prompts[&filetype]
-  b:repl_init_script = g:replica_repl_init_scripts[&filetype]
+  b:repl_name = repl_names[&filetype]
+  b:console_name = console_names[&filetype]
+  b:run_command = run_commands[&filetype]
+  b:repl_prompt = repl_prompts[&filetype]
+  b:repl_init_script = repl_init_scripts[&filetype]
 
   b:vim_inspect_function = vim_inspect_functions[&filetype]
   b:vim_whos_function = vim_whos_functions[&filetype]
-  b:vim_variable_names = vim_variable_names_functions[&filetype]
+  b:vim_variable_names_function = vim_variable_names_functions[&filetype]
+
+  b:repl_options = exists('g:replica_repl_options') ? g:replica_repl_options[&filetype] : ''
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
@@ -292,7 +243,7 @@ def InitBuffers()
   b:incremental_prompt = index(['python'], &filetype) != -1 ? true : false
 
   # -- highlight init ----
-  b:cells_delimiter = g:replica_cells_delimiters[&filetype]
+  b:cells_delimiter = cell_delimiters[&filetype]
   if g:replica_enable_highlight
     augroup highlight_cells
       autocmd! * <buffer>
@@ -303,6 +254,7 @@ def InitBuffers()
     augroup END
   endif
 
+  # The following exists only if we operate in debug mode
   if g:replica_debug
     command! -buffer -nargs=0 ReplicaLogEdit exe $"edit {g:replica_log_filepath}"
     command! -buffer -nargs=0 ReplicaLogDelete delete(g:replica_log_filepath)
@@ -317,8 +269,9 @@ enddef
 
 augroup REPLICA_INIT_BUFFERS
   autocmd!
-  for val in keys(g:replica_repls)
-    # I cannot interpolate string otherwise 'r' won't be picked
+  for val in keys(repl_names)
+    # I cannot interpolate string otherwise 'r' won't be picked ->
+    # concatenate strings
     exe "autocmd FileType " .. val .. " InitBuffers()"
   endfor
 augroup END

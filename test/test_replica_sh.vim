@@ -156,7 +156,7 @@ END
 
   # Remove cells
   exe "ReplicaRemoveCells"
-  WaitForAssert(() => assert_equal(search(g:replica_cells_delimiters.sh, 'cnw'), 0))
+  WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
 
   # Restart repl
   exe "ReplicaConsoleRestart"

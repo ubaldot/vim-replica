@@ -549,7 +549,7 @@ enddef
 
 export def GetReplVariablesNames()
   logger.Info("getting variable names for complete list")
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_variable_names())
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_variable_names_function())
   on_msg_received = On_Msg_Received.CompleteList
 
   logger.Info($'on_msg_received: {on_msg_received.name}')
