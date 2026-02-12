@@ -4,8 +4,6 @@ import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 import "../lib/logger.vim"
 
-# TODO: to test it, you must wrap it in a g: function, e.g. g:FOO =
-# GetCompleteList
 export def GetCompleteList(A: string, L: string, P: number): list<string>
 
   variable_explorer.variable_names = []
@@ -29,6 +27,11 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   var tmp = variable_explorer.variable_names
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
+
+# Used for unit-tests
+export const funcs_dict = {
+  GetCompleteList: GetCompleteList
+}
 
 #  ------------
 #  Mappings
@@ -92,6 +95,11 @@ export def InstallConsoleCommands()
     command -buffer ReplicaConsoleShutoff repl.ConsoleShutoff()
   endif
 
+  if !exists(":ReplicaInspect")
+    command -complete=customlist,GetCompleteList -nargs=? -buffer
+          \ ReplicaInspect
+          \ variable_explorer.VimInspect(<q-args>)
+  endif
 enddef
 
 export def InstallSendCommands()
@@ -112,15 +120,4 @@ export def InstallSendCommands()
   if !exists(":ReplicaRemoveCells")
     command -buffer ReplicaRemoveCells repl.RemoveCells()
   endif
-
-  if !exists(":ReplicaInspect")
-    command -complete=customlist,GetCompleteList -nargs=? -buffer
-          \ ReplicaInspect
-          \ variable_explorer.VimInspect(<q-args>)
-  endif
 enddef
-
-# Used for unit-tests
-export const funcs_dict = {
-  GetCompleteList: GetCompleteList
-}

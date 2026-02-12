@@ -129,10 +129,21 @@ def ConsoleOpen()
       logger.Info($'start_cmd: {start_cmd}')
       logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
-      term_start(start_cmd,
-        {term_name: b:console_name,
-          out_cb: function("variable_explorer.ReplicaOutCb"),
-        })
+      try
+        var job_id = term_start(start_cmd,
+          {term_name: b:console_name,
+            out_cb: function("variable_explorer.ReplicaOutCb"),
+          })
+
+          if job_id <= 0
+            echoerr $'Failed to start terminal: {start_cmd}'
+            return
+          endif
+
+      catch
+        Echoerr($'Failed to run {start_cmd}')
+        return
+      endtry
 
       ftcommands_mappings.InstallConsoleCommands()
 
@@ -156,6 +167,11 @@ def ConsoleOpen()
     setbufvar(bufnr('$'), 'console_name', b:console_name)
     setbufvar(bufnr('$'), 'repl_name', b:repl_name)
     setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
+
+    # For VimInspect() and friend
+    setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
+    setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
+    setbufvar(bufnr('$'), 'vim_variable_names', b:vim_variable_names)
   else
     logger.Error($"Filetype {&filetype} not supported")
     Echoerr($"[vim-replica]: Filetype {&filetype} not supported")
