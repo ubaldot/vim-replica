@@ -6,8 +6,7 @@ _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
 
-RED="\033[31m"
-GREEN="\033[32m"
+GREEN="\033[1;32m"
 END="\033[0m"
 
 # OBS! This shall be the same as in variable_explorer.vim

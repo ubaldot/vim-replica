@@ -6,8 +6,8 @@ vim9script
 # 	g:TestFiles = ['test_replica_python.vim', 'test_replica_julia.vim']
 # endif
 
-const RED = "\033[31m"
-const GREEN = "\033[32m"
+const RED = "\033[1;31m"
+const GREEN = "\033[1;32m"
 const END = "\033[0m"
 
 const base_path = $'{expand('<sfile>:h:h')}'
