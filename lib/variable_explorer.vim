@@ -57,8 +57,8 @@ export def Init()
   universal_prompt = '^vim_replica> $'
   variable_names = ['']
 
-  is_utf16 = exists('g:replica_config.replica_use_utf16')
-    ? g:replica_config.replica_use_utf16
+  is_utf16 = exists('g:replica_config.use_utf16')
+    ? g:replica_config.use_utf16
     : has('win32') || has('win64')
 
   # This should executed only once
@@ -82,9 +82,9 @@ export def Init()
 enddef
 
 def SendInitScript(filename: string)
-  writefile(readfile(filename), g:replica_config.replica_tmp_filepath)
+  writefile(readfile(filename), g:replica_config.tmp_filepath)
   term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_command(g:replica_config.replica_tmp_filepath)}\n")
+    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
 enddef
 
 def PopupFilter(id: number, key: string): bool
@@ -152,24 +152,24 @@ def DisplayVariable(decoded_value: list<string>)
   logger.Info('displaying variable')
 
   if bufexists(variable_to_inspect)
-    logger.Info($"reusing existing {g:replica_config.replica_display_variables}")
+    logger.Info($"reusing existing {g:replica_config.display_variables}")
     var buf = bufnr(variable_to_inspect)
     setbufvar(buf, '&modifiable', true)
     deletebufline(buf, 1, "$")
     setbufline(buf, 1, decoded_value)
     setbufvar(buf, '&modifiable', false)
   else
-    logger.Info($"creating a {g:replica_config.replica_display_variables}")
+    logger.Info($"creating a {g:replica_config.display_variables}")
 
-    if g:replica_config.replica_display_variables == 'split'
+    if g:replica_config.display_variables == 'split'
       new
       setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
       nnoremap <buffer> <silent> <esc> <cmd>close<cr>
-    elseif g:replica_config.replica_display_variables == 'vsplit'
+    elseif g:replica_config.display_variables == 'vsplit'
       vnew
       setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
       nnoremap <buffer> <silent> <esc> <cmd>close<cr>
-    elseif g:replica_config.replica_display_variables == 'tab'
+    elseif g:replica_config.display_variables == 'tab'
       tabnew
       setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
       nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
@@ -375,7 +375,7 @@ def HandleLine(clean_line: string)
 
     logger.Info($'on_msg_received: {on_msg_received.name}')
     if on_msg_received == On_Msg_Received.DisplayVariable
-      if g:replica_config.replica_display_variables == 'popup'
+      if g:replica_config.display_variables == 'popup'
         DisplayVariablePopup(line_decoded)
       else
         DisplayVariable(line_decoded)
@@ -395,7 +395,7 @@ def HandleLine(clean_line: string)
     if !empty(line_decoded)
       if on_msg_received == On_Msg_Received.DisplayVariable
         logger.Info($'on_msg_received: {on_msg_received.name}')
-        if g:replica_config.replica_display_variables == 'popup'
+        if g:replica_config.display_variables == 'popup'
           DisplayVariablePopup(line_decoded)
         else
           DisplayVariable(line_decoded)

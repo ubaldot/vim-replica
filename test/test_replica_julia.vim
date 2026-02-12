@@ -533,7 +533,6 @@ END
 enddef
 
 def g:Test_julia_getcompletion()
-  # g:replica_debug = true
   v:errmsg = ''
   v:errors = []
   messages clear

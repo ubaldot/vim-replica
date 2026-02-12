@@ -43,8 +43,9 @@ vim9script
 set runtimepath+=..
 filetype indent plugin on
 
-g:replica_debug = true
-g:replica_log_level = 'Error'
+g:replica_config = {}
+g:replica_config.debug = true
+g:replica_config.log_level = 'Error'
 
 g:TestFiles = [
 		'test_replica_python.vim',
@@ -77,9 +78,9 @@ VIM_CMD=(
 
 # Check that Vim started and that the runner did its job
 if [ $? -eq 0 ]; then
-    echo "Vim executed successfully.\n"
+    echo "Vim successfully started.\\n"
 else
-    echo "Vim execution failed with exit code $?.\n"
+    echo "Vim execution failed with exit code $?.\\n"
 		exit 1
 fi
 

@@ -28,25 +28,25 @@ def Init()
   v:errmsg = ''
 
   # Check log file size
-  if filereadable(g:replica_config.replica_log_filepath)
-      && getfsize(g:replica_config.replica_log_filepath) > g:replica_config.replica_log_max_size
-    Echowarn($"'{g:replica_config.replica_log_filepath}' exceeded the maximum size "
-          .. $"({g:replica_config.replica_log_max_size} bytes). "
+  if filereadable(g:replica_config.log_filepath)
+      && getfsize(g:replica_config.log_filepath) > g:replica_config.log_max_size
+    Echowarn($"'{g:replica_config.log_filepath}' exceeded the maximum size "
+          .. $"({g:replica_config.log_max_size} bytes). "
           .. "Logging has been stopped.")
     sleep 3
-    g:replica_config.replica_debug = false
+    g:replica_config.debug = false
   endif
 
   logger.Info('repl initialization')
 
   if empty(console_geometry)
     console_geometry = {
-      width: g:replica_config.replica_console_width,
-      height: g:replica_config.replica_console_height
+      width: g:replica_config.console_width,
+      height: g:replica_config.console_height
     }
   endif
 
-  logger.Info($"console position: '{g:replica_config.replica_console_position}'")
+  logger.Info($"console position: '{g:replica_config.console_position}'")
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
   logger.Info($"repl_prompt: '{b:repl_prompt}'")
@@ -69,7 +69,7 @@ def ResizeConsoleWindow(console_win_id: number)
 
   win_execute(console_win_id, $'resize {console_geometry["height"]}')
   win_execute(console_win_id, $'vertical resize {console_geometry["width"]}')
-  if index(["J", "K"], g:replica_config.replica_console_position) >= 0
+  if index(["J", "K"], g:replica_config.console_position) >= 0
     win_execute(console_win_id, 'set winfixheight')
   else
     win_execute(console_win_id, 'set winfixwidth')
@@ -155,7 +155,7 @@ def ConsoleOpen()
     endif
 
     # Set few options
-    exe $'wincmd {g:replica_config.replica_console_position}'
+    exe $'wincmd {g:replica_config.console_position}'
     setlocal nobuflisted winminheight winminwidth winfixbuf
     # Set geometry
     ResizeConsoleWindow(console_win_id)
@@ -271,9 +271,9 @@ export def SendCell()
       # Jump to the next cell
       cursor(line_out, getcurpos()[2])
       # Overwrite tmp file
-      writefile(getline(line_in, line_out), g:replica_config.replica_tmp_filepath)
+      writefile(getline(line_in, line_out), g:replica_config.tmp_filepath)
       term_sendkeys(bufnr($'^{b:console_name}$'),
-            $"{b:run_command(g:replica_config.replica_tmp_filepath)}\n")
+            $"{b:run_command(g:replica_config.tmp_filepath)}\n")
 
       logger.Info($"sent cell: {string(getline(line_in, line_out))}")
     endif
@@ -294,14 +294,14 @@ export def SendFile(filename: string = '')
     else
       # Write tmp file
       if empty(filename)
-        writefile(getline(1, '$'), g:replica_config.replica_tmp_filepath)
+        writefile(getline(1, '$'), g:replica_config.tmp_filepath)
         logger.Info('sent: current buffer')
       else
-        writefile(readfile(filename), g:replica_config.replica_tmp_filepath)
+        writefile(readfile(filename), g:replica_config.tmp_filepath)
         logger.Info($"sent file: '{filename}'")
       endif
       term_sendkeys(bufnr($'^{b:console_name}$'),
-                   $"{b:run_command(g:replica_config.replica_tmp_filepath)}\n")
+                   $"{b:run_command(g:replica_config.tmp_filepath)}\n")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")

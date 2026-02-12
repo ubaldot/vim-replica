@@ -17,8 +17,9 @@ vim9script
 
 set runtimepath+=..
 
-g:replica_debug = true
-g:replica_log_level = 'Error'
+g:replica_config = {}
+g:replica_config.debug = true
+g:replica_config.log_level = 'Error'
 
 g:TestFiles = [
     'test_replica_python.vim',

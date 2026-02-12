@@ -57,7 +57,6 @@ enddef
 
 # Tests start here
 def g:Test_python_basic()
-  # g:replica_debug = true
   v:errors = []
   v:errmsg = ''
   messages clear
@@ -251,7 +250,6 @@ def g:Test_unsupported_filetypes()
 enddef
 
 def g:Test_python_variable_explorer_basic()
-  # g:replica_debug = true
   v:errmsg = ''
   v:errors = []
   messages clear
@@ -412,7 +410,6 @@ END
 enddef
 
 def g:Test_python_getcompletion()
-  # g:replica_debug = true
   v:errmsg = ''
   v:errors = []
   messages clear
