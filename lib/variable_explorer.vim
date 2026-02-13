@@ -22,7 +22,7 @@ var variable_to_inspect: string
 var universal_prompt: string
 var repl_prompt: string
 var incremental_prompt: bool
-var prompt_to_be_changed: bool
+var change_prompt_after_init: bool
 var repl_init_script: string
 var last_prompt: string
 
@@ -62,7 +62,7 @@ export def Init()
   # This should executed only once
   repl_prompt = b:repl_prompt
   incremental_prompt = b:incremental_prompt
-  prompt_to_be_changed = b:prompt_to_be_changed
+  change_prompt_after_init = b:change_prompt_after_init
   repl_init_script = b:repl_init_script
   last_prompt = ''
 
@@ -290,7 +290,7 @@ def HandlePrompt(line_debounced: string)
   logger.Info($'on_msg_received: {on_msg_received.name}')
   if on_msg_received == On_Msg_Received.InitializeConsole
 
-    on_msg_received = prompt_to_be_changed
+    on_msg_received = change_prompt_after_init
       ? On_Msg_Received.ChangePrompt
       : On_Msg_Received.Ready
 
@@ -302,7 +302,7 @@ def HandlePrompt(line_debounced: string)
     logger.Info('Changing prompt')
     repl_prompt = universal_prompt
     on_msg_received = On_Msg_Received.Ready
-    prompt_to_be_changed = false
+    change_prompt_after_init = false
   endif
 
   # Update last_prompt, needed for incremental prompts like in IPython

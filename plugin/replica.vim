@@ -239,6 +239,10 @@ import "../lib/highlight.vim"
 
 # --- variable explorer setup ----
 
+if !exists('g:replica_config.force_prompt')
+  g:replica_config.force_prompt = false
+endif
+
 if !exists('g:replica_config.display_variables')
   g:replica_config.display_variables = 'vsplit'
 endif
@@ -263,9 +267,9 @@ def InitBuffers()
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
   if index(['zsh', 'sh', 'r'], &filetype) != -1
-    b:prompt_to_be_changed = true
+    b:change_prompt_after_init = true
   else
-    b:prompt_to_be_changed = false
+    b:change_prompt_after_init = false
   endif
 
   # Some repl have incremental prompt, like IPython: In [2]: In [3]:, etc. so
