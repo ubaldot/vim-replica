@@ -12,8 +12,8 @@ import "../lib/ftcommands_mappings.vim" as ftcm
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
-def Generate_testfile(lines: list<string>, src_name: string)
-  writefile(lines, src_name)
+def Generate_testfile(lines: list<string>, name: string)
+  writefile(lines, name)
 enddef
 
 def Cleanup_testfile(src_name: string)
@@ -55,53 +55,69 @@ def LastNonEmptyLine(buf_nr: number): string
   return ''
 enddef
 
+const src_name = 'testfile.r'
+const code_lines =<< trim END
+# test_variables.R
+# Define variables of different types for testing Vim variable inspection
+
+# ─────────────────────────────
+# Scalars
+num_scalar <- 42L          # integer
+float_scalar <- 3.14       # numeric
+char_scalar <- "Hello R"   # character
+bool_scalar <- TRUE        # logical
+
+# ─────────────────────────────
+# Vectors
+num_vector <- c(1, 2, 3, 4, 5)
+char_vector <- c("a", "b", "c")
+bool_vector <- c(TRUE, FALSE, TRUE)
+
+# ─────────────────────────────
+# Lists
+simple_list <- list(a = 1, b = "two", c = TRUE)
+nested_list <- list(nums = num_vector, chars = char_vector, inner_list = simple_list)
+
+# %% ─────────────────────────────
+# Matrices
+num_matrix <- matrix(1:9, nrow = 3, ncol = 3)
+char_matrix <- matrix(letters[1:6], nrow = 2)
+
+# ─────────────────────────────
+# Data frames
+df <- data.frame(
+  id = 1:3,
+  name = c("Alice", "Bob", "Charlie"),
+  score = c(85.5, 92.3, 78.9),
+  passed = c(TRUE, TRUE, FALSE)
+)
+
+# %% ─────────────────────────────
+# Factors
+gender <- factor(c("Male", "Female", "Female", "Male"))
+grades <- factor(c("A", "B", "A", "C"), levels = c("A", "B", "C", "D", "F"))
+
+# %% ─────────────────────────────
+# Functions
+square <- function(x) x^2
+greet <- function(name) paste("Hello,", name)
+
+
+# ─────────────────────────────
+# End of test file
+END
+
+
+
 # Tests start here
-def g:Test_sh_basic()
+def g:Test_R_basic()
   v:errors = []
   v:errmsg = ''
   messages clear
 
-  if exepath('bash')->empty()
-    throw "Skipped: 'bash' executable is not found in $PATH"
+  if exepath('R')->empty()
+    throw "Skipped: 'R' executable is not found in $PATH"
   endif
-
-  const src_name = 'testfile.sh'
-  const code_lines =<< trim END
-_VIM_USER_VARS=()
-
-# ─────────────────────────────
-# Portable types
-
-FOO="Hello"
-_VIM_USER_VARS+=("FOO")
-
-BAR=42
-_VIM_USER_VARS+=("BAR")
-
-ARR=("apple" "banana" "cherry")
-_VIM_USER_VARS+=("ARR")
-
-# %% ─────────────────────────────
-# Shell-specific types
-
-if [ -n "${BASH_VERSION:-}" ]; then
-    # Bash associative array
-    declare -A MAP=(
-        [name]="bash"
-        [type]="assoc"
-    )
-    _VIM_USER_VARS+=("MAP")
-
-elif [ -n "${ZSH_VERSION:-}" ]; then
-    # Zsh associative array
-    typeset -A MAP
-    MAP=(
-        name zsh
-        type assoc
-    )
-    _VIM_USER_VARS+=("MAP")
-fi
-END
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
@@ -120,9 +136,9 @@ END
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
-  # # ReplicaSendCell
+  # ReplicaSendCell
   cursor(1, 1)
-  var expected_lines = [15, 34]
+  var expected_lines = [22, 36, 41]
 
   for line in expected_lines
     exe "ReplicaSendCell"
@@ -131,7 +147,7 @@ END
     assert_equal(line, line('.'))
   endfor
 
-  # # ReplicaSendLine
+  # ReplicaSendLine
   cursor(6, 1)
   expected_lines = [7, 8]
 
@@ -142,14 +158,14 @@ END
     assert_equal(line, line('.'))
   endfor
 
-  # # Double Toggle
+  # Double Toggle
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
-  WaitForAssert(() => assert_true(bufexists('BASH')))
+  WaitForAssert(() => assert_true(bufexists('R')))
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  WaitForAssert(() => assert_true(bufexists('BASH')))
+  WaitForAssert(() => assert_true(bufexists('R')))
 
   # Remove cells
   exe "ReplicaRemoveCells"
@@ -172,7 +188,7 @@ END
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('BASH')))
+  WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
@@ -187,48 +203,10 @@ END
 enddef
 
 
-def g:Test_sh_variable_explorer_basic()
+def g:Test_R_variable_explorer_basic()
   messages clear
   v:errors = []
   v:errmsg = ''
-
-  const src_name = 'testfile.sh'
-  const code_lines =<< trim END
-_VIM_USER_VARS=()
-
-# ─────────────────────────────
-# Portable types
-
-FOO="Hello"
-_VIM_USER_VARS+=("FOO")
-
-BAR=42
-_VIM_USER_VARS+=("BAR")
-
-ARR=("apple" "banana" "cherry")
-_VIM_USER_VARS+=("ARR")
-
-# %% ─────────────────────────────
-# Shell-specific types
-
-if [ -n "${BASH_VERSION:-}" ]; then
-    # Bash associative array
-    declare -A MAP=(
-        [name]="bash"
-        [type]="assoc"
-    )
-    _VIM_USER_VARS+=("MAP")
-
-elif [ -n "${ZSH_VERSION:-}" ]; then
-    # Zsh associative array
-    typeset -A MAP
-    MAP=(
-        name zsh
-        type assoc
-    )
-    _VIM_USER_VARS+=("MAP")
-fi
-END
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
@@ -252,9 +230,9 @@ END
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
 
-#   # -- Test float
-  var expected_variable_explorer = ['Hello']
-  var buf_name = 'FOO'
+  # -- Test float
+  var expected_variable_explorer = ['[1] TRUE']
+  var buf_name = 'bool_scalar'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -285,8 +263,13 @@ END
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # -- Test array
-  expected_variable_explorer = ['(apple banana cherry)']
-  buf_name = 'ARR'
+  expected_variable_explorer =<< END
+     [,1] [,2] [,3]
+[1,]    1    4    7
+[2,]    2    5    8
+[3,]    3    6    9
+END
+  buf_name = 'num_matrix'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -299,9 +282,14 @@ END
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test map
-  expected_variable_explorer = ['type=assoc', 'name=bash']
-  buf_name = 'MAP'
+  # -- Test dataframe
+  expected_variable_explorer =<< END
+  id    name score passed
+1  1   Alice  85.5   TRUE
+2  2     Bob  92.3   TRUE
+3  3 Charlie  78.9  FALSE
+END
+  buf_name = 'df'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -317,7 +305,7 @@ END
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('BASH')))
+  WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors)
@@ -331,50 +319,12 @@ END
 enddef
 
 
-def g:Test_sh_getcompletion()
+def g:Test_R_getcompletion()
   v:errmsg = ''
   v:errors = []
   messages clear
 
-  const src_name = 'testfile.sh'
-  const lines =<< trim END
-_VIM_USER_VARS=()
-
-# ─────────────────────────────
-# Portable types
-
-FOO="Hello"
-_VIM_USER_VARS+=("FOO")
-
-BAR=42
-_VIM_USER_VARS+=("BAR")
-
-ARR=("apple" "banana" "cherry")
-_VIM_USER_VARS+=("ARR")
-
-# %% ─────────────────────────────
-# Shell-specific types
-
-if [ -n "${BASH_VERSION:-}" ]; then
-    # Bash associative array
-    declare -A MAP=(
-        [name]="bash"
-        [type]="assoc"
-    )
-    _VIM_USER_VARS+=("MAP")
-
-elif [ -n "${ZSH_VERSION:-}" ]; then
-    # Zsh associative array
-    typeset -A MAP
-    MAP=(
-        name zsh
-        type assoc
-    )
-    _VIM_USER_VARS+=("MAP")
-fi
-  END
-
-  Generate_testfile(lines, src_name)
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
@@ -396,7 +346,26 @@ fi
   redraw
 
   # test start
-  const expected_value = ['FOO', 'BAR', 'APP', 'MAP']
+  const expected_value = [
+    'bool_scalar',
+    'bool_vector',
+    'char_matrix',
+    'char_scalar',
+    'char_vector',
+    'df',
+    'END',
+    'float_scalar',
+    'gender',
+    'grades',
+    'GREEN',
+    'greet',
+    'nested_list',
+    'num_matrix',
+    'num_scalar',
+    'num_vector',
+    'simple_list',
+    'square '
+  ]
 
   g:XXX = ftcm.funcs_dict.GetCompleteList
   const actual_value = getcompletion('', 'customlist,XXX')
