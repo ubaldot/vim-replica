@@ -6,7 +6,7 @@ $LOGGER_DEF_FILE = "logger.vim"
 @'
 vim9script
 
-g:logger = g:replica_log_filepath
+g:logger = g:replica_config.log_filepath
 
 '@ | Out-File -Encoding UTF8 "$LOGGER_DEF_FILE"
 

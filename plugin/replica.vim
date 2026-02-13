@@ -126,6 +126,16 @@ if !exists('g:replica_config.console_height')
   endif
 endif
 
+if !exists('g:replica_config.repl_options')
+  g:replica_config.repl_options = {
+      python: "",
+      julia: "",
+      r: "",
+      sh: "",
+      zsh: ""
+    }
+endif
+
 # Dicts. Keys must be Vim filetypes
 var repl_names = {
   python: "ipython",
@@ -157,14 +167,6 @@ var repl_init_scripts = {
   r: $"{replica_path}/languages/r/r_init.R",
   sh: $"{replica_path}/languages/sh/sh_init.sh",
   zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
-}
-
-var repl_options = {
-  python: "",
-  julia: "",
-  r: "",
-  sh: "",
-  zsh: ""
 }
 
 # Initially we use the following prompts to send the init script, but then we may need
@@ -215,6 +217,7 @@ endif
 import "../lib/ftcommands_mappings.vim"
 
 # --- highlight setup ------
+#  If more languages are added, this may also change
 var cell_delimiters = {
   python: "# %%",
   julia: "# %%",
@@ -266,7 +269,7 @@ def InitBuffers()
 
   # Standard prompt for filetypes with problematic prompts like zsh
   # OBS! Secure that in the init script you actually change prompt!
-  if index(['zsh', 'sh', 'r'], &filetype) != -1
+  if index(['zsh', 'sh', 'r'], &filetype) != -1 || g:replica_config.force_prompt
     b:change_prompt_after_init = true
   else
     b:change_prompt_after_init = false

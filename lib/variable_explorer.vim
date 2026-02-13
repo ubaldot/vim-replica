@@ -45,6 +45,8 @@ var is_utf16: bool
 
 export var variable_names: list<string>
 
+# TODO: refactor the mixture of g:, b: and script-local variables. Be
+# consistent.
 export def Init()
   logger.Info('variable explorer script initialization')
 
@@ -61,9 +63,11 @@ export def Init()
   repl_prompt = b:repl_prompt
   # OBS! repl_prompt may be replaced by parsable_prompt after the first prompt
   # has been detected
-  parsable_prompt = '^vim_replica> $'
-  incremental_prompt = b:incremental_prompt
   change_prompt_after_init = b:change_prompt_after_init
+  parsable_prompt = '^vim_replica> $'
+
+  # Used for repl with incremental numbers, such as IPython
+  incremental_prompt = b:incremental_prompt
   repl_init_script = b:repl_init_script
   last_prompt = ''
 
@@ -74,7 +78,10 @@ export def Init()
   logger.Info($'variable_to_inspect: {variable_to_inspect}')
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'last_prompt: {last_prompt}')
-  logger.Info($"universal prompt: '{parsable_prompt}'")
+  logger.Info($'change prompt after init: {change_prompt_after_init}')
+  if change_prompt_after_init
+    logger.Info($"parsable_prompt: '{parsable_prompt}'")
+  endif
   logger.Info($"init script: '{repl_init_script}'")
   logger.Info('variable explorer script initialized')
   logger.Info("-----------------------------------")

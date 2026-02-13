@@ -30,7 +30,7 @@ LOGGER_DEF_FILE="logger.vim"
 cat >"$LOGGER_DEF_FILE" <<'EOF' &&
 vim9script
 
-g:logger = g:replica_log_filepath
+g:logger = g:replica_config.log_filepath
 EOF
 
 
@@ -78,9 +78,9 @@ VIM_CMD=(
 
 # Check that Vim started and that the runner did its job
 if [ $? -eq 0 ]; then
-    echo "Vim successfully started.\\n"
+		printf 'Vim successfully started.\n\n'
 else
-    echo "Vim execution failed with exit code $?.\\n"
+		printf "Vim execution failed with exit code %s.\n" "$?"
 		exit 1
 fi
 
