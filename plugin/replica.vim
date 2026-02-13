@@ -70,6 +70,11 @@ if exists('g:replica_config.tmp_filepath')
   delete(g:replica_config.tmp_filepath)
 endif
 
+# --- encoding ----
+if !exists('g:replica_config.use_utf16')
+  g:replica_config.use_utf16 = has('win32') || has('win64')
+endif
+
 # --- logger setup -----
 # File used for logging
 if !exists('g:replica_config.log_filepath')

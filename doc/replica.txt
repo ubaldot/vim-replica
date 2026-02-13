@@ -55,7 +55,8 @@ g:replica_display_variables
 'use_default_mapping',
 'tmp_filepath',
 'display_range',
-'log_max_size']
+'log_max_size',
+'use_utf16']
 
 install.packages("base64enc")
 

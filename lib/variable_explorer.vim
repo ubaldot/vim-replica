@@ -57,9 +57,7 @@ export def Init()
   universal_prompt = '^vim_replica> $'
   variable_names = ['']
 
-  is_utf16 = exists('g:replica_config.use_utf16')
-    ? g:replica_config.use_utf16
-    : has('win32') || has('win64')
+  is_utf16 = g:replica_config.use_utf16
 
   # This should executed only once
   repl_prompt = b:repl_prompt
