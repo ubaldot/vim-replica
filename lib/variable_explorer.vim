@@ -18,8 +18,8 @@ var payload_accum: string
 var collecting_error_msg: bool
 var variable_to_inspect: string
 
-# OBS! universal_prompt shall be the same in the language initialization scripts
-var universal_prompt: string
+# OBS! parsable_prompt shall be the same in the language initialization scripts
+var parsable_prompt: string
 var repl_prompt: string
 var incremental_prompt: bool
 var change_prompt_after_init: bool
@@ -53,14 +53,15 @@ export def Init()
   payload_accum = ''
   variable_to_inspect = ''
   on_msg_received = On_Msg_Received.Ready
-  # OBS!
-  universal_prompt = '^vim_replica> $'
   variable_names = ['']
 
   is_utf16 = g:replica_config.use_utf16
 
   # This should executed only once
   repl_prompt = b:repl_prompt
+  # OBS! repl_prompt may be replaced by parsable_prompt after the first prompt
+  # has been detected
+  parsable_prompt = '^vim_replica> $'
   incremental_prompt = b:incremental_prompt
   change_prompt_after_init = b:change_prompt_after_init
   repl_init_script = b:repl_init_script
@@ -73,7 +74,7 @@ export def Init()
   logger.Info($'variable_to_inspect: {variable_to_inspect}')
   logger.Info($'on_msg_received: {on_msg_received.name}')
   logger.Info($'last_prompt: {last_prompt}')
-  logger.Info($"universal prompt: '{universal_prompt}'")
+  logger.Info($"universal prompt: '{parsable_prompt}'")
   logger.Info($"init script: '{repl_init_script}'")
   logger.Info('variable explorer script initialized')
   logger.Info("-----------------------------------")
@@ -300,7 +301,7 @@ def HandlePrompt(line_debounced: string)
     logger.Info($'on_msg_received: {on_msg_received.name}')
   elseif on_msg_received == On_Msg_Received.ChangePrompt
     logger.Info('Changing prompt')
-    repl_prompt = universal_prompt
+    repl_prompt = parsable_prompt
     on_msg_received = On_Msg_Received.Ready
     change_prompt_after_init = false
   endif
