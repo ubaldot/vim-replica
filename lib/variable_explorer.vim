@@ -1,7 +1,9 @@
 vim9script
 
-# This function read stream from the terminal stdout and reconstruct lines by
-# accumulating bytes into 'raw_buf' and by cutting at \n, \r or \r\n.
+# This module is devoted to the variable explorer.
+#
+# The process is to read stream from the terminal stdout and reconstruct lines
+# by accumulating bytes into 'raw_buf' and by cutting at \n, \r or \r\n.
 #
 # Once a line is reconstructed, all the junk bytes (e.g. ANSI escape,
 # sequences) are stripped out and the line is further cleaned, debounced,
@@ -45,8 +47,6 @@ var is_utf16: bool
 
 export var variable_names: list<string>
 
-# TODO: refactor the mixture of g:, b: and script-local variables. Be
-# consistent.
 export def Init()
   logger.Info('variable explorer script initialization')
 
@@ -319,10 +319,11 @@ def HandlePrompt(line_debounced: string)
 enddef
 
 def HandleConsoleError(line_debounced: string)
-  # This is a bit flaky because programs may not return the keyword
-  # 'error' (for example python often only return 'traceback' and shell may
-  # return... whatever). But on the other hand, terminals merge stdout and
-  # stderr in the same PTY, and using 'tee' only work for *nix.
+  # TODO: This is a bit flaky because programs running in repl may not return
+  # the keyword 'error' (for example python often only return 'traceback'
+  # and shell may  return... whatever).
+  # But on the other hand, terminals merge stdout and stderr in the same PTY,
+  # and using 'tee' only work for *nix.
   #
   # If you use out_cb, then you lose all the nice colors and such from the terminal.
   #
@@ -336,7 +337,7 @@ def HandleConsoleError(line_debounced: string)
   # TODO use a list of keyword that may suggest errors, such as ['error',
   # 'traceback', etc.] and check line_debounced against such a list.
 
-  if line_debounced =~? 'error'
+  if line_debounced =~? 'error' || line_debounced =~? 'traceback'
     logger.Error($"Error from console: {line_debounced}")
 
     collecting_error_msg = true
@@ -355,16 +356,13 @@ enddef
 def HandleLine(clean_line: string)
   # Lines received can be encoded messages or prompts
 
-  # You may have cases In [N]: In[N] on the same line
+  # You may have cases In [N]: In[N] in the same line
   logger.Info($"repl prompt regex: {repl_prompt}")
 
   # repl_prompt typically ends with '$'. Hence, prompts of the form
   # In [1]: In [1]: will not match the regex in the substitute function.
   # We have to drop the trailing $, that is why we have repl_prompt[: -2]
-  # var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}\)\s*\1\+', '\1', '')
   var line_debounced = clean_line->substitute($'\({repl_prompt[: -2]}.*\)\s*\1\+', '\1', '')
-
-  # var line_debounced = clean_line->substitute('\(' .. escape(repl_prompt, '\') .. '\)\s*\1\+', '\1', '')
 
   logger.Info($"clean line: {clean_line}")
   logger.Info($"line_debounced: {line_debounced}")
@@ -422,7 +420,7 @@ enddef
 
 
 def StripAnsiEscapeSequences(msg: string): string
-  # Strip ANSI escape sequences
+  # Strip ANSI escape sequences. Not perfect, but it works so far.
   var tmp = msg->substitute('\e\=\[[0-9;?]*[@-~]', '', 'g')
     # Normalize CR
     ->substitute('\r\n\|\r', "\n", 'g')
@@ -463,10 +461,6 @@ def FeedChars(bytes: string)
       endif
     # UTF-8 case
     else
-      # TODO: Sometimes line-breaks don't happen and you may get In [1]: In [1]:
-      # and therefore the regex '^In\s\[\d\+\]:\s$' cannot be used,
-      # but must use a relaxed '^In\s\[\d\+\]:\s'. This branch should be
-      # fixed.
       var idx_cr = match(raw_buf, "\x0D")
       var idx_lf = match(raw_buf, "\x0A")
 
@@ -549,9 +543,9 @@ export def ReplicaOutCb(_: channel, msg: string)
   endtry
 enddef
 
-# ================================
-# Functions injected to the REPL
-# ================================
+# ======================================================
+# Functions that invoke functions injected in the repl
+# ======================================================
 
 export def GetReplVariablesNames()
   logger.Info("getting variable names for complete list")
@@ -573,8 +567,6 @@ export def VimInspect(
 
   logger.Info("inspecting variables")
 
-  # :tabonly secure that there is only one tab for variable explorer
-  # tabonly
   if !empty(variable)
     var variable_single_quoted = variable->substitute('"', "'", 'g')
     term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_inspect_function(variable_single_quoted))

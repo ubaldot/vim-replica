@@ -1,17 +1,8 @@
 vim9script
 
-# Vim plugin to get an outline of your scripts.
+# The ultimate Vim repl
 # Maintainer:	Ubaldo Tiberi
 # License: BSD3-Clause
-# GetLatestVimScripts: 6067 1 :AutoInstall: replica.vim
-
-if !has('patch-9.1.2125')
-  # Needs Vim version 9.0 and above
-  echoerr "[vim-replica]: You need at least Vim 9.1.2125"
-  finish
-endif
-
-g:loaded_replica = true
 
 const replica_path = expand('<sfile>:h:h')
 
@@ -42,7 +33,7 @@ if !exists('g:replica_config')
 endif
 
 # tmp file used for ReplicaSendCell() & friends
-# Deterministic filepath (so, if Vim crashes, we know where the file is)
+# The filepath is deterministic (so, if Vim crashes, we know where the file is)
 def GetDataDir(): string
   if exists('$XDG_DATA_HOME')
     return $"{$XDG_DATA_HOME}/vim"
@@ -64,7 +55,6 @@ endif
 # File used for SendCell() & friends
 g:replica_config.tmp_filepath = $'{data_dir}/vim_replica.tmp'
 
-# Remove possibly the existing tmp file
 if exists('g:replica_config.tmp_filepath')
     && filereadable(g:replica_config.tmp_filepath)
   delete(g:replica_config.tmp_filepath)
@@ -76,7 +66,6 @@ if !exists('g:replica_config.use_utf16')
 endif
 
 # --- logger setup -----
-# File used for logging
 if !exists('g:replica_config.log_filepath')
   g:replica_config.log_filepath = $'{data_dir}/vim_replica.log'
 endif
@@ -170,12 +159,12 @@ var repl_init_scripts = {
 }
 
 # Initially we use the following prompts to send the init script, but then we may need
-# to change them with a forced prompt, because we never know how the use set their prompts,
+# to change them with a forced prompt, because we never know how users set their prompts,
 # especially in case of zsh, bash, etc. This makes impossible to parse a
 # prompt.
 # For this reason, after startup we try to guess a prompt and then we
 # forcibly set one that is easy to parse, e.g.
-# vim_replica> '
+# vim_replica>
 var repl_prompts = {
   python: '^In\s\[\d\+\]:\s$',
   julia: "^julia>\\s*$",
@@ -217,7 +206,6 @@ endif
 import "../lib/ftcommands_mappings.vim"
 
 # --- highlight setup ------
-#  If more languages are added, this may also change
 var cell_delimiters = {
   python: "# %%",
   julia: "# %%",
@@ -241,7 +229,6 @@ endif
 import "../lib/highlight.vim"
 
 # --- variable explorer setup ----
-
 if !exists('g:replica_config.force_prompt')
   g:replica_config.force_prompt = false
 endif
@@ -250,9 +237,19 @@ if !exists('g:replica_config.display_variables')
   g:replica_config.display_variables = 'vsplit'
 endif
 
-# ---- set autocmds ------
-# The following variable won't change during run-time
 def InitBuffers()
+
+  if !has('patch-9.1.2125')
+    # Needs Vim version 9.0 and above
+    echoerr "[vim-replica]: You need at least Vim 9.1.2125"
+    if exists('g:replica_config')
+      unlet g:replica_config
+    endif
+    au! REPLICA_INIT_BUFFERS
+    return
+  endif
+
+  g:loaded_replica = true
 
   # -- REPL init ----
   b:repl_name = repl_names[&filetype]
@@ -267,8 +264,9 @@ def InitBuffers()
 
   b:repl_options = exists('g:replica_config.repl_options') ? g:replica_config.repl_options[&filetype] : ''
 
-  # Standard prompt for filetypes with problematic prompts like zsh
-  # OBS! Secure that in the init script you actually change prompt!
+  # Standard prompt for filetypes with problematic prompts like zsh.
+  # The prompt can be changed after the first prompt after startup is
+  # detected
   if index(['zsh', 'sh', 'r'], &filetype) != -1 || g:replica_config.force_prompt
     b:change_prompt_after_init = true
   else

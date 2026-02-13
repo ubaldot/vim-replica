@@ -1,5 +1,7 @@
 vim9script
 
+# Module devoted to set commands and mappings
+
 import "../lib/repl.vim"
 import "../lib/variable_explorer.vim"
 import "../lib/logger.vim"
@@ -28,7 +30,7 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
 
-# Used for unit-tests
+# Used only to allow utilization of GetCompleteList in unit-tests
 export const funcs_dict = {
   GetCompleteList: GetCompleteList
 }
@@ -36,7 +38,6 @@ export const funcs_dict = {
 #  ------------
 #  Mappings
 #  ------------
-# TODO: make imap and tmap to work.
 export def InstallMappings()
   noremap <buffer> <Plug>ReplicaConsoleToggle
         \ <ScriptCmd>repl.ConsoleToggle()<cr>
@@ -55,24 +56,20 @@ export def InstallMappings()
   if g:replica_config.use_default_mapping == true
     if !hasmapto('<Plug>ReplicaConsoleToggle') || empty(mapcheck("<F2>", "nt"))
       nnoremap <silent> <F2> <Plug>ReplicaConsoleToggle
-      # imap <silent> <F2> <Plug>ReplicaConsoleToggle<cr>
       tnoremap <F2> <silent> <c-w><Plug>ReplicaConsoleToggle
     endif
 
     if !hasmapto('<Plug>ReplicaSendLines') || empty(mapcheck("<F9>", "nx"))
       nnoremap <buffer>  <silent>  <F9> <Plug>ReplicaSendLines
-      # imap <silent>  <F9> <Plug>ReplicaSendLines<cr>
       xnoremap <buffer> <silent>  <F9> :ReplicaSendLines<cr>j
     endif
 
     if !hasmapto('<Plug>ReplicaSendFile') || empty(mapcheck("<F5>", "n"))
       nnoremap <buffer> <silent> <F5> <Plug>ReplicaSendFile
-      # imap <silent> <F5> <Plug>ReplicaSendFile<cr>
     endif
 
     if !hasmapto('<Plug>ReplicaSendCell') || empty(mapcheck("<c-enter>", "n"))
       nnoremap <buffer> <silent> <c-enter> <Plug>ReplicaSendCell
-      # imap <silent> <c-enter> <Plug>ReplicaSendCell<cr>j
     endif
   endif
 enddef

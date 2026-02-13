@@ -1,21 +1,15 @@
 vim9script
 
+# Module devoted to repl interaction
+
 import "../lib/highlight.vim"
 import "../lib/logger.vim"
 import "../lib/variable_explorer.vim"
 import "../lib/ftcommands_mappings.vim"
 
-# ---------------------------------------
-# State
-# ---------------------------------------
-
 var console_geometry = {}
 
-# ---------------------------------------
-# Functions for dealing with the console
-# ---------------------------------------
-
-# Differently from echoerr this is non-blocking
+# Differently from echoerr, this does not set vim internal such as v:errmsg
 export def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
@@ -25,7 +19,6 @@ export def Echowarn(msg: string)
 enddef
 
 def Init()
-  v:errmsg = ''
 
   # Check log file size
   if filereadable(g:replica_config.log_filepath)
@@ -84,7 +77,6 @@ enddef
 
 
 def ConsoleExists(): bool
-  # Check if exists a console of a given filetype (i.e.calling buffer ft)
   if exists("b:console_name")
     return bufexists(bufnr($"^{escape(b:console_name, '[]\.^$*~')}$"))
   else
@@ -94,7 +86,6 @@ enddef
 
 
 def ConsoleWinID(): list<number>
-  # Return the windows ID where a console of a specific ft is displayed.
   if ConsoleExists()
     return win_findbuf(bufnr($'^{b:console_name}$'))
   else
@@ -112,8 +103,6 @@ enddef
 
 # This is the actual entry point of the plugin
 def ConsoleOpen()
-  # To start a new logging session you must close and reopen Vim
-  # If console does not exist, then create one,
   var console_win_id = 0
   if IsFiletypeSupported()
     if !ConsoleExists()
@@ -154,24 +143,21 @@ def ConsoleOpen()
       console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
     endif
 
-    # Set few options
     exe $'wincmd {g:replica_config.console_position}'
     setlocal nobuflisted winminheight winminwidth winfixbuf
-    # Set geometry
+
     ResizeConsoleWindow(console_win_id)
 
-    # Cursor back to the editor
-    wincmd p
-    # We give console terminal buffer b:console_name and
-    # b:repl_name variables.
     setbufvar(bufnr('$'), 'console_name', b:console_name)
     setbufvar(bufnr('$'), 'repl_name', b:repl_name)
     setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
 
-    # For VimInspect() and friend
     setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
     setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
     setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
+
+    # Cursor back to the editor
+    wincmd p
   else
     logger.Error($"Filetype {&filetype} not supported")
     Echoerr($"[vim-replica]: Filetype {&filetype} not supported")
@@ -244,7 +230,6 @@ export def SendLines(firstline: number, lastline: number)
       ConsoleOpen()
     else
 
-      # Actual implementation
       for line in getline(firstline, lastline)
         term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}\n")
         logger.Info($"sent lines: '{line}'")
@@ -258,7 +243,6 @@ export def SendLines(firstline: number, lastline: number)
 enddef
 
 
-# Actually sending code-cell
 export def SendCell()
   if IsFiletypeSupported()
     if !ConsoleExists()
@@ -292,7 +276,6 @@ export def SendFile(filename: string = '')
     if !ConsoleExists()
       ConsoleOpen()
     else
-      # Write tmp file
       if empty(filename)
         writefile(getline(1, '$'), g:replica_config.tmp_filepath)
         logger.Info('sent: current buffer')

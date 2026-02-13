@@ -1,10 +1,8 @@
 vim9script
 
+# Module for highlighing cells
 import "../lib/logger.vim"
 
-# ---------------------------------------
-# Functions for highlighing cells
-# ---------------------------------------
 sign define ReplicaConsoleHl  linehl=CursorLine
 sign define ReplicaConsoleHlFast  linehl=UnderLined
 
@@ -32,17 +30,11 @@ export def GetExtremes(display_range: bool = false): list<number>
   return [line_in, line_out]
 enddef
 
-# var counter_dbg = 0
-# When adding a sign keep in mind that we set sign_id = line number
-# TODO: lines are shaded through sign feature, but this also add a small sign
-# next by the line numbers which is not super nice. Is there any other
-# alternative to sign for shading lines?
 export def HighlightCell(display_range: bool = false)
   var extremes = GetExtremes(display_range)
   var line_in = extremes[0]
   var line_out = extremes[1]
 
-  # Decide highlight group
   var hlgroup = g:replica_config.alt_highlight
     ? "ReplicaConsoleHlFast"
     : "ReplicaConsoleHl"

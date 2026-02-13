@@ -1,5 +1,7 @@
 vim9script
 
+# The builtin ch_log() is a bit limiting. We created a new one.
+#
 # Usage:
 #   logger.Debug('starting replica')
 #   logger.Warn('fallback triggered')
@@ -23,7 +25,6 @@ const LEVELS_MAP = {
 
 const user_level_str = get(g:replica_config, 'log_level', 'Error')
 
-# Check if this message should be logged
 def ShouldLog(level: LEVELS): bool
 
   if !exists('g:replica_config.debug') || !g:replica_config.debug
@@ -41,7 +42,6 @@ def ShouldLog(level: LEVELS): bool
 
 enddef
 
-# Write a log message
 def Write(level: LEVELS, msg: string)
 
   if !ShouldLog(level)
