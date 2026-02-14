@@ -21,7 +21,7 @@ def Cleanup_testfile(src_name: string)
 enddef
 
 def WaitForPrompt(expected_prompt: string)
-  const buf_nr = term_list()[0]
+  const buf_nr = bufnr('JULIA')
   var counter = 0
   const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
   var line = ''
@@ -80,7 +80,7 @@ def WaitForJuliaSymbol(symbol: string)
   # If now you read the last line, it is 'julia>'.
   #
   # The last line is generally the prompt.
-  const buf_nr = term_list()[0]
+  const buf_nr = bufnr('JULIA')
   const marker = '__VIM_REPLICA_READY__'
   const max_count = 50
   var counter = 0
@@ -205,7 +205,7 @@ END
   const expected_prompt = 'julia> '
   WaitForPrompt(expected_prompt)
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('JULIA')
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
@@ -250,7 +250,7 @@ END
   # Restart repl
   exe "ReplicaConsoleRestart"
   WaitForPrompt(expected_prompt)
-  bufnr = term_list()[0]
+  bufnr = bufnr('JULIA')
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
@@ -373,7 +373,7 @@ END
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('JULIA')
   var term_cursor_pos = term_getcursor(bufnr)
   var term_cursor = term_getline(bufnr, term_cursor_pos[0])
   var expected_prompt = 'julia>\s$'
@@ -629,7 +629,7 @@ END
   const expected_prompt = 'julia> '
   WaitForPrompt(expected_prompt)
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('JULIA')
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
@@ -713,7 +713,7 @@ def g:Test_julia_prompt_change()
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('JULIA')
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 

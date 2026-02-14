@@ -21,7 +21,7 @@ def Cleanup_testfile(name: string)
 enddef
 
 def WaitForPrompt(expected_prompt: string)
-  const buf_nr = term_list()[0]
+  const buf_nr = bufnr('R')
   var counter = 0
   const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
   var line = ''
@@ -132,7 +132,7 @@ def g:Test_R_basic()
   const expected_prompt = 'vim_replica>\s*'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('R')
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
@@ -174,7 +174,7 @@ def g:Test_R_basic()
   # Restart repl
   exe "ReplicaConsoleRestart"
   WaitForPrompt(expected_prompt)
-  bufnr = term_list()[0]
+  bufnr = bufnr('R')
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
@@ -218,7 +218,7 @@ def g:Test_R_variable_explorer_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('R')
   var term_cursor_pos = term_getcursor(bufnr)
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
@@ -334,7 +334,7 @@ def g:Test_R_getcompletion()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('R')
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -413,7 +413,7 @@ bool_scalar <- TRUE        # logical
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = term_list()[0]
+  var bufnr = bufnr('R')
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
