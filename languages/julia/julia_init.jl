@@ -6,6 +6,13 @@ using InteractiveUtils
 const _VIM_SENTINEL_START = "__VIM_PAYLOAD__"
 const _VIM_SENTINEL_END = "__END__"
 
+function __vim_change_prompt(prompt::String)
+    repl = Base.active_repl
+    repl === nothing && error("Not running inside Julia REPL")
+
+    repl.interface.modes[1].prompt = () -> prompt
+end
+
 function __vim_inspect(expr::AbstractString)
   """
     OBS! The payload shall finish with \n

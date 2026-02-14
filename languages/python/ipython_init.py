@@ -6,9 +6,22 @@ import sys, types
 # import time
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.terminal.prompts import Prompts, Token
 
 _VIM_SENTINEL_START = "__VIM_PAYLOAD__"
 _VIM_SENTINEL_END = "__END__"
+
+
+def __vim_change_prompt(prompt: str) -> None:
+    ip: InteractiveShell | None = get_ipython()
+    if ip is None:
+        raise RuntimeError("Not running inside IPython")
+
+    class CustomPrompt(Prompts):
+        def in_prompt_tokens(self, cli=None):
+            return [(Token.Prompt, prompt)]
+
+    ip.prompts = CustomPrompt(ip)  # type: ignore
 
 
 def __vim_inspect(expr: str):

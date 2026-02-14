@@ -209,6 +209,11 @@ adding any keys.
           "force_prompt"  If |true|, use a default prompt for the repl. Useful
                           when user-prompt is difficult to parse through regex.
                           Default: |false|.
+"forced_prompt_colored"   If |true|, the default prompt is colored.
+                          Set it to |false| if your terminal does not support
+                          colors.
+                          Default: |true|.
+
 
 
 ==============================================================================

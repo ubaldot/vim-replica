@@ -20,8 +20,7 @@ var payload_accum: string
 var collecting_error_msg: bool
 var variable_to_inspect: string
 
-# OBS! parsable_prompt shall be the same in the language initialization scripts
-var parsable_prompt: string
+var forced_prompt: string
 var repl_prompt: string
 var incremental_prompt: bool
 var change_prompt_after_init: bool
@@ -61,10 +60,15 @@ export def Init()
 
   # This should executed only once
   repl_prompt = b:repl_prompt
-  # OBS! repl_prompt may be replaced by parsable_prompt after the first prompt
+  # OBS! repl_prompt may be replaced by forced_prompt after the first prompt
   # has been detected
   change_prompt_after_init = b:change_prompt_after_init
-  parsable_prompt = '^vim_replica> $'
+
+  const GREEN = "\033[1;32m"
+  const END = "\033[0m"
+  forced_prompt = g:replica_config.forced_prompt_colored
+    ? "vim_replica> "
+    : $"{GREEN}vim_replica> {END}"
 
   # Used for repl with incremental numbers, such as IPython
   incremental_prompt = b:incremental_prompt
@@ -80,7 +84,7 @@ export def Init()
   logger.Info($'last_prompt: {last_prompt}')
   logger.Info($'change prompt after init: {change_prompt_after_init}')
   if change_prompt_after_init
-    logger.Info($"parsable_prompt: '{parsable_prompt}'")
+    logger.Info($"forced_prompt: '{forced_prompt}'")
   endif
   logger.Info($"init script: '{repl_init_script}'")
   logger.Info('variable explorer script initialized')
@@ -302,14 +306,13 @@ def HandlePrompt(line_debounced: string)
       ? On_Msg_Received.ChangePrompt
       : On_Msg_Received.Ready
 
-    SendInitScript(repl_init_script)
-
     logger.Info($"sending init script: {repl_init_script}")
+    SendInitScript(repl_init_script)
     logger.Info($'on_msg_received: {on_msg_received.name}')
+
   elseif on_msg_received == On_Msg_Received.ChangePrompt
-    logger.Info('Changing prompt')
-    repl_prompt = parsable_prompt
-    on_msg_received = On_Msg_Received.Ready
+    ChangeReplPrompt(forced_prompt)
+    repl_prompt = $"^{forced_prompt}$"
     change_prompt_after_init = false
   endif
 
@@ -549,6 +552,12 @@ enddef
 # ======================================================
 # Functions that invoke functions injected in the repl
 # ======================================================
+
+def ChangeReplPrompt(new_prompt: string)
+  logger.Info($'Changing prompt with {new_prompt}')
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_change_prompt(new_prompt))
+  on_msg_received = On_Msg_Received.Ready
+enddef
 
 export def GetReplVariablesNames()
   logger.Info("getting variable names for complete list")

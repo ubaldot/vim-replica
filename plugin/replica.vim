@@ -142,21 +142,6 @@ var console_names = {
   zsh: "ZSH"
 }
 
-var run_commands = {
-  python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}",
-  julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
-  r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
-  sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
-  zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
-}
-
-var repl_init_scripts = {
-  python: $"{replica_path}/languages/python/ipython_init.py",
-  julia: $"{replica_path}/languages/julia/julia_init.jl",
-  r: $"{replica_path}/languages/r/r_init.R",
-  sh: $"{replica_path}/languages/sh/sh_init.sh",
-  zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
-}
 
 # Initially we use the following prompts to send the init script, but then we may need
 # to change them with a forced prompt, because we never know how users set their prompts,
@@ -171,31 +156,6 @@ var repl_prompts = {
   r: "^>\s*$",
   sh: ".*[\$#>]\\s*$",
   zsh: ".*[\$#>]\\s*$"
-}
-
-# The items of the following dicts shall match what is in ./languages scripts
-var vim_inspect_functions = {
-  python: (x) => $"__vim_inspect(\"{x}\")\n",
-  julia: (x) => $"VimReplica.__vim_inspect(\"{x}\")\n",
-  r: (x) => $".vim_inspect(\"{x}\")\n",
-  sh: (x) => $"__vim_inspect {x}\n",
-  zsh: (x) => $"__vim_inspect {x}\n"
-}
-
-var vim_whos_functions = {
-  python: () => $"__vim_whos()\n",
-  julia: () => $"VimReplica.__vim_whos()\n",
-  r: () => $".vim_whos()\n",
-  sh: () => "__vim_whos\n",
-  zsh: () => "__vim_whos\n"
-}
-
-var vim_variable_names_functions = {
-  python: () => $"__vim_variable_names()\n",
-  julia: () => $"VimReplica.__vim_variable_names()\n",
-  r: () => $".vim_variable_names()\n",
-  sh: () => "__vim_variable_names\n",
-  zsh: () => "__vim_variable_names\n"
 }
 
 # ---- ftcommands_mappings.vim setup ------
@@ -233,9 +193,62 @@ if !exists('g:replica_config.force_prompt')
   g:replica_config.force_prompt = false
 endif
 
+if !exists('g:replica_config.forced_prompt_colored')
+  g:replica_config.forced_prompt_colored = true
+endif
+
 if !exists('g:replica_config.display_variables')
   g:replica_config.display_variables = 'vsplit'
 endif
+
+var repl_init_scripts = {
+  python: $"{replica_path}/languages/python/ipython_init.py",
+  julia: $"{replica_path}/languages/julia/julia_init.jl",
+  r: $"{replica_path}/languages/r/r_init.R",
+  sh: $"{replica_path}/languages/sh/sh_init.sh",
+  zsh: $"{replica_path}/languages/zsh/zsh_init.sh",
+}
+
+var run_commands = {
+  python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}\n",
+  julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
+  r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
+  sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
+  zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
+}
+
+# The items of the following dicts shall match what is in ./languages init scripts
+var vim_inspect_functions = {
+  python: (x) => $"__vim_inspect(\"{x}\")\n",
+  julia: (x) => $"VimReplica.__vim_inspect(\"{x}\")\n",
+  r: (x) => $".vim_inspect(\"{x}\")\n",
+  sh: (x) => $"__vim_inspect {x}\n",
+  zsh: (x) => $"__vim_inspect {x}\n"
+}
+
+var vim_whos_functions = {
+  python: () => $"__vim_whos()\n",
+  julia: () => $"VimReplica.__vim_whos()\n",
+  r: () => $".vim_whos()\n",
+  sh: () => "__vim_whos\n",
+  zsh: () => "__vim_whos\n"
+}
+
+var vim_variable_names_functions = {
+  python: () => $"__vim_variable_names()\n",
+  julia: () => $"VimReplica.__vim_variable_names()\n",
+  r: () => $".vim_variable_names()\n",
+  sh: () => "__vim_variable_names\n",
+  zsh: () => "__vim_variable_names\n"
+}
+
+var vim_change_prompt_functions = {
+  python: (x) => $"__vim_change_prompt({x})\n",
+  julia: (x) => $"VimReplica.__vim_change_prompt({x})\n",
+  r: (x) => $"options(prompt = paste0({x}))\n",
+  sh: (x) => $'PS1="{x}"' .. "\n",
+  zsh: (x) => $'PROMPT="{x}"' .. "\n",
+}
 
 def InitBuffers()
 
@@ -254,10 +267,12 @@ def InitBuffers()
   # -- REPL init ----
   b:repl_name = repl_names[&filetype]
   b:console_name = console_names[&filetype]
-  b:run_command = run_commands[&filetype]
   b:repl_prompt = repl_prompts[&filetype]
-  b:repl_init_script = repl_init_scripts[&filetype]
 
+  b:repl_init_script = repl_init_scripts[&filetype]
+  b:run_command = run_commands[&filetype]
+
+  b:vim_change_prompt_function = vim_change_prompt_functions[&filetype]
   b:vim_inspect_function = vim_inspect_functions[&filetype]
   b:vim_whos_function = vim_whos_functions[&filetype]
   b:vim_variable_names_function = vim_variable_names_functions[&filetype]
