@@ -57,8 +57,12 @@ EOF
 mv "$tmp" "$VIMRC"
 
 # Display vimrc content
-echo "----- vimrc content ---------"
+echo "----- vimrc content ------"
 cat $VIMRC
+echo ""
+
+echo "----- logger info ------"
+cat $LOGGER_DEF_FILE
 echo ""
 
 # Build command: this may change depending on the plugin

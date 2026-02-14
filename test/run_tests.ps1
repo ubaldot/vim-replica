@@ -35,8 +35,11 @@ if (-not (Test-Path $VIMRC)) {
     exit 1
 }
 
-# Display vimrc
+# Display some info (vimrc + logger)
 Get-Content $VIMRC
+Write-Output "Logger info:"
+Get-Content $LOGGER_DEF_FILE
+Write-Output "Vim successfully started.`n"
 
 # Run Vim
 $process = Start-Process `
@@ -52,7 +55,7 @@ if ($process.ExitCode -ne 0) {
 
 
 # Check results
-Write-Host "REPLICA unit test results:"
+Write-Host "REPLICA unit test results:`n"
 Get-Content results.txt
 
 if (Select-String -Path results.txt -Pattern "FAIL") {
