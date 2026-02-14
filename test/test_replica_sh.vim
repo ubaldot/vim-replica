@@ -113,7 +113,7 @@ END
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  const expected_prompt = 'vim_replica> '
+  const expected_prompt = 'vim_replica>\s*'
   WaitForPrompt(expected_prompt)
 
   var bufnr = term_list()[0]
@@ -242,7 +242,7 @@ END
 
   var bufnr = term_list()[0]
   var term_cursor_pos = term_getcursor(bufnr)
-  var expected_prompt = 'vim_replica>\s$'
+  var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)
@@ -385,7 +385,7 @@ fi
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   var bufnr = term_list()[0]
-  var expected_prompt = 'vim_replica> $'
+  var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)

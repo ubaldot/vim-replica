@@ -2,8 +2,9 @@
 .VIM_SENTINEL_START <- "__VIM_PAYLOAD__"
 .VIM_SENTINEL_END   <- "__END__"
 
-library(crayon)
-options(prompt = paste0(green$bold("vim_replica> ")))
+# library(crayon)
+# options(prompt = paste0(green$bold("vim_replica> ")))
+options(prompt = paste0("vim_replica> "))
 
 .vim_inspect <- function(expr) {
   buf <- NULL
