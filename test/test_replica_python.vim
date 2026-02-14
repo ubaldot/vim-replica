@@ -36,7 +36,7 @@ def LastNonEmptyLine(buf_nr: number): string
 enddef
 
 def WaitForPrompt(expected: string)
-  const buf_nr = bufnr('IPYTHON')
+  const buf_nr = b:repl_bufnr
   var counter = 0
   const max_count = 50 * 2  # 20*(2*50ms) = 20 seconds max
   var line = ''
@@ -91,7 +91,7 @@ def g:Test_python_basic()
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = bufnr('IPYTHON')
+  var bufnr = b:repl_bufnr
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
@@ -138,7 +138,7 @@ def g:Test_python_basic()
   exe "ReplicaConsoleRestart"
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
-  bufnr = bufnr('IPYTHON')
+  bufnr = b:repl_bufnr
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
@@ -279,7 +279,7 @@ def g:Test_python_variable_explorer_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = bufnr('IPYTHON')
+  var bufnr = b:repl_bufnr
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -439,7 +439,7 @@ def g:Test_python_getcompletion()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = bufnr('IPYTHON')
+  var bufnr = b:repl_bufnr
   var expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -511,7 +511,7 @@ def g:Test_python_prompt_change()
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = bufnr('IPYTHON')
+  var bufnr = b:repl_bufnr
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 

@@ -21,7 +21,7 @@ def Cleanup_testfile(name: string)
 enddef
 
 def WaitForPrompt(expected_prompt: string)
-  const buf_nr = bufnr('R')
+  const buf_nr = b:repl_bufnr
   var counter = 0
   const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
   var line = ''
@@ -132,11 +132,11 @@ def g:Test_R_basic()
   const expected_prompt = 'vim_replica>\s*'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = bufnr('R')
+  var bufnr = b:repl_bufnr
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
-  # # ReplicaSendCell
+  # ReplicaSendCell
   cursor(1, 1)
   var expected_lines = [22, 36, 41]
 
@@ -174,7 +174,7 @@ def g:Test_R_basic()
   # Restart repl
   exe "ReplicaConsoleRestart"
   WaitForPrompt(expected_prompt)
-  bufnr = bufnr('R')
+  bufnr = b:repl_bufnr
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
@@ -191,7 +191,7 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  # # ---- teardown tests ----
+  # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
   else
@@ -218,7 +218,7 @@ def g:Test_R_variable_explorer_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = bufnr('R')
+  var bufnr = b:repl_bufnr
   var term_cursor_pos = term_getcursor(bufnr)
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
@@ -334,7 +334,7 @@ def g:Test_R_getcompletion()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var bufnr = bufnr('R')
+  var bufnr = b:repl_bufnr
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -413,7 +413,7 @@ bool_scalar <- TRUE        # logical
   var expected_prompt = 'vim_replica>\s*$'
   WaitForPrompt(expected_prompt)
 
-  var bufnr = bufnr('R')
+  var bufnr = b:repl_bufnr
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 

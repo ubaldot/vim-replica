@@ -104,6 +104,7 @@ enddef
 # This is the actual entry point of the plugin
 def ConsoleOpen()
   var console_win_id = 0
+  var job_id = -1
   if IsFiletypeSupported()
     if !ConsoleExists()
       Init()
@@ -119,7 +120,7 @@ def ConsoleOpen()
       logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
 
       try
-        var job_id = term_start(start_cmd,
+        job_id = term_start(start_cmd,
           {term_name: b:console_name,
             out_cb: function("variable_explorer.ReplicaOutCb"),
           })
@@ -150,9 +151,11 @@ def ConsoleOpen()
 
     # Cursor back to the editor
     wincmd p
+    b:repl_bufnr = job_id
 
     setbufvar(bufnr('$'), 'console_name', b:console_name)
     setbufvar(bufnr('$'), 'repl_name', b:repl_name)
+    setbufvar(bufnr('$'), 'repl_bufnr', b:repl_bufnr)
     setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
 
     setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
