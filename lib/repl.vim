@@ -11,7 +11,8 @@ var console_geometry = {}
 
 # Differently from echoerr, this does not set vim internal such as v:errmsg
 export def Echoerr(msg: string)
-  echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
+  # echohl ErrorMsg | echom $'[vim-replica]: {msg}' | echohl None
+  echoerr $'[vim-replica]: {msg}'
 enddef
 
 export def Echowarn(msg: string)
