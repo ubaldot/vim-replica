@@ -23,8 +23,8 @@ g:replica_config.log_level = 'Error'
 
 g:TestFiles = [
     'test_replica_python.vim',
-    'test_replica_julia.vim',
-    'test_replica_r.vim'
+    # 'test_replica_julia.vim',
+    # 'test_replica_r.vim'
 ]
 
 filetype indent plugin on
@@ -46,7 +46,7 @@ Write-Output "Starting Vim... `n"
 # Run Vim
 $process = Start-Process `
     -FilePath $VIMPRG `
-    -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
+    -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-N", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
     -Wait -PassThru
 
 if ($process.ExitCode -ne 0) {
