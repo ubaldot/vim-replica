@@ -148,6 +148,9 @@ def ConsoleOpen()
 
     ResizeConsoleWindow(console_win_id)
 
+    # Cursor back to the editor
+    wincmd p
+
     setbufvar(bufnr('$'), 'console_name', b:console_name)
     setbufvar(bufnr('$'), 'repl_name', b:repl_name)
     setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
@@ -156,8 +159,6 @@ def ConsoleOpen()
     setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
     setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
 
-    # Cursor back to the editor
-    wincmd p
   else
     logger.Error($"Filetype {&filetype} not supported")
     Echoerr($"[vim-replica]: Filetype {&filetype} not supported")

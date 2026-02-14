@@ -59,7 +59,7 @@ def RunTests(test_file: string)
 			# From test assertions
 			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
-			writefile([v:exception], test_results_filepath, 'a')
+			writefile([v:exception, v:throwpoint], test_results_filepath, 'a')
 
 			# From eventual loggers.
 			if exists('g:logger') && filereadable(g:logger)
