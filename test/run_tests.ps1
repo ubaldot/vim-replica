@@ -40,7 +40,7 @@ if (-not (Test-Path $VIMRC)) {
 Get-Content $VIMRC
 Write-Output "Logger info:"
 Get-Content $LOGGER_DEF_FILE
-Write-Output "Vim successfully started.`n"
+Write-Output "Starting Vim... `n"
 
 # Run Vim
 $process = Start-Process `

@@ -13,7 +13,10 @@ const END = "\033[0m"
 const base_path = $'{expand('<sfile>:h:h')}'
 const test_results_filepath = $'{base_path}/test/results.txt'
 
-delete(test_results_filepath)
+if filereadable(test_results_filepath)
+	delete(test_results_filepath)
+endif
+
 if exists('g:logger') &&  filereadable(g:logger)
 	delete(g:logger)
 endif
