@@ -472,3 +472,62 @@ def g:Test_python_getcompletion()
   :%bw!
   Cleanup_testfile(src_name)
 enddef
+
+# Tests start here
+def g:Test_python_prompt_change()
+  v:errors = []
+  v:errmsg = ''
+  messages clear
+
+  if exepath('ipython')->empty()
+    echoerr "Skipped: 'ipython' is not found in $PATH"
+  endif
+
+  g:replica_config.force_prompt = true
+
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+        a = 4
+        b = 5
+
+        # %%
+        c = a + b
+
+        # %%
+
+        d = a - b
+  END
+
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
+
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  var expected_prompt = 'vim_replica>\s*$'
+  WaitForPrompt(expected_prompt)
+
+  var bufnr = term_list()[0]
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
+
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+
+  g:replica_config.force_prompt = false
+
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
