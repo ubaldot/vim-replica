@@ -141,6 +141,8 @@ def __vim_variable_names():
                 "exit",
                 "quit",
                 "get_ipython",
+                "Token",
+                "Prompts",
                 "InteractiveShell",
             }
 

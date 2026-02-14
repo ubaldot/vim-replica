@@ -381,6 +381,6 @@ def g:Test_R_getcompletion()
     echom "Test passed!"
   endif
 
-  # :%bw!
-  # Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
