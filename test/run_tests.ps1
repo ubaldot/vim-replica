@@ -42,10 +42,11 @@ Write-Output "Logger info:"
 Get-Content $LOGGER_DEF_FILE
 Write-Output "Starting Vim... `n"
 
+    # -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-N", "--not-a-term", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
 # Run Vim
 $process = Start-Process `
     -FilePath $VIMPRG `
-    -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-N", "--not-a-term", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
+    -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
     -Wait -PassThru
 
 if ($process.ExitCode -ne 0) {
