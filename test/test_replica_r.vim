@@ -16,8 +16,8 @@ def Generate_testfile(lines: list<string>, name: string)
   writefile(lines, name)
 enddef
 
-def Cleanup_testfile(src_name: string)
-  delete(src_name)
+def Cleanup_testfile(name: string)
+  delete(name)
 enddef
 
 def WaitForPrompt(expected_prompt: string)
