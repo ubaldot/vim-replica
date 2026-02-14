@@ -2,16 +2,8 @@
 .VIM_SENTINEL_START <- "__VIM_PAYLOAD__"
 .VIM_SENTINEL_END   <- "__END__"
 
-# ANSI escape sequences
-GREEN <- "\033[1;32m"
-END   <- "\033[0m"
-
-# Set prompt
-options(prompt = paste0(GREEN, "vim_replica", "> ", END))
-
-if (!require("base64enc", quietly = TRUE)) {
-  install.packages("base64enc")
-}
+library(crayon)
+options(prompt = paste0(green$bold("vim_replica> ")))
 
 .vim_inspect <- function(expr) {
   buf <- NULL

@@ -443,6 +443,7 @@ def FeedChars(bytes: string)
     # UTF-16LE case
     if is_utf16
       if len(raw_buf) < 2
+        logger.Debug('length of raw_buf less than 2')
         break
       endif
 
@@ -528,6 +529,8 @@ export def ReplicaOutCb(_: channel, msg: string)
       ? StripAnsiEscapeSequences(iconv(raw_buf, 'utf-16le', 'utf-8'))
       : StripAnsiEscapeSequences(raw_buf)
 
+    # Detect prompt without the need of a newline
+    logger.Info($'clean_tail: {clean_tail}')
     if !empty(clean_tail) && clean_tail =~# repl_prompt && clean_tail !~# '\e'
       try
         HandleLine(clean_tail)

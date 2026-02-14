@@ -168,7 +168,7 @@ var repl_init_scripts = {
 var repl_prompts = {
   python: '^In\s\[\d\+\]:\s$',
   julia: "^julia>\\s*$",
-  r: "^> $",
+  r: "^>\s*$",
   sh: ".*[\$#>]\\s*$",
   zsh: ".*[\$#>]\\s*$"
 }
