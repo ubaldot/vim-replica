@@ -6,13 +6,14 @@ _VIM_SENTINEL_START="__VIM_PAYLOAD__"
 _VIM_SENTINEL_END="__END__"
 
 
-GREEN="\033[1;32m"
-END="\033[0m"
+GREEN="\[\033[1;32m\]"
+END="\[\033[0m\]"
 
 # OBS! This shall be the same as in variable_explorer.vim
-PROMPT_COMMAND=
-# PS1='vim_replica> '
-PS1="${GREEN}vim_replica>${END} "
+__vim_change_prompt() {
+  PROMPT_COMMAND=
+  PS1="${GREEN}$1${END}"
+}
 
 # User must append the variables to _VIM_USER_VARS to visualize, e.g.
 #   FOO=ubaldot

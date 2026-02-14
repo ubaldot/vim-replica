@@ -66,9 +66,7 @@ export def Init()
 
   const GREEN = "\033[1;32m"
   const END = "\033[0m"
-  forced_prompt = g:replica_config.forced_prompt_colored
-    ? "vim_replica> "
-    : $"{GREEN}vim_replica> {END}"
+  forced_prompt = "vim_replica> "
 
   # Used for repl with incremental numbers, such as IPython
   incremental_prompt = b:incremental_prompt
@@ -89,12 +87,6 @@ export def Init()
   logger.Info($"init script: '{repl_init_script}'")
   logger.Info('variable explorer script initialized')
   logger.Info("-----------------------------------")
-enddef
-
-def SendInitScript(filename: string)
-  writefile(readfile(filename), g:replica_config.tmp_filepath)
-  term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
 enddef
 
 def PopupFilter(id: number, key: string): bool
@@ -204,7 +196,10 @@ enddef
 def DecodeOneLinePayload(line_debounced: string): list<string>
   var payload = matchstr(line_debounced, '__VIM_PAYLOAD__\zs.\{-}\ze__END__')
   # Paylod shall always finish with a blank line, hence [: -2]
-  var line_decoded = blob2str(base64_decode(payload))[: -2]
+  var line_decoded = blob2str(base64_decode(payload))
+  if line_decoded[-1] == ''
+    line_decoded = line_decoded[: - 2]
+  endif
   logger.Info($"one-line message successfully decoded: {line_decoded}")
   return line_decoded
 enddef
@@ -281,8 +276,12 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
 
+      logger.Info($'full payload to decode: {payload_clean}')
       # Paylod shall always finish with a blank line, hence [: -2]
-      var line_decoded = blob2str(base64_decode(payload_clean))[: -2]
+      var line_decoded = blob2str(base64_decode(payload_clean))
+      if line_decoded[-1] == ''
+        line_decoded = line_decoded[: - 2]
+      endif
       logger.Info('multi-line message successfully decoded')
 
       payload_accum = ''
@@ -553,9 +552,15 @@ enddef
 # Functions that invoke functions injected in the repl
 # ======================================================
 
+def SendInitScript(filename: string)
+  writefile(readfile(filename), g:replica_config.tmp_filepath)
+  term_sendkeys(bufnr($'^{b:console_name}$'),
+    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
+enddef
+
 def ChangeReplPrompt(new_prompt: string)
   logger.Info($'Changing prompt with {new_prompt}')
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_change_prompt(new_prompt))
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_change_prompt_function(new_prompt))
   on_msg_received = On_Msg_Received.Ready
 enddef
 

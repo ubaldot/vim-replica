@@ -136,7 +136,7 @@ def g:Test_R_basic()
   var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
-  # ReplicaSendCell
+  # # ReplicaSendCell
   cursor(1, 1)
   var expected_lines = [22, 36, 41]
 
@@ -191,7 +191,7 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  # ---- teardown tests ----
+  # # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
   else
@@ -314,8 +314,8 @@ def g:Test_R_variable_explorer_basic()
     echom "Test passed!"
   endif
 
-#   :%bw!
-#   Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
 
 
@@ -353,11 +353,9 @@ def g:Test_R_getcompletion()
     'char_scalar',
     'char_vector',
     'df',
-    'END',
     'float_scalar',
     'gender',
     'grades',
-    'GREEN',
     'greet',
     'nested_list',
     'num_matrix',
@@ -383,6 +381,6 @@ def g:Test_R_getcompletion()
     echom "Test passed!"
   endif
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef

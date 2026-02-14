@@ -193,10 +193,6 @@ if !exists('g:replica_config.force_prompt')
   g:replica_config.force_prompt = false
 endif
 
-if !exists('g:replica_config.forced_prompt_colored')
-  g:replica_config.forced_prompt_colored = true
-endif
-
 if !exists('g:replica_config.display_variables')
   g:replica_config.display_variables = 'vsplit'
 endif
@@ -243,11 +239,11 @@ var vim_variable_names_functions = {
 }
 
 var vim_change_prompt_functions = {
-  python: (x) => $"__vim_change_prompt({x})\n",
-  julia: (x) => $"VimReplica.__vim_change_prompt({x})\n",
-  r: (x) => $"options(prompt = paste0({x}))\n",
-  sh: (x) => $'PS1="{x}"' .. "\n",
-  zsh: (x) => $'PROMPT="{x}"' .. "\n",
+  python: (x) => $"__vim_change_prompt(\"{x}\")\n",
+  julia: (x) => $"VimReplica.__vim_change_prompt(\"{x}\")\n",
+  r: (x) => $".vim_change_prompt(\"{x}\")\n",
+  sh: (x) => $"__vim_change_prompt {x}\n",
+  zsh: (x) => $"__vim_change_prompt {x}\n"
 }
 
 def InitBuffers()
