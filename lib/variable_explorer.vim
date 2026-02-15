@@ -277,7 +277,9 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
     if payload_accum =~# '__END__'
       # TODO: Strip out everything after __END__. Not nice, but what to do?
       # Time is over.
+      # ->substitute(repl_prompt, '', '') VERY UGLY
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
+                                      ->substitute('vim_replica> ', '', 'g')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
 
       logger.Info($'Accumulated payload:{payload_accum}')
