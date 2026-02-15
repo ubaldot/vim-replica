@@ -319,71 +319,71 @@ def g:Test_R_variable_explorer_basic()
 enddef
 
 
-# def g:Test_R_getcompletion()
-#   v:errmsg = ''
-#   v:errors = []
-#   messages clear
+def g:Test_R_getcompletion()
+  v:errmsg = ''
+  v:errors = []
+  messages clear
 
-#   Generate_testfile(code_lines, src_name)
-#   exe $"edit {src_name}"
+  Generate_testfile(code_lines, src_name)
+  exe $"edit {src_name}"
 
-#   # Check that the buffer variables are set
-#   assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_name")))
 
-#   # Start console
-#   exe "ReplicaConsoleToggle"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   var bufnr = b:repl_bufnr
-#   var expected_prompt = 'vim_replica>\s*$'
-#   WaitForPrompt(expected_prompt)
+  var bufnr = b:repl_bufnr
+  var expected_prompt = 'vim_replica>\s*$'
+  WaitForPrompt(expected_prompt)
 
-#   var lastline = LastNonEmptyLine(bufnr)
-#   assert_match(expected_prompt, lastline)
+  var lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
 
-#   # Now the game starts
-#   exe 'ReplicaSendFile'
-#   redraw
+  # Now the game starts
+  exe 'ReplicaSendFile'
+  redraw
 
-#   # test start
-#   const expected_value = [
-#     'bool_scalar',
-#     'bool_vector',
-#     'char_matrix',
-#     'char_scalar',
-#     'char_vector',
-#     'df',
-#     'float_scalar',
-#     'gender',
-#     'grades',
-#     'greet',
-#     'nested_list',
-#     'num_matrix',
-#     'num_scalar',
-#     'num_vector',
-#     'simple_list',
-#     'square '
-#   ]
+  # test start
+  const expected_value = [
+    'bool_scalar',
+    'bool_vector',
+    'char_matrix',
+    'char_scalar',
+    'char_vector',
+    'df',
+    'float_scalar',
+    'gender',
+    'grades',
+    'greet',
+    'nested_list',
+    'num_matrix',
+    'num_scalar',
+    'num_vector',
+    'simple_list',
+    'square '
+  ]
 
-#   g:XXX = ftcm.funcs_dict.GetCompleteList
-#   const actual_value = getcompletion('', 'customlist,XXX')
+  g:XXX = ftcm.funcs_dict.GetCompleteList
+  const actual_value = getcompletion('', 'customlist,XXX')
 
-#   assert_equal(expected_value, actual_value)
+  assert_equal(expected_value, actual_value)
 
-#   # ---- teardown tests ----
-#   exe "ReplicaConsoleShutoff"
-#   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-#   WaitForAssert(() => assert_equal(1, winnr('$')))
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
-#   if !empty(v:errors) || !empty(v:errmsg)
-#     echom "Test failed!"
-#   else
-#     echom "Test passed!"
-#   endif
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
 
-#   :%bw!
-#   Cleanup_testfile(src_name)
-# enddef
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
 
 # Tests start here
 def g:Test_R_prompt_change()
