@@ -285,6 +285,7 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
       logger.Info('multi-line message successfully decoded')
 
       payload_accum = ''
+      payload_clean = ''
       collecting_payload = false
       return line_decoded
     endif

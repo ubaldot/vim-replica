@@ -218,6 +218,13 @@ def g:Test_R_variable_explorer_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
+  # TODO this is due to the limitation that the string '__VIM_PAYLOAD__'
+  # shall be received all at once
+  if &columns < 16
+      execute 'vertical resize 16'
+  endif
+
+
   var bufnr = b:repl_bufnr
   var term_cursor_pos = term_getcursor(bufnr)
   var expected_prompt = 'vim_replica>\s*$'
@@ -333,6 +340,12 @@ def g:Test_R_getcompletion()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  # TODO this is due to the limitation that the string '__VIM_PAYLOAD__'
+  # shall be received all at once
+  if &columns < 16
+      execute 'vertical resize 16'
+  endif
 
   var bufnr = b:repl_bufnr
   var expected_prompt = 'vim_replica>\s*$'
