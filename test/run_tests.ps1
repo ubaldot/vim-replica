@@ -40,7 +40,7 @@ if (-not (Test-Path $VIMRC)) {
 Get-Content $VIMRC
 Write-Output "Logger info:"
 Get-Content $LOGGER_DEF_FILE
-Write-Output "Starting Vim... `n"
+Write-Output "Starting Vim and executing tests... `n"
 
     # -ArgumentList "--clean", "-u", $VIMRC, "-i", "NONE", "-N", "--not-a-term", "-S", $LOGGER_DEF_FILE, "-S", "runner.vim" `
 # Run Vim

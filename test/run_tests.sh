@@ -78,6 +78,7 @@ VIM_CMD=(
     -S runner.vim
 )
 
+printf 'Starting Vim  and executing tests...\n\n'
 # Execute Vim
 "${VIM_CMD[@]}"
 
