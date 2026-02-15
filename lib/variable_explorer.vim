@@ -256,6 +256,13 @@ enddef
 # enddef
 
 def DecodeMultiLinePayload(line_debounced: string): list<string>
+  # TODO: It will never work because you have to debounce chunks, like for example
+  # akhbaa
+  # akhbaalakjalaallja
+  #
+  # then the accumulated payload becomes akhbaaakhbaalakjalaallja which is
+  # wrong
+  #
   # TODO: min width of the repl must be at least 16 columns.
   # This because it is expected the string '__VIM_PAYLOAD__' to be received
   # all at once and not broken in multi-lines.
@@ -270,14 +277,19 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
     logger.Info($'Accumulated payload:{payload_accum}')
 
   elseif collecting_payload
-    # TODO: Debounce __VIM_PAYLOAD__aaaaaa __VIM_PAYLOAD__aaaaaabbbbb
     payload_accum ..= line_debounced
 
+    # Debounce __VIM_PAYLOAD__aaaaaa __VIM_PAYLOAD__aaaaaabbbbb
+    var last_start = strridx(payload_accum, '__VIM_PAYLOAD__')
+    if last_start >= 0
+      payload_accum = payload_accum[last_start :]
+    endif
     logger.Info($'Accumulated payload:{payload_accum}')
     if payload_accum =~# '__END__'
       # TODO: Strip out everything after __END__. Not nice, but what to do?
       # Time is over.
-      # ->substitute(repl_prompt, '', '') VERY UGLY
+      # TODO
+      # ->substitute('vim_replica>', '', '') VERY UGLY
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
                                       ->substitute('vim_replica> ', '', 'g')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
