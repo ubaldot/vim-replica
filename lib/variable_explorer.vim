@@ -267,15 +267,20 @@ def DecodeMultiLinePayload(line_debounced: string): list<string>
     payload_accum ..= line_debounced->substitute('^__VIM_PAYLOAD__', '', '')
     collecting_payload = true
 
+    logger.Info($'Accumulated payload:{payload_accum}')
+
   elseif collecting_payload
+    # TODO: Debounce __VIM_PAYLOAD__aaaaaa __VIM_PAYLOAD__aaaaaabbbbb
     payload_accum ..= line_debounced
 
+    logger.Info($'Accumulated payload:{payload_accum}')
     if payload_accum =~# '__END__'
       # TODO: Strip out everything after __END__. Not nice, but what to do?
       # Time is over.
       var payload_clean = payload_accum->substitute('__END__.*$', '', '')
       payload_clean = payload_clean->substitute('_\s*', '', 'g')
 
+      logger.Info($'Accumulated payload:{payload_accum}')
       logger.Info($'full payload to decode: {payload_clean}')
       # Paylod shall always finish with a blank line, hence [: -2]
       var line_decoded = blob2str(base64_decode(payload_clean))

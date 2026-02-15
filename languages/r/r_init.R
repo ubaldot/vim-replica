@@ -49,7 +49,7 @@
 
   payload <- base64enc::base64encode(charToRaw(text_payload))
 
-  cat(sprintf("%s%s%s\n",
+  cat(sprintf("%s%s%s",
               .VIM_SENTINEL_START,
               payload,
               .VIM_SENTINEL_END))
@@ -145,7 +145,7 @@
   if (!grepl("\n$", text_payload)) text_payload <- paste0(text_payload, "\n")
   payload <- base64enc::base64encode(charToRaw(text_payload))
 
-  cat(sprintf("%s%s%s\n", .VIM_SENTINEL_START, payload, .VIM_SENTINEL_END))
+  cat(sprintf("%s%s%s", .VIM_SENTINEL_START, payload, .VIM_SENTINEL_END))
 }
 
 
@@ -177,7 +177,7 @@
 
   payload <- base64enc::base64encode(charToRaw(text_payload))
 
-  cat(sprintf("%s%s%s\n",
+  cat(sprintf("%s%s%s",
               .VIM_SENTINEL_START,
               payload,
               .VIM_SENTINEL_END))
