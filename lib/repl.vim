@@ -8,6 +8,10 @@ import "../lib/variable_explorer.vim"
 import "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
+var repl_channel: channel = null_channel
+const host: string = 'localhost'
+const port: string = '8765'
+
 
 export def Echoerr(msg: string)
   echoerr $'[vim-replica]: {msg}'
@@ -37,6 +41,7 @@ def Init()
       height: g:replica_config.console_height
     }
   endif
+
 
   logger.Info($"console position: '{g:replica_config.console_position}'")
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
@@ -120,23 +125,40 @@ def ConsoleOpen()
 
       try
         job_id = term_start(start_cmd,
-          {term_name: b:console_name,
-            out_cb: function("variable_explorer.ReplicaOutCb"),
-          })
+          {term_name: b:console_name})
 
           if job_id <= 0
-            echoerr $'Failed to start terminal: {start_cmd}'
+            Echoerr($'Failed to start terminal: {start_cmd}')
+            logger.Error($'Failed to run {start_cmd}')
             return
           endif
 
+
       catch
         Echoerr($'Failed to run {start_cmd}')
+        logger.Error($'Failed to run {start_cmd}')
         return
       endtry
 
-      ftcommands_mappings.InstallConsoleCommands()
+      # TODO: very bad hack
+      # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
+      term_wait(bufnr('$'), 5000)
 
+      # Opem channel
+      repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
+      var channel_status = ch_status(repl_channel)
+
+      if channel_status != 'open'
+        Echoerr($'Failed to open channnel: {channel_status}')
+        logger.Error($'Failed to open channnel: {channel_status}')
+        return
+      else
+        Echowarn($'Channel status: {channel_status}')
+      endif
+
+      ftcommands_mappings.InstallConsoleCommands()
       console_win_id = win_findbuf(bufnr('$'))[0]
+
     elseif empty(ConsoleWinID())
       logger.Info("opening existing console")
       exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
