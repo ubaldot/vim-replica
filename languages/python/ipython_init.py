@@ -3,20 +3,22 @@ import json
 import io
 import contextlib
 import sys, types
+from typing import Callable, Any
 from threading import Thread
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
 HOST = "127.0.0.1"
 PORT = 8765
-_server_running = True  # global flag
+_server_running = True
 
 
 # -------------------------------------------------------------------
 # Helper to send JSON-RPC messages over a TCP socket
 # -------------------------------------------------------------------
-def send_message(conn, data: dict):
+def send_response(conn: socket.socket, data: dict):
     """
+    REPL->VIM
     Sends a JSON-RPC message over the socket with Content-Length framing.
     """
     payload = json.dumps(data)
@@ -27,149 +29,243 @@ def send_message(conn, data: dict):
 # -------------------------------------------------------------------
 # Runtime functions
 # -------------------------------------------------------------------
-def vim_inspect(conn, expr: str):
+def vim_inspect(conn: socket.socket, msg_id: int, params=None):
     buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        try:
-            obj = eval(expr, globals())
+
+    try:
+        with contextlib.redirect_stdout(buf):
+            ip: InteractiveShell | None = get_ipython()
+
+            if ip is None:
+                vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+                return
+
+            obj = eval(params.variable, ip.user_ns)
+
             np = sys.modules.get("numpy")
             pd = sys.modules.get("pandas")
 
             if pd and isinstance(obj, pd.DataFrame):
                 print(obj.to_string())
+
             elif pd and isinstance(obj, pd.Series):
                 print(obj.to_string())
+
             elif np and isinstance(obj, np.ndarray):
                 arr = np.asarray(obj)
                 sep = "\t"
+
                 if arr.ndim == 1:
                     print(sep.join(map(str, arr)))
+
                 elif arr.ndim == 2:
                     for row in arr:
                         print(sep.join(map(str, row)))
+
                 elif arr.ndim == 3:
                     for i, mat in enumerate(arr):
                         if i > 0:
                             print()
                         for row in mat:
                             print(sep.join(map(str, row)))
+
             else:
                 print(repr(obj))
-        except Exception as e:
-            print(f"[vim_inspect error] {e!r}")
 
-    send_message(conn, {"method": "vim/inspect", "result": buf.getvalue()})
-
-
-def vim_whos(conn):
-    ip: InteractiveShell | None = get_ipython()
-    if ip is None:
-        send_message(
+        # SUCCESS RESPONSE
+        send_response(
             conn,
             {
-                "method": "vim/whos",
-                "result": "[vim_whos error] Not inside IPython",
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": buf.getvalue(),
             },
         )
+
+    except Exception:
+        vim_error_response(conn, msg_id, -32603, "Evaluation failed")
+
+
+def vim_whos(conn: socket.socket, msg_id: int, params=None):
+    ip: InteractiveShell | None = get_ipython()
+
+    if ip is None:
+        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
 
     buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        try:
+
+    try:
+        with contextlib.redirect_stdout(buf):
             ip.run_line_magic("whos", "")
-        except Exception as e:
-            print(f"[vim_whos error] {e!r}")
 
-    send_message(conn, {"method": "vim/whos", "result": buf.getvalue()})
-
-
-def vim_variable_names(conn):
-    ip: InteractiveShell | None = get_ipython()
-    if ip is None:
-        send_message(
+        # success
+        send_response(
             conn,
             {
-                "method": "vim/variable_names",
-                "result": "[vim_get_variables error] Not inside IPython",
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": buf.getvalue(),
             },
         )
+
+    except Exception:
+        vim_error_response(conn, msg_id, -32603, "'whos' execution failed")
+
+
+def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
+    ip: InteractiveShell | None = get_ipython()
+
+    if ip is None:
+        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
+    try:
+        EXCLUDE_TYPES = (types.ModuleType, types.FunctionType)
+        EXCLUDE_NAMES = {
+            "In",
+            "Out",
+            "exit",
+            "quit",
+            "get_ipython",
+            "Token",
+            "Prompts",
+            "InteractiveShell",
+        }
 
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        np = sys.modules.get("numpy")
-        pd = sys.modules.get("pandas")
-        try:
-            EXCLUDE_TYPES = (types.ModuleType, types.FunctionType)
-            EXCLUDE_NAMES = {
-                "In",
-                "Out",
-                "exit",
-                "quit",
-                "get_ipython",
-                "Token",
-                "Prompts",
-                "InteractiveShell",
-            }
+        names = [
+            n
+            for n, v in ip.user_ns.items()
+            if not n.startswith("_")
+            and n not in EXCLUDE_NAMES
+            and not isinstance(v, EXCLUDE_TYPES)
+        ]
 
-            names = [
-                n
-                for n, v in ip.user_ns.items()
-                if not n.startswith("_")
-                and n not in EXCLUDE_NAMES
-                and not isinstance(v, EXCLUDE_TYPES)
-            ]
-            print("\n".join(names))
-        except Exception as e:
-            print(f"[vim_get_variables error] {e!r}")
+        result = "\n".join(names)
 
-    send_message(
-        conn, {"method": "vim/variable_names", "result": buf.getvalue()}
-    )
+        #  success
+        send_response(
+            conn,
+            {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": result,
+            },
+        )
+
+    except Exception as e:
+        vim_error_response(conn, msg_id, -32603, "Variable listing failed")
+
+
+def vim_send_cell(conn: socket.socket, msg_id: int, params=None):
+    ip: InteractiveShell | None = get_ipython()
+
+    if ip is None:
+        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+        return
+    else:
+        code = params.get("lines", "")
+        if isinstance(code, list):
+            code = "\n".join(code)
+
+        result_obj = ip.run_cell(code)
+
+        if msg_id is not None and result_obj.success:
+            send_response(
+                conn,
+                {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "result": f"{params.get('type')}: success",
+                },
+            )
+        elif msg_id is not None and not result_obj.success:
+            vim_error_response(
+                conn, msg_id, -32601, f"{params.get('type')} failed"
+            )
+
+
+def vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
+    global _server_running
+    _server_running = False
+
+    if msg_id is not None:
+        send_response(
+            conn,
+            {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": "Shutting down server",
+            },
+        )
+
+
+def vim_error_response(conn: socket.socket, msg_id: int, code, message):
+    if msg_id is not None:
+        send_response(
+            conn,
+            {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {
+                    "code": code,
+                    "message": message,
+                },
+            },
+        )
 
 
 # -------------------------------------------------------------------
 # Message handling
 # -------------------------------------------------------------------
-def handle_request(conn, message: dict):
-    method = message.get("method")
-    params = message.get("params", {})
+HandlerType = Callable[[socket.socket, int, dict[Any, Any] | None], None]
+METHODS: dict[str, HandlerType] = {
+    "runtime/vim_inspect": vim_inspect,
+    "runtime/vim_whos": vim_whos,
+    "runtime/vim_variable_names": vim_variable_names,
+    "runtime/vim_send_cell": vim_send_cell,
+    "runtime/vim_shutdown": vim_server_shutdown,
+}
 
-    if method == "runtime/inspect":
-        vim_inspect(conn, params.get("expr", ""))
-    elif method == "runtime/whos":
-        vim_whos(conn)
-    elif method == "runtime/variable_names":
-        vim_variable_names(conn)
-    elif method == "runtime/exec":
-        lines = params.get("lines", [])
-        code = "\n".join(lines)
-        try:
-            exec(code, globals())
-        except Exception as e:
-            print(f"[vim_exec error] {e!r}")
-    elif method == "runtime/shutdown":
-        send_message(
-            conn, {"method": "result", "result": "Shutting down server"}
-        )
-        _server_running = False
-    else:
-        send_message(
-            conn, {"method": "error", "result": f"Unknown method: {method}"}
+
+def handle_request(conn: socket.socket, message: Any):
+    global _server_running
+
+    try:
+        message.get("jsonrpc") == "2.0"
+        msg_id = message.get("id")
+        method = message.get("method")
+        params = message.get("params", {})
+
+        # --- Dispatch ---
+        handler = METHODS.get(method)  # type: ignore
+
+        if handler is not None:
+            # Call the handler
+            handler(conn, msg_id, params)
+        else:
+            vim_error_response(
+                conn, msg_id, -32601, f"Method not found: {method}"
+            )
+            return
+
+    except Exception as e:
+        vim_error_response(
+            conn, msg_id, -32603, f"Internal server error: {repr(e)}"
         )
 
 
 # -------------------------------------------------------------------
 # TCP server helpers
 # -------------------------------------------------------------------
-def read_message(conn):
+def read_message(conn: socket.socket):
     """
+    VIM->REPL
     Read one JSON-RPC message from a socket using Content-Length framing.
     """
     headers = {}
     buffer = b""
     while b"\r\n\r\n" not in buffer:
-        part = conn.recv(1)
+        part = conn.recv(4096)
         if not part:
             return None
         buffer += part
@@ -220,10 +316,3 @@ def start_server():
 # Run server in background to keep IPython interactive
 server_thread = Thread(target=start_server, daemon=True)
 server_thread.start()
-
-
-# elif cmd == "exec_lines":
-#     code = "\n".join(msg["lines"])
-#     ip = get_ipython()
-#     result_obj = ip.run_cell(code)
-#     result = "ok" if result_obj.success else "error"

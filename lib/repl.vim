@@ -11,14 +11,28 @@ var console_geometry = {}
 var repl_channel: channel = null_channel
 const host: string = 'localhost'
 const port: string = '8765'
+var msg_id = 1
 
 
 export def Echoerr(msg: string)
-  echoerr $'[vim-replica]: {msg}'
+  logger.Error(msg)
+  throw $'[vim-replica]: {msg}'
 enddef
 
 export def Echowarn(msg: string)
+  logger.Warn(msg)
   echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
+enddef
+
+def Repl_response_OK(resp: any): bool
+    if has_key(resp, 'error')
+       Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+       return false
+    else
+      logger.Info($'{resp.result}')
+      Echowarn($'{resp.result}')
+      return true
+    endif
 enddef
 
 def Init()
@@ -150,8 +164,6 @@ def ConsoleOpen()
 
       if channel_status != 'open'
         Echoerr($'Failed to open channnel: {channel_status}')
-        logger.Error($'Failed to open channnel: {channel_status}')
-        return
       else
         Echowarn($'Channel status: {channel_status}')
       endif
@@ -255,11 +267,19 @@ export def SendLines(firstline: number, lastline: number)
       ConsoleOpen()
     else
 
-      for line in getline(firstline, lastline)
-        term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}\n")
-        logger.Info($"sent lines: '{line}'")
-      endfor
-      norm! ^j
+      var req = {}
+      req.id = msg_id + 1
+      req.method = 'runtime/vim_send_cell'
+      req.params = {lines: getline(firstline, lastline)}
+      req.params = extend(req.params, {type: "Send line(s)"})
+      var resp = ch_evalexpr(repl_channel, req)
+      if !Repl_response_OK(resp)
+        return
+      endif
+
+      logger.Info($"sent line(s): {string(req.params.lines)}")
+      # Jump to the next cell
+      cursor(lastline + 1, getcurpos()[2])
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")
@@ -277,14 +297,20 @@ export def SendCell()
       var extremes = highlight.GetExtremes()
       var line_in = extremes[0]
       var line_out = extremes[1]
+
+      var req = {}
+      req.id = msg_id + 1
+      req.method = 'runtime/vim_send_cell'
+      req.params = {lines: getline(line_in, line_out)}
+      req.params = extend(req.params, {type: "Send cell"})
+      var resp = ch_evalexpr(repl_channel, req)
+      if !Repl_response_OK(resp)
+        return
+      endif
+
+      logger.Info($"sent cell: {string(req.params.lines)}")
       # Jump to the next cell
       cursor(line_out, getcurpos()[2])
-      # Overwrite tmp file
-      writefile(getline(line_in, line_out), g:replica_config.tmp_filepath)
-      term_sendkeys(bufnr($'^{b:console_name}$'),
-            $"{b:run_command(g:replica_config.tmp_filepath)}\n")
-
-      logger.Info($"sent cell: {string(getline(line_in, line_out))}")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")
