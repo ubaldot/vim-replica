@@ -14,17 +14,17 @@ def DeprecationWarnings(param: string)
   endif
 enddef
 
-const old_config_param = ['g:replica_names', 'g:replica_kernels',
-  'g:replica_use_utf16', 'g:replica_run_commands', 'g:replica_tmp_filename',
-  'g:replica_alt_highlight', 'g:replica_console_width', 'g:replica_display_range',
-  'g:replica_console_height', 'g:replica_python_options',
-  'g:replica_cells_delimiters',
-  'g:replica_console_position', 'g:replica_enable_highlight',
-  'g:replica_jupyter_console_options']
+# const old_config_param = ['g:replica_names', 'g:replica_kernels',
+#   'g:replica_use_utf16', 'g:replica_run_commands', 'g:replica_tmp_filename',
+#   'g:replica_alt_highlight', 'g:replica_console_width', 'g:replica_display_range',
+#   'g:replica_console_height', 'g:replica_python_options',
+#   'g:replica_cells_delimiters',
+#   'g:replica_console_position', 'g:replica_enable_highlight',
+#   'g:replica_jupyter_console_options']
 
-for param in old_config_param
-  DeprecationWarnings(param)
-endfor
+# for param in old_config_param
+#   DeprecationWarnings(param)
+# endfor
 
 # ----------------------------------------------------
 
@@ -247,16 +247,6 @@ var vim_change_prompt_functions = {
 }
 
 def InitBuffers()
-
-  if !has('patch-9.1.2125')
-    # Needs Vim version 9.0 and above
-    echoerr "[vim-replica]: You need at least Vim 9.1.2125"
-    if exists('g:replica_config')
-      unlet g:replica_config
-    endif
-    au! REPLICA_INIT_BUFFERS
-    return
-  endif
 
   g:loaded_replica = true
 

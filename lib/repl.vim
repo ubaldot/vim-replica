@@ -16,7 +16,7 @@ var msg_id = 1
 
 export def Echoerr(msg: string)
   logger.Error(msg)
-  throw $'[vim-replica]: {msg}'
+  echoerr $'[vim-replica]: {msg}'
 enddef
 
 export def Echowarn(msg: string)
@@ -30,7 +30,8 @@ def Repl_response_OK(resp: any): bool
        return false
     else
       logger.Info($'{resp.result}')
-      Echowarn($'{resp.result}')
+      # Echowarn($'{resp.result}')
+      echo resp.result
       return true
     endif
 enddef
@@ -277,6 +278,7 @@ export def SendLines(firstline: number, lastline: number)
         return
       endif
 
+      echo resp.result
       logger.Info($"sent line(s): {string(req.params.lines)}")
       # Jump to the next cell
       cursor(lastline + 1, getcurpos()[2])
@@ -327,15 +329,30 @@ export def SendFile(filename: string = '')
     if !ConsoleExists()
       ConsoleOpen()
     else
+
+      var lines: list<string>  = []
       if empty(filename)
-        writefile(getline(1, '$'), g:replica_config.tmp_filepath)
-        logger.Info('sent: current buffer')
+        lines = getline(1, '$')
+      elseif filereadable(filename)
+        lines = readfile(filename)
       else
-        writefile(readfile(filename), g:replica_config.tmp_filepath)
-        logger.Info($"sent file: '{filename}'")
+        Echoerr($'Cannot read {filename}')
+        return
       endif
-      term_sendkeys(bufnr($'^{b:console_name}$'),
-                   $"{b:run_command(g:replica_config.tmp_filepath)}\n")
+
+      var actual_filename = empty(filename) ? expand('%') : filename
+      var req = {}
+      req.id = msg_id + 1
+      req.method = 'runtime/vim_send_cell'
+      req.params = {lines: lines}
+      req.params = extend(req.params, {type: $"Send file {actual_filename}"})
+      var resp = ch_evalexpr(repl_channel, req)
+      if !Repl_response_OK(resp)
+        return
+      endif
+      echo resp.result
+      Echowarn($"sent file: '{actual_filename}'")
+      logger.Info($"sent file: '{actual_filename}'")
     endif
   else
     logger.Warn($"filetype {&filetype} not supported!")
