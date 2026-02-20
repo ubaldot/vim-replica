@@ -42,7 +42,14 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
                 vim_error_response(conn, msg_id, -32603, "Not inside IPython")
                 return
 
-            obj = ip.user_ns.get(variable)
+            try:
+                # Evaluate the expression safely in the user namespace
+                obj = eval(variable, ip.user_ns)
+            except Exception as e:
+                vim_error_response(
+                    conn, msg_id, -32603, f"Evaluation failed: {e}"
+                )
+                return
 
             np = sys.modules.get("numpy")
             pd = sys.modules.get("pandas")
@@ -71,6 +78,8 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
                         for row in mat:
                             print(sep.join(map(str, row)))
 
+            elif np and isinstance(obj, np.generic):
+                print(obj.item())
             else:
                 print(repr(obj))
 
@@ -88,31 +97,38 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
         vim_error_response(conn, msg_id, -32603, "Evaluation failed")
 
 
-def vim_whos(conn: socket.socket, msg_id: int, params=None):
-    ip: InteractiveShell | None = get_ipython()
-
+def vim_whos(conn, msg_id, params=None):
+    ip = get_ipython()
     if ip is None:
         vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
 
+    # --- Filter user_ns ---
+    filtered_ns = {}
+    for name, val in ip.user_ns.items():
+        typname = type(val).__name__
+        if (
+            not name.startswith("_")  # exclude names starting with _
+            and not isinstance(
+                val, (types.FunctionType, types.ModuleType, type)
+            )  # exclude functions, modules, types
+            and not typname.startswith("_")  # exclude private/internal types
+        ):
+            filtered_ns[name] = val
+
     buf = io.StringIO()
-
-    try:
-        with contextlib.redirect_stdout(buf):
+    with contextlib.redirect_stdout(buf):
+        # Temporarily replace user_ns for %whos
+        original_ns = ip.user_ns
+        try:
+            ip.user_ns = filtered_ns
             ip.run_line_magic("whos", "")
+        finally:
+            ip.user_ns = original_ns
 
-        # success
-        send_response(
-            conn,
-            {
-                "jsonrpc": "2.0",
-                "id": msg_id,
-                "result": buf.getvalue(),
-            },
-        )
-
-    except Exception:
-        vim_error_response(conn, msg_id, -32603, "'whos' execution failed")
+    send_response(
+        conn, {"jsonrpc": "2.0", "id": msg_id, "result": buf.getvalue()}
+    )
 
 
 def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
@@ -235,30 +251,55 @@ METHODS: dict[str, HandlerType] = {
 }
 
 
+def validate_jsonrpc(message):
+    if not isinstance(message, dict):
+        return False
+    if message.get("jsonrpc") != "2.0":
+        return False
+    if "method" not in message:
+        return False
+    return True
+
+
 def handle_request(conn: socket.socket, message: Any):
     global _server_running
 
     try:
-        message.get("jsonrpc") == "2.0"
+        # -----------------------------
+        # JSON-RPC basic validation
+        # -----------------------------
+        if not validate_jsonrpc(message):
+            vim_error_response(
+                conn, message.get("id"), -32600, "Invalid Request"
+            )
+            return
+
+        # -----------------------------
+        # Extract fields
+        # -----------------------------
         msg_id = message.get("id")
         method = message.get("method")
         params = message.get("params", {})
 
-        # --- Dispatch ---
-        handler = METHODS.get(method)  # type: ignore
+        # -----------------------------
+        # Dispatch
+        # -----------------------------
+        handler = METHODS.get(method)
 
-        if handler is not None:
-            # Call the handler
-            handler(conn, msg_id, params)
-        else:
+        if handler is None:
             vim_error_response(
                 conn, msg_id, -32601, f"Method not found: {method}"
             )
             return
 
+        handler(conn, msg_id, params)
+
     except Exception as e:
         vim_error_response(
-            conn, msg_id, -32603, f"Internal server error: {repr(e)}"
+            conn,
+            message.get("id") if isinstance(message, dict) else None,
+            -32603,
+            f"Internal server error: {repr(e)}",
         )
 
 
@@ -279,8 +320,15 @@ def read_message(conn: socket.socket):
         buffer += part
 
     header_bytes, remainder = buffer.split(b"\r\n\r\n", 1)
-    for line in header_bytes.decode().split("\r\n"):
-        key, value = line.split(":", 1)
+    for line in header_bytes.decode("utf-8", errors="replace").split("\r\n"):
+        line = line.strip()
+        if not line:
+            continue
+
+        key, sep, value = line.partition(":")
+        if not sep:
+            continue
+
         headers[key.strip()] = value.strip()
 
     content_length = int(headers.get("Content-Length", 0))
@@ -296,27 +344,41 @@ def read_message(conn: socket.socket):
 # -------------------------------------------------------------------
 
 
+def handle_client(conn: socket.socket, addr):
+    print(f"Vim connected from {addr}\n")
+
+    try:
+        while _server_running:
+            message = read_message(conn)
+            if message is None:
+                break
+            handle_request(conn, message)
+
+    except Exception as e:
+        print(f"Client error: {e}")
+
+    finally:
+        conn.close()
+        print("Connection closed\n")
+
+
 def start_server():
     global _server_running
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, PORT))
         s.listen()
+
         print(f"IPython runtime TCP server running on {HOST}:{PORT}")
 
-        # Wait for Vim to connect
-        conn, addr = s.accept()
-        print(f"Vim connected from {addr}\n")
+        while _server_running:
+            try:
+                conn, addr = s.accept()
+            except OSError:
+                break  # socket closed
 
-        try:
-            while _server_running:
-                message = read_message(conn)
-                if message is None:
-                    break
-                handle_request(conn, message)
-        finally:
-            conn.close()
-            print("Connection closed")
+            handle_client(conn, addr)
 
     print("Server stopped")
 
