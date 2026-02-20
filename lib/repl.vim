@@ -416,7 +416,6 @@ export def VimInspect(
   if !empty(variable_to_inspect)
     var variable_single_quoted = variable_to_inspect->substitute('"', "'", 'g')
 
-    req = {}
     req.id = msg_id + 1
     req.method = 'runtime/vim_inspect'
     req.params = {variable: variable_single_quoted}
@@ -427,12 +426,10 @@ export def VimInspect(
       return
     endif
 
-    echo resp.result
     logger.Info($"Inspect {req.params.variable}: {resp.result}")
 
   else
 
-    req = {}
     req.id = msg_id + 1
     req.method = 'runtime/vim_whos'
     req.params = {variable: ''}
@@ -443,7 +440,6 @@ export def VimInspect(
       return
     endif
 
-    echo resp.result
     logger.Info($"Whos: {resp.result}")
   endif
 

@@ -32,6 +32,8 @@ def send_response(conn: socket.socket, data: dict):
 def vim_inspect(conn: socket.socket, msg_id: int, params=None):
     buf = io.StringIO()
 
+    variable = params.get("variable", "")
+
     try:
         with contextlib.redirect_stdout(buf):
             ip: InteractiveShell | None = get_ipython()
@@ -40,7 +42,7 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
                 vim_error_response(conn, msg_id, -32603, "Not inside IPython")
                 return
 
-            obj = eval(params.variable, ip.user_ns)
+            obj = ip.user_ns.get(variable)
 
             np = sys.modules.get("numpy")
             pd = sys.modules.get("pandas")
