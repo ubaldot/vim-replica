@@ -3,17 +3,16 @@ vim9script
 # Module devoted to set commands and mappings
 
 import "../lib/repl.vim"
-import "../lib/variable_explorer.vim"
 import "../lib/logger.vim"
 
 export def GetCompleteList(A: string, L: string, P: number): list<string>
 
-  variable_explorer.variable_names = []
+  repl.variable_names = []
   logger.Info("sent completion list request")
-  variable_explorer.GetReplVariablesNames()
+  repl.GetReplVariablesNames()
 
   var counter = 0
-  while empty(variable_explorer.variable_names) && counter < 10000
+  while empty(repl.variable_names) && counter < 10000
     sleep 5m
   endwhile
 
@@ -24,9 +23,9 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   endif
 
   redraw
-  logger.Info($"completion list received: {variable_explorer.variable_names}")
+  logger.Info($"completion list received: {repl.variable_names}")
 
-  var tmp = variable_explorer.variable_names
+  var tmp = repl.variable_names
   return tmp->filter($'v:val =~ "^{A}"')
 enddef
 
@@ -95,7 +94,7 @@ export def InstallConsoleCommands()
   if !exists(":ReplicaInspect")
     command -complete=customlist,GetCompleteList -nargs=? -buffer
           \ ReplicaInspect
-          \ variable_explorer.VimInspect(<q-args>)
+          \ repl.VimInspect(<q-args>)
   endif
 enddef
 

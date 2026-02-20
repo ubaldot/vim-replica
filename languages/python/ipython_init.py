@@ -157,6 +157,12 @@ def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
 
 
 def vim_send_cell(conn: socket.socket, msg_id: int, params=None):
+    """
+    This is used for sending lines, cells and files.
+
+    Upstream, everything is converted to a list of strings that can be
+    interpreted as list of strings.
+    """
     ip: InteractiveShell | None = get_ipython()
 
     if ip is None:

@@ -4,7 +4,6 @@ vim9script
 
 import "../lib/highlight.vim"
 import "../lib/logger.vim"
-import "../lib/variable_explorer.vim"
 import "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
@@ -13,6 +12,7 @@ const host: string = 'localhost'
 const port: string = '8765'
 var msg_id = 1
 
+export var variable_names: list<string>
 
 export def Echoerr(msg: string)
   logger.Error(msg)
@@ -25,11 +25,11 @@ export def Echowarn(msg: string)
 enddef
 
 def Repl_response_OK(resp: any): bool
-    if has_key(resp, 'error')
-       return false
-    else
-      return true
-    endif
+  if has_key(resp, 'error')
+    return false
+  else
+    return true
+  endif
 enddef
 
 def Init()
@@ -38,11 +38,13 @@ def Init()
   if filereadable(g:replica_config.log_filepath)
       && getfsize(g:replica_config.log_filepath) > g:replica_config.log_max_size
     Echowarn($"'{g:replica_config.log_filepath}' exceeded the maximum size "
-          .. $"({g:replica_config.log_max_size} bytes). "
-          .. "Logging has been stopped.")
+      .. $"({g:replica_config.log_max_size} bytes). "
+      .. "Logging has been stopped.")
     sleep 3
     g:replica_config.debug = false
   endif
+
+  variable_names = []
 
   logger.Info('repl initialization')
 
@@ -67,7 +69,6 @@ def Init()
   logger.Info($"incremental prompt: '{b:incremental_prompt}'")
   logger.Info("-----------------------------------")
 
-  variable_explorer.Init()
 
 enddef
 
@@ -108,94 +109,79 @@ def ConsoleWinID(): list<number>
   endif
 enddef
 
-
-def IsFiletypeSupported(): bool
-  # has_hey() maybe is more clear?
-  # No, because if we are on a console it would return false.
-  # Terminal buffers have no filetype.
-  return !empty(getbufvar('%', "console_name"))
-enddef
-
 # This is the actual entry point of the plugin
 def ConsoleOpen()
   var console_win_id = 0
   var job_id = -1
-  if IsFiletypeSupported()
-    if !ConsoleExists()
-      Init()
-      logger.Info("create new console")
+  if !ConsoleExists()
+    Init()
+    logger.Info("create new console")
 
-      var start_cmd = $"{b:repl_name} {b:repl_options}"
+    var start_cmd = $"{b:repl_name} {b:repl_options}"
 
-      # Send scripts to enable __vim_inspect() to the repl
-      variable_explorer.on_msg_received =  variable_explorer.On_Msg_Received.InitializeConsole
+    # Send scripts to enable __vim_inspect() to the repl
 
 
-      logger.Info($'start_cmd: {start_cmd}')
-      logger.Info($'on_msg_received action: {variable_explorer.on_msg_received.name}')
+    logger.Info($'start_cmd: {start_cmd}')
 
-      try
-        job_id = term_start(start_cmd,
-          {term_name: b:console_name})
+    try
+      job_id = term_start(start_cmd,
+        {term_name: b:console_name})
 
-          if job_id <= 0
-            Echoerr($'Failed to start terminal: {start_cmd}')
-            logger.Error($'Failed to run {start_cmd}')
-            return
-          endif
-
-
-      catch
-        Echoerr($'Failed to run {start_cmd}')
+      if job_id <= 0
+        Echoerr($'Failed to start terminal: {start_cmd}')
         logger.Error($'Failed to run {start_cmd}')
         return
-      endtry
-
-      # TODO: very bad hack
-      # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
-      term_wait(bufnr('$'), 5000)
-
-      # Opem channel
-      repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
-      var channel_status = ch_status(repl_channel)
-
-      if channel_status != 'open'
-        Echoerr($'Failed to open channnel: {channel_status}')
-      else
-        Echowarn($'Channel status: {channel_status}')
       endif
 
-      ftcommands_mappings.InstallConsoleCommands()
-      console_win_id = win_findbuf(bufnr('$'))[0]
 
-    elseif empty(ConsoleWinID())
-      logger.Info("opening existing console")
-      exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
-      console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
+    catch
+      Echoerr($'Failed to run {start_cmd}')
+      logger.Error($'Failed to run {start_cmd}')
+      return
+    endtry
+
+    # TODO: very bad hack
+    # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
+    term_wait(bufnr('$'), 5000)
+
+    # Opem channel
+    repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
+    var channel_status = ch_status(repl_channel)
+
+    if channel_status != 'open'
+      Echoerr($'Failed to open channnel: {channel_status}')
+    else
+      Echowarn($'Channel status: {channel_status}')
     endif
 
-    exe $'wincmd {g:replica_config.console_position}'
-    setlocal nobuflisted winminheight winminwidth winfixbuf
+    ftcommands_mappings.InstallConsoleCommands()
+    console_win_id = win_findbuf(bufnr('$'))[0]
 
-    ResizeConsoleWindow(console_win_id)
-
-    # Cursor back to the editor
-    wincmd p
-    b:repl_bufnr = job_id
-
-    setbufvar(bufnr('$'), 'console_name', b:console_name)
-    setbufvar(bufnr('$'), 'repl_name', b:repl_name)
-    setbufvar(bufnr('$'), 'repl_bufnr', b:repl_bufnr)
-    setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
-
-    setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
-    setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
-    setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
-
-  else
-    logger.Error($"Filetype {&filetype} not supported")
-    Echoerr($"[vim-replica]: Filetype {&filetype} not supported")
+  elseif empty(ConsoleWinID())
+    logger.Info("opening existing console")
+    exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
+    console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
   endif
+
+  exe $'wincmd {g:replica_config.console_position}'
+  setlocal nobuflisted winminheight winminwidth winfixbuf
+
+  ResizeConsoleWindow(console_win_id)
+
+  # Cursor back to the editor
+  wincmd p
+  b:repl_bufnr = job_id
+
+  setbufvar(bufnr('$'), 'console_name', b:console_name)
+  setbufvar(bufnr('$'), 'repl_name', b:repl_name)
+  setbufvar(bufnr('$'), 'repl_bufnr', b:repl_bufnr)
+  setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
+
+  setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
+  setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
+  setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
+
 enddef
 
 
@@ -203,12 +189,10 @@ def ConsoleClose()
   logger.Info("hide console")
 
   # TODO Modify and make all the REPL to close from wherever you are?
-  if IsFiletypeSupported()
-    for win in ConsoleWinID()
-      SaveConsoleWindowSize(win)
-      win_execute(win, "close!")
-    endfor
-  endif
+  for win in ConsoleWinID()
+    SaveConsoleWindowSize(win)
+    win_execute(win, "close!")
+  endfor
 enddef
 
 
@@ -240,19 +224,14 @@ enddef
 export def RemoveCells()
   logger.Info('removing cells')
 
-  if IsFiletypeSupported()
-    for ii in range(1, line('$'))
-      if getline(ii) =~ $'^{b:cells_delimiter}'
-        deletebufline('%', ii)
-        logger.Debug($'removing line {ii}')
-      endif
-    endfor
-    logger.Info('cells removed')
-    echo "Cells removed."
-  else
-    logger.Warn($"filetype {&filetype} not supported!")
-    Echowarn($"Filetype {&filetype} not supported!")
-  endif
+  for ii in range(1, line('$'))
+    if getline(ii) =~ $'^{b:cells_delimiter}'
+      deletebufline('%', ii)
+      logger.Debug($'removing line {ii}')
+    endif
+  endfor
+  logger.Info('cells removed')
+  echo "Cells removed."
 enddef
 
 # ---------------------------------------
@@ -337,4 +316,137 @@ export def SendFile(filename: string = '')
   endif
   echo resp.result
   logger.Info($"sent file: '{actual_filename}'")
+enddef
+
+# ---------------------------------------
+# Functions for variable explorer
+# ---------------------------------------
+
+def DisplayVariablePopup(value: list<string>, variable_to_inspect: string)
+
+  var opts = {
+    title: $" {variable_to_inspect} ",
+    pos: 'center',
+    border: [1, 1, 1, 1],
+    borderchars: ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
+    minheight: 1,
+    maxheight: &lines / 2,
+    minwidth: 1,
+    maxwidth: (&columns * 2) / 3,
+    filter: PopupFilter,
+    scrollbar: 0,
+    cursorline: 0,
+    mapping: 0,
+    wrap: 0,
+    drag: 0,
+  }
+
+  var popup_id = popup_create(value, opts)
+  if len(value) > 1
+    win_execute(popup_id, "setlocal number")
+  endif
+enddef
+
+def DisplayVariable(value: list<string>, variable_to_inspect: string)
+
+  logger.Info('displaying variable')
+
+  if bufexists(variable_to_inspect)
+    logger.Info($"reusing existing {g:replica_config.display_variables}")
+    var buf = bufnr(variable_to_inspect)
+    setbufvar(buf, '&modifiable', true)
+    deletebufline(buf, 1, "$")
+    setbufline(buf, 1, value)
+    setbufvar(buf, '&modifiable', false)
+  else
+    logger.Info($"creating a {g:replica_config.display_variables}")
+
+    if g:replica_config.display_variables == 'split'
+      new
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+    elseif g:replica_config.display_variables == 'vsplit'
+      vnew
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>close<cr>
+    elseif g:replica_config.display_variables == 'tab'
+      tabnew
+      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
+    endif
+
+    var buf = bufnr('$')
+    setbufvar(buf, '&buftype', 'nofile')
+    setbufvar(buf, '&swapfile', false)
+
+    exe $"file {variable_to_inspect}"
+
+    setbufline(buf, 1, value)
+
+    setbufvar(buf, '&modifiable', false)
+    setbufvar(buf, '&bufhidden', 'wipe')
+    setbufvar(buf, '&winfixbuf', true)
+  endif
+
+  logger.Info($"displayed variable value: {value}")
+enddef
+
+export def GetReplVariablesNames()
+  logger.Info("getting variable names for complete list")
+  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_variable_names_function())
+  on_msg_received = On_Msg_Received.CompleteList
+
+  logger.Info($'on_msg_received: {on_msg_received.name}')
+  logger.Info($'sent: __vim_get_variables()')
+
+  # Clean up console
+  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>\n")
+  logger.Info("sent: <c-l>\\n")
+enddef
+
+export def VimInspect(
+    variable_to_inspect: string = '',
+    )
+
+  logger.Info("inspecting variables")
+
+  var resp = {}
+  var req = {}
+
+  if !empty(variable_to_inspect)
+    var variable_single_quoted = variable_to_inspect->substitute('"', "'", 'g')
+
+    req = {}
+    req.id = msg_id + 1
+    req.method = 'runtime/vim_inspect'
+    req.params = {variable: variable_single_quoted}
+
+    resp = ch_evalexpr(repl_channel, req)
+    if !Repl_response_OK(resp)
+      Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+      return
+    endif
+
+    echo resp.result
+    logger.Info($"Inspect {req.params.variable}: {resp.result}")
+
+  else
+
+    req = {}
+    req.id = msg_id + 1
+    req.method = 'runtime/vim_whos'
+    req.params = {variable: ''}
+
+    resp = ch_evalexpr(repl_channel, req)
+    if !Repl_response_OK(resp)
+      Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+      return
+    endif
+
+    echo resp.result
+    logger.Info($"Whos: {resp.result}")
+  endif
+
+  DisplayVariable(split(resp.result, "\n"), req.params.variable)
+
 enddef
