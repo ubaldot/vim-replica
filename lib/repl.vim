@@ -26,12 +26,8 @@ enddef
 
 def Repl_response_OK(resp: any): bool
     if has_key(resp, 'error')
-       Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
        return false
     else
-      logger.Info($'{resp.result}')
-      # Echowarn($'{resp.result}')
-      echo resp.result
       return true
     endif
 enddef
@@ -263,99 +259,82 @@ enddef
 # Functions for sending stuff to the REPL
 # ---------------------------------------
 export def SendLines(firstline: number, lastline: number)
-  if IsFiletypeSupported()
-    if !ConsoleExists()
-      ConsoleOpen()
-    else
-
-      var req = {}
-      req.id = msg_id + 1
-      req.method = 'runtime/vim_send_cell'
-      req.params = {lines: getline(firstline, lastline)}
-      req.params = extend(req.params, {type: "Send line(s)"})
-      var resp = ch_evalexpr(repl_channel, req)
-      if !Repl_response_OK(resp)
-        return
-      endif
-
-      echo resp.result
-      logger.Info($"sent line(s): {string(req.params.lines)}")
-      # Jump to the next cell
-      cursor(lastline + 1, getcurpos()[2])
-    endif
-  else
-    logger.Warn($"filetype {&filetype} not supported!")
-    Echowarn($"filetype {&filetype} not supported!")
+  if !ConsoleExists()
+    ConsoleOpen()
   endif
+
+  var req = {}
+  req.id = msg_id + 1
+  req.method = 'runtime/vim_send_cell'
+  req.params = {lines: getline(firstline, lastline)}
+  req.params = extend(req.params, {type: "Send line(s)"})
+  var resp = ch_evalexpr(repl_channel, req)
+  if !Repl_response_OK(resp)
+    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+    return
+  endif
+
+  echo resp.result
+  logger.Info($"sent line(s): {string(req.params.lines)}")
+  # Jump to the next cell
+  cursor(lastline + 1, getcurpos()[2])
 enddef
 
 
 export def SendCell()
-  if IsFiletypeSupported()
-    if !ConsoleExists()
-      ConsoleOpen()
-    else
-      # Get beginning and end of the cell
-      var extremes = highlight.GetExtremes()
-      var line_in = extremes[0]
-      var line_out = extremes[1]
-
-      var req = {}
-      req.id = msg_id + 1
-      req.method = 'runtime/vim_send_cell'
-      req.params = {lines: getline(line_in, line_out)}
-      req.params = extend(req.params, {type: "Send cell"})
-      var resp = ch_evalexpr(repl_channel, req)
-      if !Repl_response_OK(resp)
-        return
-      endif
-
-      logger.Info($"sent cell: {string(req.params.lines)}")
-      # Jump to the next cell
-      cursor(line_out, getcurpos()[2])
-    endif
-  else
-    logger.Warn($"filetype {&filetype} not supported!")
-    Echowarn($"filetype {&filetype} not supported!")
+  if !ConsoleExists()
+    ConsoleOpen()
   endif
+  # Get beginning and end of the cell
+  var extremes = highlight.GetExtremes()
+  var line_in = extremes[0]
+  var line_out = extremes[1]
+
+  var req = {}
+  req.id = msg_id + 1
+  req.method = 'runtime/vim_send_cell'
+  req.params = {lines: getline(line_in, line_out)}
+  req.params = extend(req.params, {type: "Send cell"})
+  var resp = ch_evalexpr(repl_channel, req)
+  if !Repl_response_OK(resp)
+    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+    return
+  endif
+
+  echo resp.result
+  logger.Info($"sent cell: {string(req.params.lines)}")
+  # Jump to the next cell
+  cursor(line_out, getcurpos()[2])
 enddef
 
 
 export def SendFile(filename: string = '')
 
-  if IsFiletypeSupported()
-    # If there are open terminals with different names than IPYTHON,
-    # JULIA, etc. it will open its own
-    if !ConsoleExists()
-      ConsoleOpen()
-    else
-
-      var lines: list<string>  = []
-      if empty(filename)
-        lines = getline(1, '$')
-      elseif filereadable(filename)
-        lines = readfile(filename)
-      else
-        Echoerr($'Cannot read {filename}')
-        return
-      endif
-
-      var actual_filename = empty(filename) ? expand('%') : filename
-      var req = {}
-      req.id = msg_id + 1
-      req.method = 'runtime/vim_send_cell'
-      req.params = {lines: lines}
-      req.params = extend(req.params, {type: $"Send file {actual_filename}"})
-      var resp = ch_evalexpr(repl_channel, req)
-      if !Repl_response_OK(resp)
-        return
-      endif
-      echo resp.result
-      Echowarn($"sent file: '{actual_filename}'")
-      logger.Info($"sent file: '{actual_filename}'")
-    endif
-  else
-    logger.Warn($"filetype {&filetype} not supported!")
-    Echowarn($"filetype {&filetype} not supported!")
+  if !ConsoleExists()
+    ConsoleOpen()
   endif
+
+  var lines: list<string>  = []
+  if empty(filename)
+    lines = getline(1, '$')
+  elseif filereadable(filename)
+    lines = readfile(filename)
+  else
+    Echoerr($'Cannot read file ''{filename}''')
+    return
+  endif
+
+  var actual_filename = empty(filename) ? expand('%') : filename
+  var req = {}
+  req.id = msg_id + 1
+  req.method = 'runtime/vim_send_cell'
+  req.params = {lines: lines}
+  req.params = extend(req.params, {type: $"Send file {actual_filename}"})
+  var resp = ch_evalexpr(repl_channel, req)
+  if !Repl_response_OK(resp)
+    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+    return
+  endif
+  echo resp.result
+  logger.Info($"sent file: '{actual_filename}'")
 enddef
