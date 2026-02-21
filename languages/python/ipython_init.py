@@ -44,7 +44,12 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
 
             try:
                 # Evaluate the expression safely in the user namespace
-                obj = eval(variable, ip.user_ns)
+                safe_ns = {
+                    k: v
+                    for k, v in ip.user_ns.items()
+                    if not k.startswith("_")
+                }
+                obj = eval(variable, {"__builtins__": None}, safe_ns)
             except Exception as e:
                 vim_error_response(
                     conn, msg_id, -32603, f"Evaluation failed: {e}"
@@ -104,6 +109,7 @@ def vim_whos(conn, msg_id, params=None):
         return
 
     # --- Filter user_ns ---
+    EXCLUDED_VARS = ["HOST", "In", "Out"]
     filtered_ns = {}
     for name, val in ip.user_ns.items():
         typname = type(val).__name__
@@ -113,6 +119,7 @@ def vim_whos(conn, msg_id, params=None):
                 val, (types.FunctionType, types.ModuleType, type)
             )  # exclude functions, modules, types
             and not typname.startswith("_")  # exclude private/internal types
+            and not name in EXCLUDED_VARS
         ):
             filtered_ns[name] = val
 
@@ -137,41 +144,27 @@ def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
     if ip is None:
         vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
-    try:
-        EXCLUDE_TYPES = (types.ModuleType, types.FunctionType)
-        EXCLUDE_NAMES = {
-            "In",
-            "Out",
-            "exit",
-            "quit",
-            "get_ipython",
-            "Token",
-            "Prompts",
-            "InteractiveShell",
-        }
 
-        names = [
-            n
-            for n, v in ip.user_ns.items()
-            if not n.startswith("_")
-            and n not in EXCLUDE_NAMES
-            and not isinstance(v, EXCLUDE_TYPES)
-        ]
+    EXCLUDED_TYPES = (types.ModuleType, types.FunctionType, type)
 
-        result = "\n".join(names)
+    names = [
+        name
+        for name, val in ip.user_ns.items()
+        if not name.startswith("_")
+        and name not in ip.user_ns_hidden
+        and not isinstance(val, EXCLUDED_TYPES)
+    ]
 
-        #  success
-        send_response(
-            conn,
-            {
-                "jsonrpc": "2.0",
-                "id": msg_id,
-                "result": result,
-            },
-        )
+    result = "\n".join(sorted(names))
 
-    except Exception as e:
-        vim_error_response(conn, msg_id, -32603, "Variable listing failed")
+    send_response(
+        conn,
+        {
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": result,
+        },
+    )
 
 
 def vim_send_cell(conn: socket.socket, msg_id: int, params=None):

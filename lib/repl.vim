@@ -7,12 +7,12 @@ import "../lib/logger.vim"
 import "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
-var repl_channel: channel = null_channel
+export var repl_channel: channel = null_channel
+
+# OBS this shall be the same used in scripts
 const host: string = 'localhost'
 const port: string = '8765'
-var msg_id = 1
-
-export var variable_names: list<string>
+export var msg_id = 1
 
 export def Echoerr(msg: string)
   logger.Error(msg)
@@ -24,7 +24,7 @@ export def Echowarn(msg: string)
   echohl WarningMsg | echom $'[vim-replica]: {msg}' | echohl None
 enddef
 
-def Repl_response_OK(resp: any): bool
+export def Repl_response_OK(resp: any): bool
   if has_key(resp, 'error')
     return false
   else
@@ -43,8 +43,6 @@ def Init()
     sleep 3
     g:replica_config.debug = false
   endif
-
-  variable_names = []
 
   logger.Info('repl initialization')
 
@@ -322,6 +320,63 @@ enddef
 # Functions for variable explorer
 # ---------------------------------------
 
+export def GetCompleteList(A: string, L: string, P: number): list<string>
+
+  logger.Info($"getting variable names for complete list")
+
+  var req = {}
+  req.id = msg_id + 1
+  req.method = 'runtime/vim_variable_names'
+
+  var resp = ch_evalexpr(repl_channel, req)
+  if !Repl_response_OK(resp)
+    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+    return []
+  endif
+
+  return split(resp.result, "\n")->filter($'v:val =~ "^{A}"')
+enddef
+
+# Used only to allow utilization of GetCompleteList in unit-tests
+export const funcs_dict = {
+  GetCompleteList: GetCompleteList
+}
+
+def PopupFilter(id: number, key: string): bool
+  # To handle the keys when release notes popup is visible
+  # Close
+  if key ==# 'q' || key ==# "\<esc>"
+    popup_close(id)
+  # Move down
+  elseif ["\<C-n>", "\<Down>", "j", "\<ScrollWheelDown>"]->index(key) != -1
+    win_execute(id, "normal! \<c-e>")
+  # Move up
+  elseif ["\<C-p>", "\<Up>", "k", "\<ScrollWheelUp>"]->index(key) != -1
+    win_execute(id, "normal! \<c-y>")
+  # Jump down
+  elseif key == "\<C-f>"
+    win_execute(id, "normal! \<c-f>")
+  # Jump up
+  elseif key == "\<C-b>"
+    win_execute(id, "normal! \<c-b>")
+  elseif key == "G"
+    win_execute(id, "normal! G")
+  elseif key == "g"
+    win_execute(id, "normal! gg")
+  elseif key == "l"
+    win_execute(id, "normal! zl")
+  elseif key == "h"
+    win_execute(id, "normal! zh")
+  elseif key == "$"
+    win_execute(id, "normal! $")
+  elseif key == "0"
+    win_execute(id, "normal! 0")
+  else
+    return false
+  endif
+  return true
+enddef
+
 def DisplayVariablePopup(value: list<string>, variable_to_inspect: string)
 
   var opts = {
@@ -391,19 +446,6 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
   logger.Info($"displayed variable value: {value}")
 enddef
 
-export def GetReplVariablesNames()
-  logger.Info("getting variable names for complete list")
-  term_sendkeys(bufnr($'^{b:console_name}$'), b:vim_variable_names_function())
-  on_msg_received = On_Msg_Received.CompleteList
-
-  logger.Info($'on_msg_received: {on_msg_received.name}')
-  logger.Info($'sent: __vim_get_variables()')
-
-  # Clean up console
-  term_sendkeys(bufnr($'^{b:console_name}$'), "\<c-l>\n")
-  logger.Info("sent: <c-l>\\n")
-enddef
-
 export def VimInspect(
     variable_to_inspect: string = '',
     )
@@ -443,6 +485,10 @@ export def VimInspect(
     logger.Info($"Whos: {resp.result}")
   endif
 
-  DisplayVariable(split(resp.result, "\n"), req.params.variable)
+  if g:replica_config.display_variables == 'popup'
+    DisplayVariablePopup(split(resp.result, "\n"), req.params.variable)
+  else
+    DisplayVariable(split(resp.result, "\n"), req.params.variable)
+  endif
 
 enddef

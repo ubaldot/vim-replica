@@ -5,35 +5,6 @@ vim9script
 import "../lib/repl.vim"
 import "../lib/logger.vim"
 
-export def GetCompleteList(A: string, L: string, P: number): list<string>
-
-  repl.variable_names = []
-  logger.Info("sent completion list request")
-  repl.GetReplVariablesNames()
-
-  var counter = 0
-  while empty(repl.variable_names) && counter < 10000
-    sleep 5m
-  endwhile
-
-  if counter >= 10000
-    repl.Echoerr('get completion time out')
-    logger.Error('get completion time out')
-    return []
-  endif
-
-  redraw
-  logger.Info($"completion list received: {repl.variable_names}")
-
-  var tmp = repl.variable_names
-  return tmp->filter($'v:val =~ "^{A}"')
-enddef
-
-# Used only to allow utilization of GetCompleteList in unit-tests
-export const funcs_dict = {
-  GetCompleteList: GetCompleteList
-}
-
 #  ------------
 #  Mappings
 #  ------------
@@ -92,7 +63,7 @@ export def InstallConsoleCommands()
   endif
 
   if !exists(":ReplicaInspect")
-    command -complete=customlist,GetCompleteList -nargs=? -buffer
+    command -complete=customlist,repl.GetCompleteList -nargs=? -buffer
           \ ReplicaInspect
           \ repl.VimInspect(<q-args>)
   endif
