@@ -5,11 +5,11 @@ import contextlib
 import sys, types
 from typing import Callable, Any
 from threading import Thread
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
+from IPython import get_ipython  # type: ignore
+from IPython.core.interactiveshell import InteractiveShell  # type: ignore
 
-HOST = "127.0.0.1"
-PORT = 8765
+_HOST = "127.0.0.1"
+_PORT = 8765
 _server_running = True
 
 
@@ -29,7 +29,7 @@ def send_response(conn: socket.socket, data: dict):
 # -------------------------------------------------------------------
 # Runtime functions
 # -------------------------------------------------------------------
-def vim_inspect(conn: socket.socket, msg_id: int, params=None):
+def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
     buf = io.StringIO()
 
     variable = params.get("variable", "")
@@ -39,7 +39,9 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
             ip: InteractiveShell | None = get_ipython()
 
             if ip is None:
-                vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+                __vim_error_response(
+                    conn, msg_id, -32603, "Not inside IPython"
+                )
                 return
 
             try:
@@ -51,7 +53,7 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
                 }
                 obj = eval(variable, {"__builtins__": None}, safe_ns)
             except Exception as e:
-                vim_error_response(
+                __vim_error_response(
                     conn, msg_id, -32603, f"Evaluation failed: {e}"
                 )
                 return
@@ -99,17 +101,16 @@ def vim_inspect(conn: socket.socket, msg_id: int, params=None):
         )
 
     except Exception:
-        vim_error_response(conn, msg_id, -32603, "Evaluation failed")
+        __vim_error_response(conn, msg_id, -32603, "Evaluation failed")
 
 
-def vim_whos(conn, msg_id, params=None):
+def __vim_whos(conn, msg_id, params=None):
     ip = get_ipython()
     if ip is None:
-        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+        __vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
 
     # --- Filter user_ns ---
-    EXCLUDED_VARS = ["HOST", "In", "Out"]
     filtered_ns = {}
     for name, val in ip.user_ns.items():
         typname = type(val).__name__
@@ -119,7 +120,6 @@ def vim_whos(conn, msg_id, params=None):
                 val, (types.FunctionType, types.ModuleType, type)
             )  # exclude functions, modules, types
             and not typname.startswith("_")  # exclude private/internal types
-            and not name in EXCLUDED_VARS
         ):
             filtered_ns[name] = val
 
@@ -138,20 +138,22 @@ def vim_whos(conn, msg_id, params=None):
     )
 
 
-def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
+def __vim_variable_names(conn: socket.socket, msg_id: int, params=None):
     ip: InteractiveShell | None = get_ipython()
 
     if ip is None:
-        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+        __vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
 
     EXCLUDED_TYPES = (types.ModuleType, types.FunctionType, type)
+    EXCLUDED_VARS = {"Callable"}
 
     names = [
         name
         for name, val in ip.user_ns.items()
         if not name.startswith("_")
         and name not in ip.user_ns_hidden
+        and name not in EXCLUDED_VARS
         and not isinstance(val, EXCLUDED_TYPES)
     ]
 
@@ -167,7 +169,7 @@ def vim_variable_names(conn: socket.socket, msg_id: int, params=None):
     )
 
 
-def vim_send_cell(conn: socket.socket, msg_id: int, params=None):
+def __vim_send_cell(conn: socket.socket, msg_id: int, params=None):
     """
     This is used for sending lines, cells and files.
 
@@ -177,7 +179,7 @@ def vim_send_cell(conn: socket.socket, msg_id: int, params=None):
     ip: InteractiveShell | None = get_ipython()
 
     if ip is None:
-        vim_error_response(conn, msg_id, -32603, "Not inside IPython")
+        __vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
     else:
         code = params.get("lines", "")
@@ -196,12 +198,12 @@ def vim_send_cell(conn: socket.socket, msg_id: int, params=None):
                 },
             )
         elif msg_id is not None and not result_obj.success:
-            vim_error_response(
+            __vim_error_response(
                 conn, msg_id, -32601, f"{params.get('type')} failed"
             )
 
 
-def vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
+def __vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
     global _server_running
     _server_running = False
 
@@ -216,7 +218,7 @@ def vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
         )
 
 
-def vim_error_response(conn: socket.socket, msg_id: int, code, message):
+def __vim_error_response(conn: socket.socket, msg_id: int, code, message):
     if msg_id is not None:
         send_response(
             conn,
@@ -234,13 +236,13 @@ def vim_error_response(conn: socket.socket, msg_id: int, code, message):
 # -------------------------------------------------------------------
 # Message handling
 # -------------------------------------------------------------------
-HandlerType = Callable[[socket.socket, int, dict[Any, Any] | None], None]
-METHODS: dict[str, HandlerType] = {
-    "runtime/vim_inspect": vim_inspect,
-    "runtime/vim_whos": vim_whos,
-    "runtime/vim_variable_names": vim_variable_names,
-    "runtime/vim_send_cell": vim_send_cell,
-    "runtime/vim_shutdown": vim_server_shutdown,
+_HandlerType = Callable[[socket.socket, int, dict[Any, Any] | None], None]
+_METHODS: dict[str, _HandlerType] = {
+    "runtime/vim_inspect": __vim_inspect,
+    "runtime/vim_whos": __vim_whos,
+    "runtime/vim_variable_names": __vim_variable_names,
+    "runtime/vim_send_cell": __vim_send_cell,
+    "runtime/vim_shutdown": __vim_server_shutdown,
 }
 
 
@@ -262,7 +264,7 @@ def handle_request(conn: socket.socket, message: Any):
         # JSON-RPC basic validation
         # -----------------------------
         if not validate_jsonrpc(message):
-            vim_error_response(
+            __vim_error_response(
                 conn, message.get("id"), -32600, "Invalid Request"
             )
             return
@@ -277,10 +279,10 @@ def handle_request(conn: socket.socket, message: Any):
         # -----------------------------
         # Dispatch
         # -----------------------------
-        handler = METHODS.get(method)
+        handler = _METHODS.get(method)
 
         if handler is None:
-            vim_error_response(
+            __vim_error_response(
                 conn, msg_id, -32601, f"Method not found: {method}"
             )
             return
@@ -288,9 +290,9 @@ def handle_request(conn: socket.socket, message: Any):
         handler(conn, msg_id, params)
 
     except Exception as e:
-        vim_error_response(
+        __vim_error_response(
             conn,
-            message.get("id") if isinstance(message, dict) else None,
+            message.get("id"),
             -32603,
             f"Internal server error: {repr(e)}",
         )
@@ -360,10 +362,10 @@ def start_server():
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((HOST, PORT))
+        s.bind((_HOST, _PORT))
         s.listen()
 
-        print(f"IPython runtime TCP server running on {HOST}:{PORT}")
+        print(f"IPython runtime TCP server running on {_HOST}:{_PORT}")
 
         while _server_running:
             try:
@@ -377,5 +379,5 @@ def start_server():
 
 
 # Run server in background to keep IPython interactive
-server_thread = Thread(target=start_server, daemon=True)
-server_thread.start()
+_server_thread = Thread(target=start_server, daemon=True)
+_server_thread.start()
