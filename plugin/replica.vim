@@ -128,7 +128,7 @@ endif
 # Dicts. Keys must be Vim filetypes
 var repl_names = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
-  julia: "julia",
+  julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
   r: "R",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"

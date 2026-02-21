@@ -109,6 +109,7 @@ enddef
 
 # This is the actual entry point of the plugin
 def ConsoleOpen()
+  messages clear
   var console_win_id = 0
   var job_id = -1
   if !ConsoleExists()
@@ -118,8 +119,6 @@ def ConsoleOpen()
     var start_cmd = $"{b:repl_name} {b:repl_options}"
 
     # Send scripts to enable __vim_inspect() to the repl
-
-
     logger.Info($'start_cmd: {start_cmd}')
 
     try
@@ -150,6 +149,7 @@ def ConsoleOpen()
     if channel_status != 'open'
       Echoerr($'Failed to open channnel: {channel_status}')
     else
+      logger.Info($'Channel status: {channel_status}, address: {host}:{port}')
       Echowarn($'Channel status: {channel_status}')
     endif
 
@@ -246,6 +246,7 @@ export def SendLines(firstline: number, lastline: number)
   req.params = {lines: getline(firstline, lastline)}
   req.params = extend(req.params, {type: "Send line(s)"})
   var resp = ch_evalexpr(repl_channel, req)
+  logger.Info($"Response from server: '{resp}'")
   if !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
@@ -273,6 +274,7 @@ export def SendCell()
   req.params = {lines: getline(line_in, line_out)}
   req.params = extend(req.params, {type: "Send cell"})
   var resp = ch_evalexpr(repl_channel, req)
+  logger.Info($"Response from server: '{resp}'")
   if !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
@@ -308,6 +310,7 @@ export def SendFile(filename: string = '')
   req.params = {lines: lines}
   req.params = extend(req.params, {type: $"Send file {actual_filename}"})
   var resp = ch_evalexpr(repl_channel, req)
+  logger.Info($"Response from server: '{resp}'")
   if !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
