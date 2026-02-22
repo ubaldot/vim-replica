@@ -1,5 +1,5 @@
 module VimReplica
-using Sockets, JSON, Base.Threads, InteractiveUtils
+using Sockets, JSON, Base.Threads, InteractiveUtils, DataFrames
 
 # -------------------------------
 # Server configuration
@@ -53,29 +53,55 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
                        ))
   end
 end
+function vim_whos_vairnfo(conn::TCPSocket, id::Int, params::Dict)
+  entries = ["aaa", "bbb"]
 
-function vim_whos(conn::TCPSocket, id::Int, params::Dict)
-  entries = []
-  all_vars = Core.eval(Main, :(names(Main, all=true)))
-
-  for n in all_vars
-    # skip any symbol present at server start
-    n in _initial_vars && continue
-
-    # dynamically get the value
-    v = Core.eval(Main, :(getfield(Main, $(QuoteNode(n)))))
-
-    # skip internal/private, functions, modules
-    if startswith(string(n), "_") || v isa Function || v isa Module
-      continue
-    end
-
-    push!(entries, "$(n) = $(v)")
-  end
-  println("entries: ", entries)
-  send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>entries))
+  # println(Core.eval(Main, :(varinfo(Main; all=true))))
+    # if v in Core.eval(Main, :(varinfo(Main; all=true)))
+    #   println("v.content: " , v)
+    #   # push!(entries, v.content)
+    # end
+    send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
 end
 
+function vim_whos(conn::TCPSocket, id::Int, params::Dict)
+    entries = String[]
+
+    all_vars = Core.eval(Main, :(names(Main, all=true)))
+    try
+        # Iterate over all names in Main
+        for name in all_vars
+            # Skip builtin modules and internal names
+            if !(name in _initial_vars)
+
+                # Safely get runtime value
+                val_repr = try
+                    v = Core.eval(Main, :(getfield(Main, $(QuoteNode(name)))))
+
+                    # Summarize objects cleanly
+                    if v isa AbstractArray
+                        "$(typeof(v)) of size $(size(v))"
+                    elseif typeof(v) <: DataFrames.DataFrame
+                        "DataFrame with $(nrow(v)) rows × $(ncol(v)) cols"
+                    elseif v isa String
+                        # optionally truncate very long strings
+                        length(v) > 50 ? "$(v[1:50])…" : v
+                    else
+                        repr(v)  # scalar or small object
+                    end
+                catch e
+                    "[error getting value]"
+                end
+
+                push!(entries, "$name = $val_repr")
+            end
+        end
+    catch e
+        push!(entries, "[vim_whos error] $e")
+    end
+
+    send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
+end
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
   names_list = [string(n) for n in names(Main, all=true) if !startswith(string(n), "_")]
   send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
