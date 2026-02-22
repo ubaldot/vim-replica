@@ -76,32 +76,26 @@ function vim_whos(conn::TCPSocket, id::Int, params::Dict)
 
                 # Safely get runtime value
                 val_repr = try
-                    v = Core.eval(Main, :(getfield(Main, $(QuoteNode(name)))))
-
-                    # Summarize objects cleanly
-                    if v isa AbstractArray
-                        "$(typeof(v)) of size $(size(v))"
-                    elseif typeof(v) <: DataFrames.DataFrame
-                        "DataFrame with $(nrow(v)) rows × $(ncol(v)) cols"
-                    elseif v isa String
-                        # optionally truncate very long strings
-                        length(v) > 50 ? "$(v[1:50])…" : v
-                    else
-                        repr(v)  # scalar or small object
-                    end
+                  v = repr(Core.eval(Main, :(getfield(Main, $(QuoteNode(name))))))
                 catch e
                     "[error getting value]"
                 end
-
-                push!(entries, "$name = $val_repr")
+              # TODO: differentiate repr by data type
+              val_repr = replace(val_repr, '\0' => '\n')  # replace nulls with newline
+              val_repr = length(val_repr) > 100 ? first(val_repr, 100) * "…" : val_repr
+              push!(entries, "$name = $val_repr")
             end
         end
     catch e
         push!(entries, "[vim_whos error] $e")
     end
-
+    tmp = entries
+    for x in tmp
+      println(x)
+    end
     send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
 end
+
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
   names_list = [string(n) for n in names(Main, all=true) if !startswith(string(n), "_")]
   send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
