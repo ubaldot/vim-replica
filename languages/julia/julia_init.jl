@@ -53,46 +53,9 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
                        ))
   end
 end
-function vim_whos_vairnfo(conn::TCPSocket, id::Int, params::Dict)
-  entries = ["aaa", "bbb"]
-
-  # println(Core.eval(Main, :(varinfo(Main; all=true))))
-    # if v in Core.eval(Main, :(varinfo(Main; all=true)))
-    #   println("v.content: " , v)
-    #   # push!(entries, v.content)
-    # end
-    send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
-end
-
 function vim_whos(conn::TCPSocket, id::Int, params::Dict)
-    entries = String[]
-
-    all_vars = Core.eval(Main, :(names(Main, all=true)))
-    try
-        # Iterate over all names in Main
-        for name in all_vars
-            # Skip builtin modules and internal names
-            if !(name in _initial_vars)
-
-                # Safely get runtime value
-                val_repr = try
-                  v = repr(Core.eval(Main, :(getfield(Main, $(QuoteNode(name))))))
-                catch e
-                    "[error getting value]"
-                end
-              # TODO: differentiate repr by data type
-              val_repr = replace(val_repr, '\0' => '\n')  # replace nulls with newline
-              val_repr = length(val_repr) > 100 ? first(val_repr, 100) * "…" : val_repr
-              push!(entries, "$name = $val_repr")
-            end
-        end
-    catch e
-        push!(entries, "[vim_whos error] $e")
-    end
-    tmp = entries
-    for x in tmp
-      println(x)
-    end
+    v = Core.eval(Main, :(varinfo(Main; all=true)))
+    entries = split(repr(v), "\n")
     send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
 end
 
