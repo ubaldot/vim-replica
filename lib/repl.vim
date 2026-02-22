@@ -11,7 +11,7 @@ export var repl_channel: channel = null_channel
 
 # OBS this shall be the same used in scripts
 const host: string = 'localhost'
-const port: string = '8765'
+const port: string = '6969'
 export var msg_id = 1
 
 export def Echoerr(msg: string)
@@ -57,14 +57,9 @@ def Init()
   logger.Info($"console position: '{g:replica_config.console_position}'")
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
-  logger.Info($"repl_prompt: '{b:repl_prompt}'")
-  logger.Info($'repl_name: {b:repl_name}')
+  logger.Info($'repl_name: {b:repl_start_cmd}')
   logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
   logger.Info($"repl_options: '{b:repl_options}'")
-  logger.Info($"vim inspect function: {b:vim_inspect_function('x')}")
-  logger.Info($"vim whos function: {b:vim_whos_function()}")
-  logger.Info($"run command: {b:run_command('x')}")
-  logger.Info($"incremental prompt: '{b:incremental_prompt}'")
   logger.Info("-----------------------------------")
 
 
@@ -116,7 +111,7 @@ def ConsoleOpen()
     Init()
     logger.Info("create new console")
 
-    var start_cmd = $"{b:repl_name} {b:repl_options}"
+    var start_cmd = $"{b:repl_start_cmd} {b:repl_options}"
 
     # Send scripts to enable __vim_inspect() to the repl
     logger.Info($'start_cmd: {start_cmd}')
@@ -172,13 +167,8 @@ def ConsoleOpen()
   b:repl_bufnr = job_id
 
   setbufvar(bufnr('$'), 'console_name', b:console_name)
-  setbufvar(bufnr('$'), 'repl_name', b:repl_name)
+  setbufvar(bufnr('$'), 'repl_start_cmd', b:repl_start_cmd)
   setbufvar(bufnr('$'), 'repl_bufnr', b:repl_bufnr)
-  setbufvar(bufnr('$'), 'repl_prompt', b:repl_prompt)
-
-  setbufvar(bufnr('$'), 'vim_inspect_function', b:vim_inspect_function)
-  setbufvar(bufnr('$'), 'vim_whos_function', b:vim_whos_function)
-  setbufvar(bufnr('$'), 'vim_variable_names_function', b:vim_variable_names_function)
 
 enddef
 

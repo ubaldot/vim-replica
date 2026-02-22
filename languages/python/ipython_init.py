@@ -9,14 +9,14 @@ from IPython import get_ipython  # type: ignore
 from IPython.core.interactiveshell import InteractiveShell  # type: ignore
 
 _HOST = "127.0.0.1"
-_PORT = 8765
+_PORT = 6969
 _server_running = True
 
 
 # -------------------------------------------------------------------
 # Helper to send JSON-RPC messages over a TCP socket
 # -------------------------------------------------------------------
-def send_response(conn: socket.socket, data: dict):
+def __send_response(conn: socket.socket, data: dict):
     """
     REPL->VIM
     Sends a JSON-RPC message over the socket with Content-Length framing.
@@ -91,7 +91,7 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
                 print(repr(obj))
 
         # SUCCESS RESPONSE
-        send_response(
+        __send_response(
             conn,
             {
                 "jsonrpc": "2.0",
@@ -133,7 +133,7 @@ def __vim_whos(conn, msg_id, params=None):
         finally:
             ip.user_ns = original_ns
 
-    send_response(
+    __send_response(
         conn,
         {
             "jsonrpc": "2.0",
@@ -162,7 +162,7 @@ def __vim_variable_names(conn: socket.socket, msg_id: int, params=None):
         and not isinstance(val, EXCLUDED_TYPES)
     ]
 
-    send_response(
+    __send_response(
         conn,
         {
             "jsonrpc": "2.0",
@@ -192,12 +192,12 @@ def __vim_send_cell(conn: socket.socket, msg_id: int, params=None):
         result_obj = ip.run_cell(code)
 
         if msg_id is not None and result_obj.success:
-            send_response(
+            __send_response(
                 conn,
                 {
                     "jsonrpc": "2.0",
                     "id": msg_id,
-                    "result": f"{params.get('type')}: success",
+                    "result": [f"{params.get('type')}: success"],
                 },
             )
         elif msg_id is not None and not result_obj.success:
@@ -211,19 +211,19 @@ def __vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
     _server_running = False
 
     if msg_id is not None:
-        send_response(
+        __send_response(
             conn,
             {
                 "jsonrpc": "2.0",
                 "id": msg_id,
-                "result": "Shutting down server",
+                "result": ["Shutting down server"],
             },
         )
 
 
 def __vim_error_response(conn: socket.socket, msg_id: int, code, message):
     if msg_id is not None:
-        send_response(
+        __send_response(
             conn,
             {
                 "jsonrpc": "2.0",
@@ -249,7 +249,7 @@ _METHODS: dict[str, _HandlerType] = {
 }
 
 
-def validate_jsonrpc(message):
+def __validate_jsonrpc(message):
     if not isinstance(message, dict):
         return False
     if message.get("jsonrpc") != "2.0":
@@ -259,14 +259,14 @@ def validate_jsonrpc(message):
     return True
 
 
-def handle_request(conn: socket.socket, message: Any):
+def __handle_request(conn: socket.socket, message: Any):
     global _server_running
 
     try:
         # -----------------------------
         # JSON-RPC basic validation
         # -----------------------------
-        if not validate_jsonrpc(message):
+        if not __validate_jsonrpc(message):
             __vim_error_response(
                 conn, message.get("id"), -32600, "Invalid Request"
             )
@@ -304,7 +304,7 @@ def handle_request(conn: socket.socket, message: Any):
 # -------------------------------------------------------------------
 # TCP server helpers
 # -------------------------------------------------------------------
-def read_message(conn: socket.socket):
+def __read_message(conn: socket.socket):
     """
     VIM->REPL
     Read one JSON-RPC message from a socket using Content-Length framing.
@@ -340,15 +340,15 @@ def read_message(conn: socket.socket):
 # -------------------------------------------------------------------
 # Server entry
 # -------------------------------------------------------------------
-def handle_client(conn: socket.socket, addr):
+def __handle_client(conn: socket.socket, addr):
     print(f"Vim connected from {addr}\n")
 
     try:
         while _server_running:
-            message = read_message(conn)
+            message = __read_message(conn)
             if message is None:
                 break
-            handle_request(conn, message)
+            __handle_request(conn, message)
 
     except Exception as e:
         print(f"Client error: {e}")
@@ -358,7 +358,7 @@ def handle_client(conn: socket.socket, addr):
         print("Connection closed\n")
 
 
-def start_server():
+def __start_server():
     global _server_running
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -368,17 +368,16 @@ def start_server():
 
         print(f"IPython runtime TCP server running on {_HOST}:{_PORT}")
 
-        while _server_running:
-            try:
-                conn, addr = s.accept()
-            except OSError:
-                break  # socket closed
+        try:
+            conn, addr = s.accept()
+        except OSError:
+            _server_running = False  # socket closed
 
-            handle_client(conn, addr)
+        __handle_client(conn, addr)
 
     print("Server stopped")
 
 
 # Run server in background to keep IPython interactive
-_server_thread = Thread(target=start_server, daemon=True)
+_server_thread = Thread(target=__start_server, daemon=True)
 _server_thread.start()

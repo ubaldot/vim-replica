@@ -5,13 +5,14 @@ using Sockets, JSON, Base.Threads, InteractiveUtils, DataFrames
 # Server configuration
 # -------------------------------
 const _HOST = ip"127.0.0.1"
-const _PORT = 8765
+const _PORT = 6969
 const _server_running = Ref(true)
 const _initial_vars = Set(Core.eval(Main, :(names(Main, all=true))))
+
 # -------------------------------
 # Helper to send JSON-RPC messages to Vim
 # -------------------------------
-function send_lsp(conn::TCPSocket, data::Dict)
+function send_response(conn::TCPSocket, data::Dict)
   payload = JSON.json(data)
   payload_bytes = codeunits(payload)  # UTF-8 bytes
   header = "Content-Length: $(length(payload_bytes))\r\n\r\n"
@@ -23,7 +24,6 @@ end
 # Handlers
 # -------------------------------
 function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
-  # TODO: DataFrames
   variable = get(params, "variable", "")
   try
     obj = try
@@ -31,7 +31,7 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
       Core.eval(Main, Meta.parse(variable))
       # eval(Main, Meta.parse(variable))
     catch e
-      send_lsp(conn, Dict(
+      send_response(conn, Dict(
                           "jsonrpc"=>"2.0",
                           "id"=>id,
                           "error"=>Dict("code"=>-32603,"message"=>"Evaluation failed: $e")
@@ -46,31 +46,35 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
     elseif obj isa DataFrame
       split(repr(obj), "\n")
     else
-      # Scalar
-      [obj]
+      # Scalar or other
+      [repr(obj)]
     end
 
     result_str = [string(x) for x in result]
-    send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>result_str))
+    send_response(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>result_str))
 
   catch e
-    send_lsp(conn, Dict(
+    send_response(conn, Dict(
                         "jsonrpc"=>"2.0",
                         "id"=>id,
                         "error"=>Dict("code"=>-32603,"message"=>"Evaluation failed: $e")
                        ))
   end
 end
+
+
 function vim_whos(conn::TCPSocket, id::Int, params::Dict)
     v = Core.eval(Main, :(varinfo(Main; all=true)))
     entries = split(repr(v), "\n")
-    send_lsp(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
+    send_response(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
 end
+
 
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
   names_list = [string(n) for n in Core.eval(Main, :(names(Main, all=true)))]
-  send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
+  send_response(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
 end
+
 
 function vim_send_cell(conn::TCPSocket, id::Int, params::Dict{String,Any})
   lines = get(params, "lines", [])
@@ -80,13 +84,13 @@ function vim_send_cell(conn::TCPSocket, id::Int, params::Dict{String,Any})
     # Evaluate entire code in Main's global scope
     include_string(Main, code)
 
-    send_lsp(conn, Dict(
+    send_response(conn, Dict(
                         "jsonrpc" => "2.0",
                         "id"      => id,
                         "result"  => "$(get(params, "type", "cell")): executed successfully"
                        ))
   catch e
-    send_lsp(conn, Dict(
+    send_response(conn, Dict(
                         "jsonrpc" => "2.0",
                         "id"      => id,
                         "error"   => Dict("code"=>-32603, "message"=>"Execution failed: $e")
@@ -151,10 +155,10 @@ function handle_client(conn::TCPSocket, addr)
             method = get(msg, "method", "")
             params_raw = get(msg, "params", Dict())
             params = isa(params_raw, JSON.Object) ? Dict(params_raw) : params_raw
-            println("Received method: ", method)
+            # println("Received method: ", method)
             handler = get(METHODS, method, nothing)
             if handler === nothing
-                send_lsp(conn, Dict(
+                send_response(conn, Dict(
                     "jsonrpc" => "2.0",
                     "id"      => id,
                     "error"   => Dict("code"=>-32601, "message"=>"Method not found: $method")
