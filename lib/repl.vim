@@ -489,9 +489,9 @@ export def VimInspect(
   endif
 
   if g:replica_config.display_variables == 'popup'
-    DisplayVariablePopup(split(resp.result, "\n"), req.params.variable)
+    DisplayVariablePopup(resp.result, req.params.variable)
   else
-    DisplayVariable(split(resp.result, "\n"), req.params.variable)
+    DisplayVariable(resp.result, req.params.variable)
   endif
 
 enddef
