@@ -23,10 +23,13 @@ end
 # Handlers
 # -------------------------------
 function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
+  # TODO: DataFrames
   variable = get(params, "variable", "")
   try
     obj = try
-      eval(Main, Meta.parse(variable))
+
+      Core.eval(Main, Meta.parse(variable))
+      # eval(Main, Meta.parse(variable))
     catch e
       send_lsp(conn, Dict(
                           "jsonrpc"=>"2.0",
@@ -39,11 +42,15 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
     # Convert object to a Vim-compatible type
     result = if obj isa AbstractArray
       obj isa AbstractMatrix ? [join(row, "\t") for row in eachrow(obj)] : collect(obj)
+    elseif obj isa DataFrame
+      split(repr(obj), "\n")
     else
-      string(obj)
+      # Scalar
+      [obj]
     end
 
-    send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>result))
+    result_str = [string(x) for x in result]
+    send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>result_str))
 
   catch e
     send_lsp(conn, Dict(
