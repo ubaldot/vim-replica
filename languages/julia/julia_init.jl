@@ -68,7 +68,7 @@ function vim_whos(conn::TCPSocket, id::Int, params::Dict)
 end
 
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
-  names_list = [string(n) for n in names(Main, all=true) if !startswith(string(n), "_")]
+  names_list = [string(n) for n in Core.eval(Main, :(names(Main, all=true)))]
   send_lsp(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
 end
 

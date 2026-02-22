@@ -337,7 +337,7 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
     return []
   endif
 
-  return split(resp.result, "\n")->filter($'v:val =~ "^{A}"')
+  return resp.result->filter($'v:val =~ "^{A}"')
 enddef
 
 # Used only to allow utilization of GetCompleteList in unit-tests
