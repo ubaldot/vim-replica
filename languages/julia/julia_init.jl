@@ -1,5 +1,5 @@
 module VimReplica
-using Sockets, JSON, Base.Threads, InteractiveUtils, DataFrames
+using Sockets, JSON, DataFrames
 
 # -------------------------------
 # Server configuration
@@ -28,6 +28,7 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
   try
     obj = try
 
+      # TODO: may be unsafe
       Core.eval(Main, Meta.parse(variable))
       # eval(Main, Meta.parse(variable))
     catch e
@@ -62,16 +63,15 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
   end
 end
 
-
 function vim_whos(conn::TCPSocket, id::Int, params::Dict)
+  # TODO: you may filter based on _initial_vars
     v = Core.eval(Main, :(varinfo(Main; all=true)))
     entries = split(repr(v), "\n")
     send_response(conn, Dict("jsonrpc"=>"2.0", "id"=>id, "result"=>entries))
 end
 
-
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
-  names_list = [string(n) for n in Core.eval(Main, :(names(Main, all=true)))]
+  names_list = [string(n) for n in Core.eval(Main, :(names(Main, all=true))) if n ∉ _initial_vars]
   send_response(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
 end
 
@@ -82,6 +82,7 @@ function vim_send_cell(conn::TCPSocket, id::Int, params::Dict{String,Any})
 
   try
     # Evaluate entire code in Main's global scope
+    # TODO: may be unsafe
     include_string(Main, code)
 
     send_response(conn, Dict(
