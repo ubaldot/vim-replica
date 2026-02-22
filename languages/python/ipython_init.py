@@ -96,7 +96,7 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
             {
                 "jsonrpc": "2.0",
                 "id": msg_id,
-                "result": buf.getvalue(),
+                "result": buf.getvalue().split("\n"),
             },
         )
 
@@ -134,7 +134,12 @@ def __vim_whos(conn, msg_id, params=None):
             ip.user_ns = original_ns
 
     send_response(
-        conn, {"jsonrpc": "2.0", "id": msg_id, "result": buf.getvalue()}
+        conn,
+        {
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": buf.getvalue().split("\n"),
+        },
     )
 
 
@@ -157,14 +162,12 @@ def __vim_variable_names(conn: socket.socket, msg_id: int, params=None):
         and not isinstance(val, EXCLUDED_TYPES)
     ]
 
-    result = "\n".join(sorted(names))
-
     send_response(
         conn,
         {
             "jsonrpc": "2.0",
             "id": msg_id,
-            "result": result,
+            "result": sorted(names),
         },
     )
 
@@ -227,7 +230,7 @@ def __vim_error_response(conn: socket.socket, msg_id: int, code, message):
                 "id": msg_id,
                 "error": {
                     "code": code,
-                    "message": message,
+                    "message": [message],
                 },
             },
         )
@@ -337,8 +340,6 @@ def read_message(conn: socket.socket):
 # -------------------------------------------------------------------
 # Server entry
 # -------------------------------------------------------------------
-
-
 def handle_client(conn: socket.socket, addr):
     print(f"Vim connected from {addr}\n")
 
