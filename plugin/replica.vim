@@ -82,22 +82,6 @@ elseif index(["H", "J", "K", "L"], g:replica_config.console_position) == -1
   echoerr "[vim-replica]: 'g:replica_config.console_position' must be one of 'HJKL'"
 endif
 
-if !exists('g:replica_config.console_width')
-  if index(["H", "L"], g:replica_config.console_position) >= 0
-    g:replica_config.console_width = &columns / 2
-  else
-    g:replica_config.console_width = &columns
-  endif
-endif
-
-if !exists('g:replica_config.console_height')
-  if index(["H", "L"], g:replica_config.console_position) >= 0
-    g:replica_config.console_height = &lines
-  else
-    g:replica_config.console_height = &lines / 4
-  endif
-endif
-
 if !exists('g:replica_config.repl_options')
   g:replica_config.repl_options = {
       python: "",
@@ -202,4 +186,31 @@ augroup REPLICA_INIT_BUFFERS
     # concatenate strings
     exe "autocmd FileType " .. val .. " InitBuffers()"
   endfor
+augroup END
+
+def GetInitialGeometry()
+
+if !exists('g:replica_config.console_width')
+  if index(["H", "L"], g:replica_config.console_position) >= 0
+    g:replica_config.console_width = &columns / 2
+  else
+    g:replica_config.console_width = &columns
+  endif
+endif
+
+if !exists('g:replica_config.console_height')
+  if index(["H", "L"], g:replica_config.console_position) >= 0
+    g:replica_config.console_height = &lines
+  else
+    g:replica_config.console_height = &lines / 4
+  endif
+endif
+
+enddef
+
+augroup REPLICA_GET_GEOMETRY
+  # this is done for getting the initial geometry, after all the script have
+  # been loaded and the window is clearly defined
+  autocmd!
+  autocmd VimEnter * GetInitialGeometry()
 augroup END

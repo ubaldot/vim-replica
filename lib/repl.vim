@@ -53,7 +53,6 @@ def Init()
     }
   endif
 
-
   logger.Info($"console position: '{g:replica_config.console_position}'")
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
@@ -67,7 +66,7 @@ enddef
 
 def ResizeConsoleWindow(console_win_id: number)
 
-  logger.Info("resize console window")
+  logger.Info("resizing console window")
 
   win_execute(console_win_id, $'resize {console_geometry["height"]}')
   win_execute(console_win_id, $'vertical resize {console_geometry["width"]}')
@@ -135,7 +134,7 @@ def ConsoleOpen()
 
     # TODO: very bad hack
     # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
-    term_wait(bufnr('$'), 5000)
+    term_wait(bufnr('$'), 10000)
 
     # Opem channel
     repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
@@ -235,9 +234,14 @@ export def SendLines(firstline: number, lastline: number)
   req.method = 'runtime/vim_send_cell'
   req.params = {lines: getline(firstline, lastline)}
   req.params = extend(req.params, {type: "Send line(s)"})
+  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
   var resp = ch_evalexpr(repl_channel, req)
   logger.Info($"Response from server: '{resp}'")
-  if !Repl_response_OK(resp)
+
+  if empty(resp)
+    Echoerr("Empty response from the server")
+    return
+  elseif !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
   endif
@@ -263,9 +267,15 @@ export def SendCell()
   req.method = 'runtime/vim_send_cell'
   req.params = {lines: getline(line_in, line_out)}
   req.params = extend(req.params, {type: "Send cell"})
+  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
   var resp = ch_evalexpr(repl_channel, req)
   logger.Info($"Response from server: '{resp}'")
-  if !Repl_response_OK(resp)
+
+
+  if empty(resp)
+    Echoerr("Empty response from the server")
+    return
+  elseif !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
   endif
@@ -299,12 +309,18 @@ export def SendFile(filename: string = '')
   req.method = 'runtime/vim_send_cell'
   req.params = {lines: lines}
   req.params = extend(req.params, {type: $"Send file {actual_filename}"})
+  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
   var resp = ch_evalexpr(repl_channel, req)
   logger.Info($"Response from server: '{resp}'")
-  if !Repl_response_OK(resp)
+
+  if empty(resp)
+    Echoerr("Empty response from the server")
+    return
+  elseif !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return
   endif
+
   echo resp.result
   logger.Info($"sent file: '{actual_filename}'")
 enddef
@@ -321,8 +337,13 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   req.id = msg_id + 1
   req.method = 'runtime/vim_variable_names'
 
+  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
   var resp = ch_evalexpr(repl_channel, req)
-  if !Repl_response_OK(resp)
+
+  if empty(resp)
+    Echoerr("Empty response from the server")
+    return []
+  elseif !Repl_response_OK(resp)
     Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
     return []
   endif
@@ -455,8 +476,13 @@ export def VimInspect(
     req.method = 'runtime/vim_inspect'
     req.params = {variable: variable_single_quoted}
 
+    logger.Info($"channel_status: '{ch_status(repl_channel)}'")
     resp = ch_evalexpr(repl_channel, req)
-    if !Repl_response_OK(resp)
+
+    if empty(resp)
+      Echoerr("Empty response from the server")
+      return
+    elseif !Repl_response_OK(resp)
       Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
       return
     endif
@@ -469,11 +495,17 @@ export def VimInspect(
     req.method = 'runtime/vim_whos'
     req.params = {variable: ''}
 
+    logger.Info($"channel_status: '{ch_status(repl_channel)}'")
     resp = ch_evalexpr(repl_channel, req)
-    if !Repl_response_OK(resp)
+
+    if empty(resp)
+      Echoerr("Empty response from the server")
+      return
+    elseif !Repl_response_OK(resp)
       Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
       return
     endif
+
 
     logger.Info($"Whos: {resp.result}")
   endif
