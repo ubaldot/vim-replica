@@ -434,75 +434,77 @@ END
   Cleanup_testfile(src_name)
 enddef
 
-# def g:Test_python_getcompletion()
-#   v:errmsg = ''
-#   v:errors = []
-#   messages clear
+def g:Test_python_getcompletion()
+  v:errmsg = ''
+  v:errors = []
+  messages clear
 
-#   const src_name = 'testfile.py'
-#   const lines =<< trim END
-#     import numpy as np
-#     import pandas as pd
+  const src_name = 'testfile.py'
+  const lines =<< trim END
+    import numpy as np
+    import pandas as pd
 
-#     # Test single variable
-#     FOO = 110
+    # Test single variable
+    FOO = 110
 
-#     # Test numpy array
-#     A = np.array([[1, 2, 3], [4, 5, 6]])
+    # Test numpy array
+    A = np.array([[1, 2, 3], [4, 5, 6]])
 
-#     # Test pandas dataframe
-#     df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
-#   END
+    # Test pandas dataframe
+    df = pd.DataFrame(A, columns=["a", "b", "c"], index=["row1", "row2"])
+  END
 
-#   Generate_testfile(lines, src_name)
-#   exe $"edit {src_name}"
+  Generate_testfile(lines, src_name)
+  exe $"edit {src_name}"
 
-#   # Check that the buffer variables are set
-#   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
+  # Check that the buffer variables are set
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-#   # Start console
-#   exe "ReplicaConsoleToggle"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Start console
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   if !empty(v:errmsg)
-#     :%bw!
-#     throw v:errmsg
-#   endif
+  if !empty(v:errmsg)
+    :%bw!
+    throw v:errmsg
+  endif
 
-#   var bufnr = b:repl_bufnr
-#   var expected_prompt = 'In\s\[1\]:\s*$'
-#   WaitForPrompt(expected_prompt)
+  var bufnr = b:repl_bufnr
+  var expected_prompt = 'In\s\[1\]:\s*$'
+  WaitForPrompt(expected_prompt)
 
-#   var lastline = LastNonEmptyLine(bufnr)
-#   assert_match(expected_prompt, lastline)
+  var lastline = LastNonEmptyLine(bufnr)
+  # assert_match(expected_prompt, lastline)
+  term_wait(bufnr, 8000)
 
-#   # Now the game starts
-#   exe 'ReplicaSendFile'
-#   expected_prompt = 'In\s\[2\]:\s*$'
-#   WaitForPrompt(expected_prompt)
+  # Now the game starts
+  exe 'ReplicaSendFile'
+  expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
+  redraw
 
-#   lastline = LastNonEmptyLine(bufnr)
-#   assert_match(expected_prompt, lastline)
+  lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
 
-#   # test start
-#   const expected_value = ['A', 'FOO', 'df']
+  # test start
+  const expected_value = ['A', 'FOO', 'df']
 
-#   g:XXX = repl.funcs_dict.GetCompleteList
-#   const actual_value = getcompletion('', 'customlist,XXX')
+  g:XXX = repl.funcs_dict.GetCompleteList
+  const actual_value = getcompletion('', 'customlist,XXX')
 
-#   assert_equal(expected_value, actual_value)
+  assert_equal(expected_value, actual_value)
 
-#   # ---- teardown tests ----
-#   exe "ReplicaConsoleShutoff"
-#   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-#   WaitForAssert(() => assert_equal(1, winnr('$')))
+  # ---- teardown tests ----
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
-#   if !empty(v:errors) || !empty(v:errmsg)
-#     echom "Test failed!"
-#   else
-#     echom "Test passed!"
-#   endif
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
 
-#   :%bw!
-#   Cleanup_testfile(src_name)
-# enddef
+  :%bw!
+  Cleanup_testfile(src_name)
+enddef
