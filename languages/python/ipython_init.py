@@ -33,6 +33,8 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
     buf = io.StringIO()
 
     variable = params.get("variable", "")
+    print(f"inspecting variable {variable}")
+    print(f"ip.user_ns.items(): {get_ipython().user_ns.items()}")
 
     try:
         with contextlib.redirect_stdout(buf):
@@ -96,7 +98,7 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
             {
                 "jsonrpc": "2.0",
                 "id": msg_id,
-                "result": buf.getvalue().split("\n"),
+                "result": buf.getvalue().rstrip("\n").split("\n"),
             },
         )
 
@@ -105,7 +107,7 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
 
 
 def __vim_whos(conn, msg_id, params=None):
-    ip = get_ipython()
+    ip: InteractiveShell | None = get_ipython()
     if ip is None:
         __vim_error_response(conn, msg_id, -32603, "Not inside IPython")
         return
@@ -138,7 +140,7 @@ def __vim_whos(conn, msg_id, params=None):
         {
             "jsonrpc": "2.0",
             "id": msg_id,
-            "result": buf.getvalue().split("\n"),
+            "result": buf.getvalue().rstrip("\n").split("\n"),
         },
     )
 

@@ -107,7 +107,7 @@ END
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -234,7 +234,7 @@ END
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -378,7 +378,7 @@ fi
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
@@ -393,6 +393,7 @@ fi
 
   # Now the game starts
   exe 'ReplicaSendFile'
+  WaitForPrompt(expected_prompt)
   redraw
 
   # test start

@@ -5,14 +5,12 @@ vim9script
 
 # OBS! Sometimes these tests fail!
 
-# Uncomment for debug
 import "../plugin/replica.vim"
+import "../lib/repl.vim"
 
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
-import "../lib/variable_explorer.vim"
-import "../lib/ftcommands_mappings.vim" as ftcm
 
 def Generate_testfile(lines: list<string>, src_name: string)
   writefile(lines, src_name)
@@ -67,7 +65,7 @@ def g:Test_python_basic()
 
   const src_name = 'testfile.py'
   const lines =<< trim END
-        a = 4
+        FOO = 4
         b = 5
 
         # %%
@@ -82,13 +80,13 @@ def g:Test_python_basic()
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  var expected_prompt = 'In\s\[2\]:\s*$'
+  var expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
 
   var bufnr = b:repl_bufnr
@@ -96,7 +94,7 @@ def g:Test_python_basic()
   assert_match(expected_prompt, lastline)
 
   # ReplicaSendCell
-  var lines_prompts = {4: 'In\s\[3\]:\s*$', 7: 'In\s\[4\]:\s*$', 9: 'In\s\[5\]:\s*$'}
+  var lines_prompts = {4: 'In\s\[2\]:\s*$', 7: 'In\s\[3\]:\s*$', 9: 'In\s\[4\]:\s*$'}
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendCell"
@@ -109,7 +107,7 @@ def g:Test_python_basic()
 
   # ReplicaSendLine
   cursor(1, 1)
-  lines_prompts = {2: 'In\s\[6\]:\s*$', 3: 'In\s\[7\]:\s*$'}
+  lines_prompts = {2: 'In\s\[5\]:\s*$', 3: 'In\s\[6\]:\s*$'}
 
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendLine"
@@ -121,7 +119,7 @@ def g:Test_python_basic()
   endfor
 
   # Double Toggle
-  expected_prompt = 'In\s\[7\]:\s*$'
+  expected_prompt = 'In\s\[6\]:\s*$'
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('IPYTHON')))
@@ -136,7 +134,7 @@ def g:Test_python_basic()
 
   # Restart repl
   exe "ReplicaConsoleRestart"
-  expected_prompt = 'In\s\[2\]:\s*$'
+  expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
   bufnr = b:repl_bufnr
   lastline = LastNonEmptyLine(bufnr)
@@ -145,7 +143,7 @@ def g:Test_python_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
-  expected_prompt = 'In\s\[3\]:\s*$'
+  expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
   lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -195,7 +193,7 @@ def g:Test_unsupported_filetypes()
   # Generate python file
   const python_filename = 'python_testfile.py'
   const python_file_lines =<< trim END
-      a = 2
+      FOO = 2
       b = 3
 
       c = a + b
@@ -260,7 +258,7 @@ def g:Test_python_variable_explorer_basic()
     import pandas as pd
 
     # Test single variable
-    a = 110
+    FOO = 110
 
     # Test numpy array
     A = np.array([[1, 2, 3], [4, 5, 6]])
@@ -273,14 +271,14 @@ def g:Test_python_variable_explorer_basic()
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   var bufnr = b:repl_bufnr
-  var expected_prompt = 'In\s\[2\]:\s*$'
+  var expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)
@@ -288,10 +286,12 @@ def g:Test_python_variable_explorer_basic()
 
   # Send current buffer
   exe "ReplicaSendFile"
+  expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
 
   # -- Test float
   var expected_variable_explorer = ['110']
-  var buf_name = 'a'
+  var buf_name = 'FOO'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -420,7 +420,7 @@ def g:Test_python_getcompletion()
     import pandas as pd
 
     # Test single variable
-    a = 110
+    FOO = 110
 
     # Test numpy array
     A = np.array([[1, 2, 3], [4, 5, 6]])
@@ -433,14 +433,14 @@ def g:Test_python_getcompletion()
   exe $"edit {src_name}"
 
   # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
+  assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   var bufnr = b:repl_bufnr
-  var expected_prompt = 'In\s\[2\]:\s*$'
+  var expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)
@@ -448,12 +448,16 @@ def g:Test_python_getcompletion()
 
   # Now the game starts
   exe 'ReplicaSendFile'
-  redraw
+  expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
+
+  lastline = LastNonEmptyLine(bufnr)
+  assert_match(expected_prompt, lastline)
 
   # test start
-  const expected_value = ['a', 'A', 'df']
+  const expected_value = ['A', 'FOO', 'df']
 
-  g:XXX = ftcm.funcs_dict.GetCompleteList
+  g:XXX = repl.funcs_dict.GetCompleteList
   const actual_value = getcompletion('', 'customlist,XXX')
 
   assert_equal(expected_value, actual_value)
@@ -468,65 +472,6 @@ def g:Test_python_getcompletion()
   else
     echom "Test passed!"
   endif
-
-  :%bw!
-  Cleanup_testfile(src_name)
-enddef
-
-# Tests start here
-def g:Test_python_prompt_change()
-  v:errors = []
-  v:errmsg = ''
-  messages clear
-
-  if exepath('ipython')->empty()
-    echoerr "Skipped: 'ipython' is not found in $PATH"
-  endif
-
-  g:replica_config.force_prompt = true
-
-  const src_name = 'testfile.py'
-  const lines =<< trim END
-        a = 4
-        b = 5
-
-        # %%
-        c = a + b
-
-        # %%
-
-        d = a - b
-  END
-
-  Generate_testfile(lines, src_name)
-  exe $"edit {src_name}"
-
-  # Check that the buffer variables are set
-  assert_false(empty(getbufvar(bufnr(), "repl_name")))
-
-  # Start console
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  var expected_prompt = 'vim_replica>\s*$'
-  WaitForPrompt(expected_prompt)
-
-  var bufnr = b:repl_bufnr
-  var lastline = LastNonEmptyLine(bufnr)
-  assert_match(expected_prompt, lastline)
-
-  # ---- teardown tests ----
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
-
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
-
-  g:replica_config.force_prompt = false
 
   :%bw!
   Cleanup_testfile(src_name)
