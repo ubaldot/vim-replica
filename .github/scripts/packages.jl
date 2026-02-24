@@ -2,6 +2,6 @@ using Pkg
 
 Pkg.add([
     "DataFrames",
-    "PrettyTables"
+    "PrettyTables",
     "JSON"
 ])

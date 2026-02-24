@@ -141,7 +141,7 @@ def ConsoleOpen()
     #   # term_wait(bufnr('$'), 1000) # Does not work
     #   redraw
     # endwhile
-    term_wait(bufnr('$'), 10000)
+    term_wait(bufnr('$'), 20000)
 
     # Opem channel
     repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
