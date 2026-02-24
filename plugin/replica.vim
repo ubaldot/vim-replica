@@ -6,7 +6,7 @@ vim9script
 
 const replica_path = expand('<sfile>:h:h')
 
- # ----- DeprecationWarnings --------------------
+# ----- DeprecationWarnings --------------------
 def DeprecationWarnings(param: string)
   if exists(param)
     echoerr $"[vim-replica]: '{param}' is deprecated. See :h g:replica_config"
@@ -49,12 +49,22 @@ if !isdirectory(data_dir)
   mkdir(data_dir, 'p')
 endif
 
+# File used for SendCell() & friends
+g:replica_config.tmp_filepath = $'{data_dir}/vim_replica.tmp'
+
+if exists('g:replica_config.tmp_filepath')
+    && filereadable(g:replica_config.tmp_filepath)
+  delete(g:replica_config.tmp_filepath)
+endif
+
+
+# File used for logging
 if !exists('g:replica_config.log_filepath')
   g:replica_config.log_filepath = $'{data_dir}/vim_replica.log'
 endif
 
 if !exists('g:replica_config.log_max_size')
-   g:replica_config.log_max_size = 1024 * 1024 # 1 MB
+  g:replica_config.log_max_size = 1024 * 1024 # 1 MB
 endif
 
 if !exists('g:replica_config.debug')
@@ -63,10 +73,10 @@ endif
 
 if g:replica_config.debug
   const head = [
-  '',
-  'Vim-replica-log:',
-  $'{strftime("%d %b %Y %X")}',
-  '---------------------'
+    '',
+    'Vim-replica-log:',
+    $'{strftime("%d %b %Y %X")}',
+    '---------------------'
   ]
   writefile(head, g:replica_config.log_filepath, 'a')
 endif
@@ -84,12 +94,12 @@ endif
 
 if !exists('g:replica_config.repl_options')
   g:replica_config.repl_options = {
-      python: "",
-      julia: "",
-      r: "",
-      sh: "",
-      zsh: ""
-    }
+    python: "",
+    julia: "",
+    r: "",
+    sh: "",
+    zsh: ""
+  }
 endif
 
 # Dicts. Keys must be Vim filetypes
@@ -107,6 +117,14 @@ var console_names = {
   r: "R",
   sh: "BASH",
   zsh: "ZSH"
+}
+
+var run_commands = {
+  python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}\n",
+  julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
+  r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
+  sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
+  zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
 }
 
 # ---- ftcommands_mappings.vim setup ------
@@ -151,6 +169,7 @@ def InitBuffers()
   # -- REPL init ----
   b:repl_start_cmd = start_cmds[&filetype]
   b:console_name = console_names[&filetype]
+  b:run_command = run_commands[&filetype]
 
   b:repl_options = exists('g:replica_config.repl_options') ? g:replica_config.repl_options[&filetype] : ''
 
@@ -190,21 +209,21 @@ augroup END
 
 def GetInitialGeometry()
 
-if !exists('g:replica_config.console_width')
-  if index(["H", "L"], g:replica_config.console_position) >= 0
-    g:replica_config.console_width = &columns / 2
-  else
-    g:replica_config.console_width = &columns
+  if !exists('g:replica_config.console_width')
+    if index(["H", "L"], g:replica_config.console_position) >= 0
+      g:replica_config.console_width = &columns / 2
+    else
+      g:replica_config.console_width = &columns
+    endif
   endif
-endif
 
-if !exists('g:replica_config.console_height')
-  if index(["H", "L"], g:replica_config.console_position) >= 0
-    g:replica_config.console_height = &lines
-  else
-    g:replica_config.console_height = &lines / 4
+  if !exists('g:replica_config.console_height')
+    if index(["H", "L"], g:replica_config.console_position) >= 0
+      g:replica_config.console_height = &lines
+    else
+      g:replica_config.console_height = &lines / 4
+    endif
   endif
-endif
 
 enddef
 
@@ -213,4 +232,8 @@ augroup REPLICA_GET_GEOMETRY
   # been loaded and the window is clearly defined
   autocmd!
   autocmd VimEnter * GetInitialGeometry()
+augroup END
+
+augroup REPLICA_DELETE_TMP_FILE
+  autocmd VimLeave * delete(g:replica_config.tmp_filepath)
 augroup END

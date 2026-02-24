@@ -172,40 +172,6 @@ def __vim_variable_names(conn: socket.socket, msg_id: int, params=None):
     )
 
 
-def __vim_send_cell(conn: socket.socket, msg_id: int, params=None):
-    """
-    This is used for sending lines, cells and files.
-
-    Upstream, everything is converted to a list of strings that can be
-    interpreted as list of strings.
-    """
-    ip: InteractiveShell | None = get_ipython()
-
-    if ip is None:
-        __vim_error_response(conn, msg_id, -32603, "Not inside IPython")
-        return
-    else:
-        code = params.get("lines", "")
-        if isinstance(code, list):
-            code = "\n".join(code)
-
-        result_obj = ip.run_cell(code)
-
-        if msg_id is not None and result_obj.success:
-            __send_response(
-                conn,
-                {
-                    "jsonrpc": "2.0",
-                    "id": msg_id,
-                    "result": [f"{params.get('type')}: success"],
-                },
-            )
-        elif msg_id is not None and not result_obj.success:
-            __vim_error_response(
-                conn, msg_id, -32601, f"{params.get('type')} failed"
-            )
-
-
 def __vim_server_shutdown(conn: socket.socket, msg_id: int, params=None):
     global _server_running
     _server_running = False
@@ -244,7 +210,6 @@ _METHODS: dict[str, _HandlerType] = {
     "runtime/vim_inspect": __vim_inspect,
     "runtime/vim_whos": __vim_whos,
     "runtime/vim_variable_names": __vim_variable_names,
-    "runtime/vim_send_cell": __vim_send_cell,
     "runtime/vim_shutdown": __vim_server_shutdown,
 }
 

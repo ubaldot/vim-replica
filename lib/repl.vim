@@ -57,6 +57,7 @@ def Init()
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
   logger.Info($'repl_name: {b:repl_start_cmd}')
+  logger.Info($"run command: {b:run_command('x')}")
   logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
   logger.Info($"repl_options: '{b:repl_options}'")
   logger.Info("-----------------------------------")
@@ -229,27 +230,11 @@ export def SendLines(firstline: number, lastline: number)
     ConsoleOpen()
   endif
 
-  var req = {}
-  req.id = msg_id + 1
-  req.method = 'runtime/vim_send_cell'
-  req.params = {lines: getline(firstline, lastline)}
-  req.params = extend(req.params, {type: "Send line(s)"})
-  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-  var resp = ch_evalexpr(repl_channel, req)
-  logger.Info($"Response from server: '{resp}'")
-
-  if empty(resp)
-    Echoerr("Empty response from the server")
-    return
-  elseif !Repl_response_OK(resp)
-    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
-    return
-  endif
-
-  echo resp.result
-  logger.Info($"sent line(s): {string(req.params.lines)}")
-  # Jump to the next cell
-  cursor(lastline + 1, getcurpos()[2])
+  for line in getline(firstline, lastline)
+    term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}\n")
+    logger.Info($"sent lines: '{line}'")
+  endfor
+  norm! ^j
 enddef
 
 
@@ -261,68 +246,32 @@ export def SendCell()
   var extremes = highlight.GetExtremes()
   var line_in = extremes[0]
   var line_out = extremes[1]
-
-  var req = {}
-  req.id = msg_id + 1
-  req.method = 'runtime/vim_send_cell'
-  req.params = {lines: getline(line_in, line_out)}
-  req.params = extend(req.params, {type: "Send cell"})
-  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-  var resp = ch_evalexpr(repl_channel, req)
-  logger.Info($"Response from server: '{resp}'")
-
-
-  if empty(resp)
-    Echoerr("Empty response from the server")
-    return
-  elseif !Repl_response_OK(resp)
-    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
-    return
-  endif
-
-  echo resp.result
-  logger.Info($"sent cell: {string(req.params.lines)}")
   # Jump to the next cell
   cursor(line_out, getcurpos()[2])
-enddef
+  # Overwrite tmp file
+  writefile(getline(line_in, line_out), g:replica_config.tmp_filepath)
+  term_sendkeys(bufnr($'^{b:console_name}$'),
+    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
 
+  logger.Info($"sent cell: {string(getline(line_in, line_out))}")
+enddef
 
 export def SendFile(filename: string = '')
 
+  # If there are open terminals with different names than IPYTHON,
+  # JULIA, etc. it will open its own
   if !ConsoleExists()
     ConsoleOpen()
   endif
-
-  var lines: list<string>  = []
   if empty(filename)
-    lines = getline(1, '$')
-  elseif filereadable(filename)
-    lines = readfile(filename)
+    writefile(getline(1, '$'), g:replica_config.tmp_filepath)
+    logger.Info('sent: current buffer')
   else
-    Echoerr($'Cannot read file ''{filename}''')
-    return
+    writefile(readfile(filename), g:replica_config.tmp_filepath)
+    logger.Info($"sent file: '{filename}'")
   endif
-
-  var actual_filename = empty(filename) ? expand('%') : filename
-  var req = {}
-  req.id = msg_id + 1
-  req.method = 'runtime/vim_send_cell'
-  req.params = {lines: lines}
-  req.params = extend(req.params, {type: $"Send file {actual_filename}"})
-  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-  var resp = ch_evalexpr(repl_channel, req)
-  logger.Info($"Response from server: '{resp}'")
-
-  if empty(resp)
-    Echoerr("Empty response from the server")
-    return
-  elseif !Repl_response_OK(resp)
-    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
-    return
-  endif
-
-  echo resp.result
-  logger.Info($"sent file: '{actual_filename}'")
+  term_sendkeys(bufnr($'^{b:console_name}$'),
+    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
 enddef
 
 # ---------------------------------------
