@@ -33,8 +33,6 @@ def __vim_inspect(conn: socket.socket, msg_id: int, params=None):
     buf = io.StringIO()
 
     variable = params.get("variable", "")
-    print(f"inspecting variable {variable}")
-    print(f"ip.user_ns.items(): {get_ipython().user_ns.items()}")
 
     try:
         with contextlib.redirect_stdout(buf):
