@@ -104,7 +104,7 @@ enddef
 
 # This is the actual entry point of the plugin
 def ConsoleOpen()
-  messages clear
+  # messages clear
   var console_win_id = 0
   var job_id = -1
   if !ConsoleExists()
@@ -135,6 +135,12 @@ def ConsoleOpen()
 
     # TODO: very bad hack
     # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
+    # Using a while loop with a sleep won't work either
+    # while search('server running on', 'nw') == 0
+    #   sleep 100m
+    #   # term_wait(bufnr('$'), 1000) # Does not work
+    #   redraw
+    # endwhile
     term_wait(bufnr('$'), 10000)
 
     # Opem channel

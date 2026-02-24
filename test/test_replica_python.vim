@@ -24,7 +24,7 @@ enddef
 # something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
 def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, 1, '$')
+  var lines = getbufline(buf_nr, line('w0'), line('w0') + &lines)
   for l in reverse(lines)
     if trim(l) !=# ''
       return l
@@ -33,24 +33,21 @@ def LastNonEmptyLine(buf_nr: number): string
   return ''
 enddef
 
-def WaitForPrompt(expected: string)
-  const buf_nr = b:repl_bufnr
-  var counter = 0
-  const max_count = 50 * 2  # 20*(2*50ms) = 20 seconds max
-  var line = ''
 
-  while counter < max_count
-    line = LastNonEmptyLine(buf_nr)
-    if line =~# expected
-      # Expected prompt appeared, return immediately
-      return
-    endif
-    sleep 50m
+def WaitForPrompt(expected: string)
+  var counter = 0
+  var period = 50
+  const max_count = 40
+
+  while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
+    exe $"sleep {period}m"
     counter += 1
   endwhile
 
   # Timeout reached, fail with actual last line
-  echoerr $"Prompt not found: {expected}, got: {line} after waiting {counter * 50} ms"
+  if counter == max_count
+    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:repl_bufnr)} after waiting {counter * period} ms"
+  endif
 enddef
 
 # Tests start here
@@ -69,11 +66,11 @@ def g:Test_python_basic()
         b = 5
 
         # %%
-        c = a + b
+        c = FOO + b
 
         # %%
 
-        d = a - b
+        d = FOO - b
   END
 
   Generate_testfile(lines, src_name)
@@ -87,11 +84,11 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   if !empty(v:errmsg)
-    %bw!
+    :%bw!
     throw v:errmsg
   endif
 
-  var expected_prompt = 'In\s\[1\]:\s*$'
+  var expected_prompt = 'In\s\[1\]:\s*'
   WaitForPrompt(expected_prompt)
 
   var bufnr = b:repl_bufnr
@@ -201,7 +198,7 @@ def g:Test_unsupported_filetypes()
       FOO = 2
       b = 3
 
-      c = a + b
+      c = FOO + b
   END
 
   Generate_testfile(python_file_lines, python_filename)
@@ -283,12 +280,12 @@ def g:Test_python_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   if !empty(v:errmsg)
-    %bw!
+    :%bw!
     throw v:errmsg
   endif
 
   var bufnr = b:repl_bufnr
-  var expected_prompt = 'In\s\[1\]:\s*$'
+  var expected_prompt = 'In\s\[1\]:\s*'
   WaitForPrompt(expected_prompt)
 
   var lastline = LastNonEmptyLine(bufnr)
@@ -450,7 +447,7 @@ def g:Test_python_getcompletion()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   if !empty(v:errmsg)
-    %bw!
+    :%bw!
     throw v:errmsg
   endif
 
