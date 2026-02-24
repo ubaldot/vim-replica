@@ -32,12 +32,12 @@ endif
 
 # --- logger setup -----
 def GetDataDir(): string
-  if exists('$XDG_DATA_HOME')
-    return $"{$XDG_DATA_HOME}/vim"
-  endif
-
   if has('win32') || has('win64')
     return expand($"{$HOME}/vimfiles")
+  endif
+
+  if exists('$XDG_DATA_HOME')
+    return $"{$XDG_DATA_HOME}/vim"
   endif
 
   return expand($'{$HOME}/.local/share/vim')

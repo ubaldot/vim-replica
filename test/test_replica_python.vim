@@ -112,54 +112,54 @@ def g:Test_python_basic()
     assert_equal(str2nr(line), line('.'))
   endfor
 
-  # # ReplicaSendLine
-  # cursor(1, 1)
-  # lines_prompts = {2: 'In\s\[5\]:\s*$', 3: 'In\s\[6\]:\s*$'}
+  # ReplicaSendLine
+  cursor(1, 1)
+  lines_prompts = {2: 'In\s\[5\]:\s*$', 3: 'In\s\[6\]:\s*$'}
 
-  # for [line, prompt] in items(lines_prompts)
-  #   exe "ReplicaSendLine"
-  #   WaitForPrompt(prompt)
-  #   lastline = LastNonEmptyLine(bufnr)
-  #   assert_match(prompt, lastline)
-  #   # Check that in the editor you end up in the correct line
-  #   assert_equal(str2nr(line), line('.'))
-  # endfor
+  for [line, prompt] in items(lines_prompts)
+    exe "ReplicaSendLine"
+    WaitForPrompt(prompt)
+    lastline = LastNonEmptyLine(bufnr)
+    assert_match(prompt, lastline)
+    # Check that in the editor you end up in the correct line
+    assert_equal(str2nr(line), line('.'))
+  endfor
 
-  # # Double Toggle
-  # expected_prompt = 'In\s\[6\]:\s*$'
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  # exe "ReplicaConsoleToggle"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  # WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+  # Double Toggle
+  expected_prompt = 'In\s\[6\]:\s*$'
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(1, winnr('$')))
+  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+  exe "ReplicaConsoleToggle"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
 
-  # # Remove cells
-  # exe "ReplicaRemoveCells"
-  # WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
+  # Remove cells
+  exe "ReplicaRemoveCells"
+  WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
 
-  # # Restart repl
-  # exe "ReplicaConsoleRestart"
-  # expected_prompt = 'In\s\[1\]:\s*$'
-  # WaitForPrompt(expected_prompt)
-  # bufnr = b:repl_bufnr
-  # lastline = LastNonEmptyLine(bufnr)
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_match(expected_prompt, lastline))
+  # Restart repl
+  exe "ReplicaConsoleRestart"
+  expected_prompt = 'In\s\[1\]:\s*$'
+  WaitForPrompt(expected_prompt)
+  bufnr = b:repl_bufnr
+  lastline = LastNonEmptyLine(bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
-  # # ReplicaSendFile
-  # exe "ReplicaSendFile"
-  # expected_prompt = 'In\s\[2\]:\s*$'
-  # WaitForPrompt(expected_prompt)
-  # lastline = LastNonEmptyLine(bufnr)
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
-  # WaitForAssert(() => assert_match(expected_prompt, lastline))
+  # ReplicaSendFile
+  exe "ReplicaSendFile"
+  expected_prompt = 'In\s\[2\]:\s*$'
+  WaitForPrompt(expected_prompt)
+  lastline = LastNonEmptyLine(bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
-  # # Shutoff
-  # exe "ReplicaConsoleShutoff"
-  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
+  # Shutoff
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
