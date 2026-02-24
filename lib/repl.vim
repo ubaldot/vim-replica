@@ -46,10 +46,10 @@ def Init()
 
   logger.Info('repl initialization')
 
-  if empty(console_geometry)
+  if empty(console_geometry) && exists('g:replica_config')
     console_geometry = {
-      width: g:replica_config.console_width,
-      height: g:replica_config.console_height
+      width: get(g:replica_config, 'console_width', 40),
+      height: get(g:replica_config, 'console_height', 20)
     }
   endif
 

@@ -86,6 +86,11 @@ def g:Test_python_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
+  if !empty(v:errmsg)
+    %bw!
+    throw v:errmsg
+  endif
+
   var expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
 
@@ -277,6 +282,11 @@ def g:Test_python_variable_explorer_basic()
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
+  if !empty(v:errmsg)
+    %bw!
+    throw v:errmsg
+  endif
+
   var bufnr = b:repl_bufnr
   var expected_prompt = 'In\s\[1\]:\s*$'
   WaitForPrompt(expected_prompt)
@@ -438,6 +448,11 @@ def g:Test_python_getcompletion()
   # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  if !empty(v:errmsg)
+    %bw!
+    throw v:errmsg
+  endif
 
   var bufnr = b:repl_bufnr
   var expected_prompt = 'In\s\[1\]:\s*$'

@@ -40,10 +40,10 @@ function vim_inspect(conn::TCPSocket, id::Int, params::Dict)
       return
     end
 
-    # Convert object to a Vim-compatible type
+
     result = if obj isa AbstractArray
-      obj isa AbstractMatrix ? [join(row, "\t") for row in eachrow(obj)] : collect(obj)
-      # split(repr(obj), "\t")
+      repr(obj) |>
+      x -> split(x, ";")
     elseif obj isa DataFrame
       split(repr(obj), "\n")
     else
