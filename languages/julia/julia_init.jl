@@ -75,30 +75,6 @@ function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
   send_response(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
 end
 
-
-function vim_send_cell(conn::TCPSocket, id::Int, params::Dict{String,Any})
-  lines = get(params, "lines", [])
-  code = isa(lines, Vector) ? join(lines, "\n") : string(lines)
-
-  try
-    # Evaluate entire code in Main's global scope
-    # TODO: may be unsafe
-    include_string(Main, code)
-
-    send_response(conn, Dict(
-                        "jsonrpc" => "2.0",
-                        "id"      => id,
-                        "result"  => "$(get(params, "type", "cell")): executed successfully"
-                       ))
-  catch e
-    send_response(conn, Dict(
-                        "jsonrpc" => "2.0",
-                        "id"      => id,
-                        "error"   => Dict("code"=>-32603, "message"=>"Execution failed: $e")
-                       ))
-  end
-end
-
 # -------------------------------
 # Method dispatch table
 # -------------------------------
@@ -106,7 +82,6 @@ const METHODS = Dict(
                      "runtime/vim_inspect"=>vim_inspect,
                      "runtime/vim_whos"=>vim_whos,
                      "runtime/vim_variable_names"=>vim_variable_names,
-                     "runtime/vim_send_cell"=>vim_send_cell,
                      # "runtime/vim_shutdown"=>vim_shutdown,
                     )
 
