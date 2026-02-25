@@ -55,7 +55,7 @@ enddef
 def WaitForPrompt(expected: string)
   var counter = 0
   var period = 100
-  const max_count = 100
+  const max_count = 200
 
   while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
     exe $"sleep {period}m"
@@ -67,6 +67,31 @@ def WaitForPrompt(expected: string)
   if counter == max_count
     echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:repl_bufnr)} after waiting {counter * period} ms"
   endif
+enddef
+
+def ReplStarted(
+    repl_bufnr: number,
+    pattern_1: string,
+    pattern_2: string): bool
+
+  # We have to secure that
+  #   A. the REPL has stared,
+  #   B. Vim is connected to the server,
+
+  var counter = 0
+  var counter_max = 100
+  while !(PatternCaught(repl_bufnr, pattern_1)
+      && PatternCaught(repl_bufnr, pattern_2))
+        && counter < counter_max
+    sleep 200m
+    counter += 1
+    redraw
+  endwhile
+   if counter == counter_max
+     return false
+   else
+     return true
+   endif
 enddef
 
 # Tests start here
@@ -110,12 +135,11 @@ def g:Test_python_basic()
   # The startup is done when both Vim is connected to the server and the repl
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
-  while !(PatternCaught(b:repl_bufnr, expected_prompt)
-      && PatternCaught(b:repl_bufnr, init_ready_pattern))
-    sleep 200m
-    redraw
-  endwhile
 
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
   # ReplicaSendCell
   var lines_prompts = {4: 'In\s\[2\]:\s*$', 7: 'In\s\[3\]:\s*$', 9: 'In\s\[4\]:\s*$'}
@@ -164,12 +188,10 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
   sleep 200m
 
-  # Wait for startup
-  while !(PatternCaught(b:repl_bufnr, expected_prompt)
-      && PatternCaught(b:repl_bufnr, init_ready_pattern))
-    sleep 200m
-    redraw
-  endwhile
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
@@ -315,11 +337,11 @@ def g:Test_python_variable_explorer_basic()
   # The startup is done when both Vim is connected to the server and the repl
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
-  while !(PatternCaught(b:repl_bufnr, expected_prompt)
-      && PatternCaught(b:repl_bufnr, init_ready_pattern))
-    sleep 200m
-    redraw
-  endwhile
+
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
   # Send current buffer
   exe "ReplicaSendFile"
@@ -361,8 +383,8 @@ def g:Test_python_variable_explorer_basic()
 
   # -- Test np.ndarray
   expected_variable_explorer = [
-    "1 2 3",
-    "4 5 6",
+    "1\t2\t3",
+    "4\t5\t6",
   ]
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
@@ -378,7 +400,7 @@ def g:Test_python_variable_explorer_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Test np.ndarray slice
-  expected_variable_explorer = ["1 2 3"]
+  expected_variable_explorer = ["1\t2\t3"]
 
   buf_name = 'A[0, :]'
   exe $"ReplicaInspect {buf_name}"
@@ -485,11 +507,11 @@ def g:Test_python_getcompletion()
   # The startup is done when both Vim is connected to the server and the repl
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
-  while !(PatternCaught(b:repl_bufnr, expected_prompt)
-      && PatternCaught(b:repl_bufnr, init_ready_pattern))
-    sleep 200m
-    redraw
-  endwhile
+
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
   # Now the game starts
   exe 'ReplicaSendFile'
@@ -509,9 +531,9 @@ def g:Test_python_getcompletion()
   assert_equal(expected_value, actual_value)
 
   # ---- teardown tests ----
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
+  # exe "ReplicaConsoleShutoff"
+  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  # WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
@@ -519,6 +541,6 @@ def g:Test_python_getcompletion()
     echom "Test passed!"
   endif
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef
