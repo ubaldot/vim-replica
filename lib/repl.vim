@@ -102,6 +102,22 @@ def ConsoleWinID(): list<number>
   endif
 enddef
 
+def PatternCaught(buf_nr: number, pattern: string): bool
+  # Return true if pattern appears in the visible window. This is useful when
+  # there are asynchronous jobs around and they print in the console in
+  # random order
+  #
+  # OBS! The following will not work, so we need to take the whole buffer
+  # const startline = line('w0', win_id)
+  # const endline = line('w$', win_id)
+  #
+  const win_id = bufwinid(buf_nr)
+  const startline = 1
+  const endline = line('$', win_id)
+  # echom "lines: " .. string(getbufline(buf_nr, startline, endline))
+  return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
+enddef
+
 # This is the actual entry point of the plugin
 def ConsoleOpen()
   # messages clear
@@ -116,6 +132,9 @@ def ConsoleOpen()
     # Send scripts to enable __vim_inspect() to the repl
     logger.Info($'start_cmd: {start_cmd}')
 
+    # ===============================================
+    #            REPL & Server start
+    # ===============================================
     try
       job_id = term_start(start_cmd,
         {term_name: b:console_name})
@@ -133,17 +152,24 @@ def ConsoleOpen()
       return
     endtry
 
-    # TODO: very bad hack
+    # =============================================
+    #  Wait for server before opening a channel
+    # =============================================
     # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
     # Using a while loop with a sleep won't work either
-    # while search('server running on', 'nw') == 0
-    #   sleep 100m
-    #   # term_wait(bufnr('$'), 1000) # Does not work
-    #   redraw
-    # endwhile
-    term_wait(bufnr('$'), 20000)
+    #
+    # The only way is to see when the server us running, and then we can open
+    # the channel
 
-    # Opem channel
+    const server_available_msg = "server running on"
+    while !PatternCaught(bufnr('$'), server_available_msg)
+      sleep 200m
+      redraw
+    endwhile
+
+    # ===============================================
+    #             Open channel
+    # ===============================================
     repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
     var channel_status = ch_status(repl_channel)
 
