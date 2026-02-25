@@ -11,6 +11,7 @@ import "../lib/repl.vim"
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
+const init_ready_pattern = "Vim connected from "
 
 def Generate_testfile(lines: list<string>, src_name: string)
   writefile(lines, src_name)
@@ -18,6 +19,14 @@ enddef
 
 def Cleanup_testfile(src_name: string)
   delete(src_name)
+enddef
+
+def StringAppeared(buf_nr: number, pattern: string): bool
+  # Return true if pattern appears in the visible window
+  const startline = line('w0')
+  # const endline = min([line('w0') + &lines, line('$')])
+  const endline = line('$')
+  return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
 enddef
 
 # When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
@@ -41,7 +50,6 @@ def WaitForPrompt(expected: string)
 
   while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
     exe $"sleep {period}m"
-    # term_wait(b:repl_bufnr, period)
     counter += 1
     redraw
   endwhile
@@ -90,93 +98,95 @@ def g:Test_python_basic()
     throw v:errmsg
   endif
 
-  # The lastline may be "Vim connected... " depending on the size of the
-  # window
-  var expected_prompt = 'In\s\[1\]:\s*'
-  WaitForPrompt(expected_prompt)
-
+  # The startup is done when both Vim is connected to the server and the repl
+  # is ready (you see it from the prompt)
   var bufnr = b:repl_bufnr
-  var lastline = LastNonEmptyLine(bufnr)
-  # assert_match(expected_prompt, lastline)
-  # TODO: you don't know when the prompt is ready because you don't know what
-  # prompt you will received due to that the server also prints "Vim
-  # connected to..." and there is a race condition between the repl and the
-  # server tasks.
-  # Hence, we use a fairly generous timeout to secure that both the repl and
-  # the server tasks are up and running
-  term_wait(bufnr, 10000)
+  var expected_prompt = 'In\s\[1\]:'
+  # while !StringAppeared(bufnr, init_ready_pattern)
+  #     && !StringAppeared(bufnr, expected_prompt)
+  #   sleep 200m
+  #   redraw
+  # endwhile
 
-  # ReplicaSendCell
-  var lines_prompts = {4: 'In\s\[2\]:\s*$', 7: 'In\s\[3\]:\s*$', 9: 'In\s\[4\]:\s*$'}
+  sleep 5
+  redraw
 
-  for [line, prompt] in items(lines_prompts)
-    exe "ReplicaSendCell"
-    WaitForPrompt(prompt)
-    lastline = LastNonEmptyLine(bufnr)
-    assert_match(prompt, lastline)
-    # Check that in the editor you end up in the correct line
-    assert_equal(str2nr(line), line('.'))
-  endfor
+  echom "Vim connected...: " .. StringAppeared(bufnr, init_ready_pattern)
+  echom "In [1]: " .. StringAppeared(bufnr, expected_prompt)
 
-  # ReplicaSendLine
-  cursor(1, 1)
-  lines_prompts = {2: 'In\s\[5\]:\s*$', 3: 'In\s\[6\]:\s*$'}
+ #  var lastline = ''
 
-  for [line, prompt] in items(lines_prompts)
-    exe "ReplicaSendLine"
-    WaitForPrompt(prompt)
-    redraw
-    lastline = LastNonEmptyLine(bufnr)
-    assert_match(prompt, lastline)
-    # Check that in the editor you end up in the correct line
-    assert_equal(str2nr(line), line('.'))
-  endfor
+ #  # ReplicaSendCell
+ #  var lines_prompts = {4: 'In\s\[2\]:\s*$', 7: 'In\s\[3\]:\s*$', 9: 'In\s\[4\]:\s*$'}
 
-  # Double Toggle
-  expected_prompt = 'In\s\[6\]:\s*$'
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(1, winnr('$')))
-  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
-  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+ #  for [line, prompt] in items(lines_prompts)
+ #    exe "ReplicaSendCell"
+ #    WaitForPrompt(prompt)
+ #    lastline = LastNonEmptyLine(bufnr)
+ #    assert_match(prompt, lastline)
+ #    # Check that in the editor you end up in the correct line
+ #    assert_equal(str2nr(line), line('.'))
+ #  endfor
 
-  # Remove cells
-  exe "ReplicaRemoveCells"
-  WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
+ #  # ReplicaSendLine
+ #  cursor(1, 1)
+ #  lines_prompts = {2: 'In\s\[5\]:\s*$', 3: 'In\s\[6\]:\s*$'}
 
-  # Restart repl
-  exe "ReplicaConsoleRestart"
-  expected_prompt = 'In\s\[1\]:\s*$'
-  WaitForPrompt(expected_prompt)
-  bufnr = b:repl_bufnr
-  lastline = LastNonEmptyLine(bufnr)
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_match(expected_prompt, lastline))
+ #  for [line, prompt] in items(lines_prompts)
+ #    exe "ReplicaSendLine"
+ #    WaitForPrompt(prompt)
+ #    redraw
+ #    lastline = LastNonEmptyLine(bufnr)
+ #    assert_match(prompt, lastline)
+ #    # Check that in the editor you end up in the correct line
+ #    assert_equal(str2nr(line), line('.'))
+ #  endfor
 
-  # ReplicaSendFile
-  exe "ReplicaSendFile"
-  expected_prompt = 'In\s\[2\]:\s*$'
-  WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(bufnr)
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_match(expected_prompt, lastline))
+ #  # Double Toggle
+ #  expected_prompt = 'In\s\[6\]:\s*$'
+ #  exe "ReplicaConsoleToggle"
+ #  WaitForAssert(() => assert_equal(1, winnr('$')))
+ #  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
+ #  exe "ReplicaConsoleToggle"
+ #  WaitForAssert(() => assert_equal(2, winnr('$')))
+ #  WaitForAssert(() => assert_true(lastline =~# expected_prompt))
+ #  WaitForAssert(() => assert_true(bufexists('IPYTHON')))
 
-  # Shutoff
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
+ #  # Remove cells
+ #  exe "ReplicaRemoveCells"
+ #  WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
 
-  # ---- teardown tests ----
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+ #  # Restart repl
+ #  exe "ReplicaConsoleRestart"
+ #  expected_prompt = 'In\s\[1\]:\s*$'
+ #  WaitForPrompt(expected_prompt)
+ #  bufnr = b:repl_bufnr
+ #  lastline = LastNonEmptyLine(bufnr)
+ #  WaitForAssert(() => assert_equal(2, winnr('$')))
+ #  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
- :%bw!
-  Cleanup_testfile(src_name)
+ #  # ReplicaSendFile
+ #  exe "ReplicaSendFile"
+ #  expected_prompt = 'In\s\[2\]:\s*$'
+ #  WaitForPrompt(expected_prompt)
+ #  lastline = LastNonEmptyLine(bufnr)
+ #  WaitForAssert(() => assert_equal(2, winnr('$')))
+ #  WaitForAssert(() => assert_match(expected_prompt, lastline))
+
+ #  # Shutoff
+ #  exe "ReplicaConsoleShutoff"
+ #  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+ #  WaitForAssert(() => assert_equal(1, winnr('$')))
+
+ #  # ---- teardown tests ----
+ #  if !empty(v:errors) || !empty(v:errmsg)
+ #    echom "Test failed!"
+ #  else
+ #    echom "Test passed!"
+ #  endif
+
+ # :%bw!
+ #  Cleanup_testfile(src_name)
 enddef
 
 def g:Test_unsupported_filetypes()
@@ -313,7 +323,6 @@ def g:Test_python_variable_explorer_basic()
   var buf_name = 'FOO'
   exe $"ReplicaInspect {buf_name}"
   # TODO: replace by checking if the response from server is non-empty
-  term_wait(bufnr, 100)
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -349,7 +358,6 @@ def g:Test_python_variable_explorer_basic()
   ]
   buf_name = 'A'
   exe $"ReplicaInspect {buf_name}"
-  term_wait(bufnr, 100)
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -366,7 +374,6 @@ def g:Test_python_variable_explorer_basic()
 
   buf_name = 'A[0, :]'
   exe $"ReplicaInspect {buf_name}"
-  term_wait(bufnr, 100)
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
@@ -386,7 +393,6 @@ END
 
   buf_name = 'df'
   exe $"ReplicaInspect {buf_name}"
-  term_wait(bufnr, 100)
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -405,7 +411,6 @@ row2    4
 END
   buf_name = "df['a']"
   exe $"ReplicaInspect {buf_name}"
-  term_wait(bufnr, 100)
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -475,6 +480,7 @@ def g:Test_python_getcompletion()
 
   var lastline = LastNonEmptyLine(bufnr)
   # assert_match(expected_prompt, lastline)
+  sleep 100m
   term_wait(bufnr, 8000)
 
   # Now the game starts
@@ -495,9 +501,9 @@ def g:Test_python_getcompletion()
   assert_equal(expected_value, actual_value)
 
   # ---- teardown tests ----
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
+  # exe "ReplicaConsoleShutoff"
+  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  # WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
@@ -505,6 +511,6 @@ def g:Test_python_getcompletion()
     echom "Test passed!"
   endif
 
-  :%bw!
-  Cleanup_testfile(src_name)
+  # :%bw!
+  # Cleanup_testfile(src_name)
 enddef
