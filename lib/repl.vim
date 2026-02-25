@@ -159,13 +159,25 @@ def ConsoleOpen()
     # Using a while loop with a sleep won't work either
     #
     # The only way is to see when the server us running, and then we can open
-    # the channel
+    # the channel. We check the string "server running on" but we have to be
+    # sure that the scripts in ./languages/ explicitly print "server running
+    # on" string
 
     const server_available_msg = "server running on"
-    while !PatternCaught(bufnr('$'), server_available_msg)
+    var counter = 0
+    const counter_max = 40
+    while !PatternCaught(bufnr('$'), server_available_msg) && counter < counter_max
       sleep 200m
       redraw
+      counter += 1
     endwhile
+
+    if counter == counter_max
+      Echoerr($'Failed to run {start_cmd}')
+      logger.Error($'Failed to run {start_cmd}')
+      return
+    endif
+
 
     # ===============================================
     #             Open channel
