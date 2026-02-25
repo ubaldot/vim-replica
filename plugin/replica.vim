@@ -15,7 +15,7 @@ def DeprecationWarnings(param: string)
 enddef
 
 const old_config_param = ['g:replica_names', 'g:replica_kernels',
-  'g:replica_use_utf16', 'g:replica_run_commands', 'g:replica_tmp_filename',
+  'g:replica_use_utf16', 'g:replica_run_scripts', 'g:replica_tmp_filename',
   'g:replica_alt_highlight', 'g:replica_console_width', 'g:replica_display_range',
   'g:replica_console_height', 'g:replica_python_options',
   'g:replica_cells_delimiters',
@@ -119,7 +119,7 @@ var console_names = {
   zsh: "ZSH"
 }
 
-var run_commands = {
+var run_scripts = {
   python: (filename) => $"run -i {filename->substitute("\\", "/", "g")}\n",
   julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
   r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
@@ -169,7 +169,7 @@ def InitBuffers()
   # -- REPL init ----
   b:repl_start_cmd = start_cmds[&filetype]
   b:console_name = console_names[&filetype]
-  b:run_command = run_commands[&filetype]
+  b:run_script = run_scripts[&filetype]
 
   b:repl_options = exists('g:replica_config.repl_options') ? g:replica_config.repl_options[&filetype] : ''
 

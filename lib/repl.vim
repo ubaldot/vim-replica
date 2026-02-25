@@ -57,7 +57,7 @@ def Init()
   logger.Info($'console geometry: width: {console_geometry.width}, height: {console_geometry.height}')
   logger.Info($"console name: {b:console_name}")
   logger.Info($'repl_name: {b:repl_start_cmd}')
-  logger.Info($"run command: {b:run_command('x')}")
+  logger.Info($"run script: {b:run_script('x')}")
   logger.Info($"cells_delimiter: '{b:cells_delimiter}'")
   logger.Info($"repl_options: '{b:repl_options}'")
   logger.Info("-----------------------------------")
@@ -295,7 +295,7 @@ export def SendCell()
   # Overwrite tmp file
   writefile(getline(line_in, line_out), g:replica_config.tmp_filepath)
   term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
+    $"{b:run_script(g:replica_config.tmp_filepath)}\n")
 
   logger.Info($"sent cell: {string(getline(line_in, line_out))}")
 enddef
@@ -315,7 +315,7 @@ export def SendFile(filename: string = '')
     logger.Info($"sent file: '{filename}'")
   endif
   term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_command(g:replica_config.tmp_filepath)}\n")
+    $"{b:run_script(g:replica_config.tmp_filepath)}\n")
 enddef
 
 # ---------------------------------------
