@@ -541,6 +541,6 @@ def g:Test_python_getcompletion()
     echom "Test passed!"
   endif
 
-  # :%bw!
-  # Cleanup_testfile(src_name)
+  :%bw!
+  Cleanup_testfile(src_name)
 enddef
