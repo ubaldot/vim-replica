@@ -194,8 +194,8 @@ enddef
 
 # The following exists only if we operate in debug mode
 if g:replica_config.debug
-  command! -buffer -nargs=0 ReplicaLogShow exe $"edit {g:replica_config.log_filepath}"
-  command! -buffer -nargs=0 ReplicaLogDelete delete(g:replica_config.log_filepath)
+  command! -nargs=0 ReplicaLogShow exe $"edit {g:replica_config.log_filepath}"
+  command! -nargs=0 ReplicaLogDelete delete(g:replica_config.log_filepath)
 endif
 
 augroup REPLICA_INIT_BUFFERS

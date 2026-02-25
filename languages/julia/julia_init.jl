@@ -122,7 +122,10 @@ end
 # Client handler
 # -------------------------------
 function handle_client(conn::TCPSocket, addr)
-    println("Vim connected from $addr")
+  # TODO: on Windows you have to print it twice
+    ip, port = addr
+    println("Vim connected from $ip:$port ")
+    println("Vim connected from $ip:$port ")
     try
         while _server_running[]
             msg = read_lsp(conn)
@@ -156,7 +159,7 @@ end
 # -------------------------------
 function start_server()
   server = listen(_HOST,_PORT)
-  println("Julia LSP-style TCP server running on $_HOST:$_PORT")
+  println("Julia TCP server running on $_HOST:$_PORT")
 
   try
     conn = accept(server)

@@ -173,8 +173,8 @@ def ConsoleOpen()
     endwhile
 
     if counter == counter_max
-      Echoerr($'Failed to run {start_cmd}')
-      logger.Error($'Failed to run {start_cmd}')
+      Echoerr($'Failed to run {start_cmd}: timeout')
+      logger.Error($'Failed to run {start_cmd}: timeout')
       return
     endif
 
