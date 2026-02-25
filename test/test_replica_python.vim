@@ -21,14 +21,23 @@ def Cleanup_testfile(src_name: string)
   delete(src_name)
 enddef
 
-def StringAppeared(buf_nr: number, pattern: string): bool
-  # Return true if pattern appears in the visible window
-  const startline = line('w0')
-  # const endline = min([line('w0') + &lines, line('$')])
-  const endline = line('$')
+def PatternCaught(buf_nr: number, pattern: string): bool
+  # Return true if pattern appears in the visible window. This is useful when
+  # there are asynchronous jobs around and they print in the console in
+  # random order
+  #
+  # OBS! The following will not work, so we need to take the whole buffer
+  # const startline = line('w0', win_id)
+  # const endline = line('w$', win_id)
+  #
+  const win_id = bufwinid(buf_nr)
+  const startline = 1
+  const endline = line('$', win_id)
+  # echom "lines: " .. string(getbufline(buf_nr, startline, endline))
   return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
 enddef
 
+# getbufline(bufnr(), line('w0'), min([line('w0') + &lines, line('$')]))->map($"v:val =~# 'Vim connected from'")->index(true) != -1
 # When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
 # something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
@@ -102,17 +111,11 @@ def g:Test_python_basic()
   # is ready (you see it from the prompt)
   var bufnr = b:repl_bufnr
   var expected_prompt = 'In\s\[1\]:'
-  # while !StringAppeared(bufnr, init_ready_pattern)
-  #     && !StringAppeared(bufnr, expected_prompt)
-  #   sleep 200m
-  #   redraw
-  # endwhile
-
-  sleep 5
-  redraw
-
-  echom "Vim connected...: " .. StringAppeared(bufnr, init_ready_pattern)
-  echom "In [1]: " .. StringAppeared(bufnr, expected_prompt)
+  while !(PatternCaught(bufnr, expected_prompt)
+      && PatternCaught(bufnr, init_ready_pattern))
+    sleep 200m
+    redraw
+  endwhile
 
  #  var lastline = ''
 
