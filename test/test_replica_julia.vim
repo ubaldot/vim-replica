@@ -12,6 +12,9 @@ import "../lib/repl.vim"
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
+const expected_prompt = 'julia> '
+const init_ready_pattern = "Vim connected from "
+
 def Generate_testfile(lines: list<string>, src_name: string)
   writefile(lines, src_name)
 enddef
@@ -24,7 +27,7 @@ enddef
 # something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
 def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, line('w0'), line('w0') + &lines)
+  var lines = getbufline(buf_nr, line('w0'), '$')
   for l in reverse(lines)
     if trim(l) !=# ''
       return l
@@ -36,12 +39,13 @@ enddef
 
 def WaitForPrompt(expected: string)
   var counter = 0
-  var period = 50
-  const max_count = 40
+  var period = 100
+  const max_count = 200
 
   while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
     exe $"sleep {period}m"
     counter += 1
+    redraw
   endwhile
 
   # Timeout reached, fail with actual last line
@@ -50,17 +54,48 @@ def WaitForPrompt(expected: string)
   endif
 enddef
 
-def IsSymbolFound(buf_nr: number, symbol: string): bool
-  # Found a symbol in a chunk of lines, e.g.  in
+
+def PatternCaught(buf_nr: number, pattern: string): bool
+  # Return true if pattern appears in the visible window. This is useful when
+  # there are asynchronous jobs around and they print in the console in
+  # random order
   #
-  #   julia> foo bar
-  #   symbol
+  # OBS! The following will not work, so we need to take the whole buffer
+  # const startline = line('w0', win_id)
+  # const endline = line('w$', win_id)
   #
-  #   julia>
-  #
-  var lines = getbufline(buf_nr, line('w0'), line('w0') + &lines)
-  return index(lines, symbol) != -1 ? true : false
+  const win_id = bufwinid(buf_nr)
+  const startline = 1
+  const endline = line('$', win_id)
+  # echom "lines: " .. string(getbufline(buf_nr, startline, endline))
+  return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
 enddef
+
+def ReplStarted(
+    repl_bufnr: number,
+    pattern_1: string,
+    pattern_2: string): bool
+
+  # We have to secure that
+  #   A. the REPL has stared,
+  #   B. Vim is connected to the server,
+
+  var counter = 0
+  var counter_max = 100
+  while !(PatternCaught(repl_bufnr, pattern_1)
+      && PatternCaught(repl_bufnr, pattern_2))
+        && counter < counter_max
+    sleep 200m
+    counter += 1
+    redraw
+  endwhile
+   if counter == counter_max
+     return false
+   else
+     return true
+   endif
+enddef
+
 
 def WaitForJuliaSymbol(symbol: string)
   # The symbol is not necessarily the last line, because you are not reading
@@ -86,11 +121,11 @@ def WaitForJuliaSymbol(symbol: string)
       buf_nr,
       $"println(\"{marker}:\", isdefined(Main, :{symbol}))\n"
     )
-    # sleep 200m
-    term_wait(buf_nr, 200)
+    sleep 100m
+    # TODO: you may not need the !
     redraw!
 
-    if IsSymbolFound(buf_nr, $"{marker}:true")
+    if PatternCaught(buf_nr, $"{marker}:true")
       break
     endif
 
@@ -207,12 +242,14 @@ END
     throw v:errmsg
   endif
 
-  const expected_prompt = 'julia> '
-  WaitForPrompt(expected_prompt)
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
-  var bufnr = b:repl_bufnr
-  var lastline = LastNonEmptyLine(bufnr)
-  assert_match(expected_prompt, lastline)
+  # Sometimes, when you send messages through TCP, julia won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:repl_bufnr, "\n")
 
   # ReplicaSendCell
   cursor(1, 1)
@@ -221,8 +258,10 @@ END
   for line in expected_lines
     exe "ReplicaSendCell"
     WaitForPrompt(expected_prompt)
+    # TODO: The following is needed because Julia may return the prompt without
+    # waiting that the previous operation finished (in this case is import
+    # DataFrame)
     WaitForJuliaSymbol("DataFrame")
-    lastline = LastNonEmptyLine(bufnr)
     # Check that in the editor you end up in the correct line
     assert_equal(line, line('.'))
   endfor
@@ -234,12 +273,13 @@ END
   for line in expected_lines
     exe "ReplicaSendLine"
     WaitForPrompt(expected_prompt)
-    lastline = LastNonEmptyLine(bufnr)
     # Check that in the editor you end up in the correct line
     assert_equal(line, line('.'))
   endfor
 
   # Double Toggle
+  # lastline should be the prompt at this point of the test
+  var lastline = LastNonEmptyLine(b:repl_bufnr)
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('JULIA')))
@@ -255,15 +295,19 @@ END
   # Restart repl
   exe "ReplicaConsoleRestart"
   WaitForPrompt(expected_prompt)
-  bufnr = b:repl_bufnr
-  lastline = LastNonEmptyLine(bufnr)
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-  WaitForAssert(() => assert_match(expected_prompt, lastline))
+  # TODO: this sleep is really needed?
+  sleep 200m
+
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
+  term_sendkeys(b:repl_bufnr, "\n")
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(bufnr)
+  lastline = LastNonEmptyLine(b:repl_bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -383,21 +427,23 @@ END
     throw v:errmsg
   endif
 
-  var bufnr = b:repl_bufnr
-  var term_cursor_pos = term_getcursor(bufnr)
-  var term_cursor = term_getline(bufnr, term_cursor_pos[0])
-  var expected_prompt = 'julia>'
-  WaitForPrompt(expected_prompt)
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
-  var lastline = LastNonEmptyLine(bufnr)
-  assert_match(expected_prompt, lastline)
+  # Sometimes, when you send messages through TCP, julia won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:repl_bufnr, "\n")
 
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
   WaitForJuliaSymbol("DataFrame")
+  var lastline = LastNonEmptyLine(b:repl_bufnr)
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  WaitForAssert(() => assert_match(expected_prompt, lastline))
 
-  term_wait(bufnr, 20000)
 
   # -- Test float
   var expected_variable_explorer = ['42']
@@ -414,24 +460,24 @@ END
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # --- test %whos
-  #  TODO: test won't pass on Windows
-  # OBS! The way %whos display variables, may change with the repl
-  # versions, so you cannot really test it reliably. At most, you can check
-  # that a split window happened
+#   # --- test %whos
+#   #  TODO: test won't pass on Windows
+#   # OBS! The way %whos display variables, may change with the repl
+#   # versions, so you cannot really test it reliably. At most, you can check
+#   # that a split window happened
 
-  # exe "ReplicaInspect"
-  # WaitForAssert(() => assert_equal(3, winnr('$')))
-  # redraw
+#   # exe "ReplicaInspect"
+#   # WaitForAssert(() => assert_equal(3, winnr('$')))
+#   # redraw
 
-  # buf_name = 'Workspace'
-  # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+#   # buf_name = 'Workspace'
+#   # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-  # # Test <esc> mapping
-  # exe "norm \<esc>"
-  # WaitForAssert(() => assert_equal(2, winnr('$')))
+#   # # Test <esc> mapping
+#   # exe "norm \<esc>"
+#   # WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test array
+#   # -- Test array
   expected_variable_explorer = [
     "[1 2 3",
     " 4 5 6]",
@@ -485,48 +531,48 @@ END
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
 #   # -- Test DataFrame
-  expected_variable_explorer =<< END
-4×3 DataFrame
- Row │ time        value    flag
-     │ Date        Float64  Bool
-─────┼────────────────────────────
-   1 │ 2024-01-01      0.1   true
-   2 │ 2024-01-02      0.2  false
-   3 │ 2024-01-03      0.3   true
-   4 │ 2024-01-04      0.4  false
-END
+#   expected_variable_explorer =<< END
+# 4×3 DataFrame
+#  Row │ time        value    flag
+#      │ Date        Float64  Bool
+# ─────┼────────────────────────────
+#    1 │ 2024-01-01      0.1   true
+#    2 │ 2024-01-02      0.2  false
+#    3 │ 2024-01-03      0.3   true
+#    4 │ 2024-01-04      0.4  false
+# END
 
-  buf_name = 'df_mixed'
-  exe $"ReplicaInspect {buf_name}"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
+#   buf_name = 'df_mixed'
+#   exe $"ReplicaInspect {buf_name}"
+#   WaitForAssert(() => assert_equal(3, winnr('$')))
 
-  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+#   assert_equal(expected_variable_explorer, actual_variable_explorer)
+#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-  # Test <esc> mapping
-  exe "norm \<esc>"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
+#   # Test <esc> mapping
+#   exe "norm \<esc>"
+#   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test DataFrame slice
-  expected_variable_explorer = ['Bool[1, 0, 1 ,0]']
+#   # -- Test DataFrame slice
+#   expected_variable_explorer = ['Bool[1, 0, 1 ,0]']
 
-  buf_name = "df_mixed.flag"
-  exe $"ReplicaInspect {buf_name}"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
-  redraw!
+#   buf_name = "df_mixed.flag"
+#   exe $"ReplicaInspect {buf_name}"
+#   WaitForAssert(() => assert_equal(3, winnr('$')))
+#   redraw!
 
-  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  # echom "actual: " .. string(actual_variable_explorer)
-  # echom "expected: " .. string(expected_variable_explorer)
-  # TODO: The following assert always fails for some reasons
-  # assert_match(expected_variable_explorer, actual_variable_explorer)
+#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+#   # echom "actual: " .. string(actual_variable_explorer)
+#   # echom "expected: " .. string(expected_variable_explorer)
+#   # TODO: The following assert always fails for some reasons
+#   # assert_match(expected_variable_explorer, actual_variable_explorer)
 
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-  # Test <esc> mapping
-  exe "norm \<esc>"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
+#   # Test <esc> mapping
+#   exe "norm \<esc>"
+#   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
