@@ -250,9 +250,6 @@ END
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
   term_sendkeys(b:repl_bufnr, "\n")
-  term_sendkeys(b:repl_bufnr, "\n")
-  term_sendkeys(b:repl_bufnr, "\n")
-  term_sendkeys(b:repl_bufnr, "\n")
 
   # ReplicaSendCell
   cursor(1, 1)
@@ -297,14 +294,20 @@ END
 
   # Restart repl
   exe "ReplicaConsoleRestart"
-  WaitForPrompt(expected_prompt)
-  # TODO: this sleep is really needed?
-  sleep 200m
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+
+  if !empty(v:errmsg)
+    :%bw!
+    throw v:errmsg
+  endif
 
   if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
+
+  # Sometimes, when you send messages through TCP, julia won't show
+  # the prompt, but it needs a manual \n
   term_sendkeys(b:repl_bufnr, "\n")
 
   # ReplicaSendFile
