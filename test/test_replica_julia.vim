@@ -708,7 +708,7 @@ END
   exe 'ReplicaSendFile'
   WaitForPrompt(expected_prompt)
 
-  var lastline = LastNonEmptyLine(bufnr)
+  var lastline = LastNonEmptyLine(b:repl_bufnr)
   assert_match(expected_prompt, lastline)
 
   # test start
@@ -728,8 +728,6 @@ END
     'vec_int',
     'vec_mixed'
   ]
-
-  term_wait(b:repl_bufnr, 20000)
 
   g:XXX = repl.funcs_dict.GetCompleteList
   const actual_value = getcompletion('', 'customlist,XXX')
