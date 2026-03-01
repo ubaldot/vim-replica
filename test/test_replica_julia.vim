@@ -15,12 +15,12 @@ var WaitForAssert = common.WaitForAssert
 const expected_prompt = 'julia> '
 const init_ready_pattern = "Vim connected from "
 
-def Generate_testfile(lines: list<string>, src_name: string)
-  writefile(lines, src_name)
+def Generate_testfile(lines: list<string>, filename: string)
+  writefile(lines, filename)
 enddef
 
-def Cleanup_testfile(src_name: string)
-  delete(src_name)
+def Cleanup_testfile(filename: string)
+  delete(filename)
 enddef
 
 # When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
@@ -137,19 +137,9 @@ def WaitForJuliaSymbol(symbol: string)
   endif
 enddef
 
-# Tests start here
-def g:Test_julia_basic()
 
-  v:errors = []
-  v:errmsg = ''
-  messages clear
-
-  if exepath('julia')->empty()
-    echoerr "Skipped: 'julia' executable is not found in $PATH"
-  endif
-
-  const src_name = 'testfile.jl'
-  const code_lines =<< trim END
+const src_name = 'testfile.jl'
+const code_lines =<< trim END
 """
 Test file for vim-replica (Julia)
 
@@ -226,6 +216,17 @@ df_categorical = DataFrame(
     value    = [10, 20, 30, 40],
 )
 END
+
+# Tests start here
+def g:Test_julia_basic()
+
+  v:errors = []
+  v:errmsg = ''
+  messages clear
+
+  if exepath('julia')->empty()
+    echoerr "Skipped: 'julia' executable is not found in $PATH"
+  endif
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
@@ -339,84 +340,6 @@ def g:Test_julia_variable_explorer_basic()
   v:errmsg = ''
   messages clear
 
-  const src_name = 'testfile.jl'
-  const code_lines =<< trim END
-"""
-Test file for vim-replica (Julia)
-
-Includes:
-- Simple scalar variables
-- 1D, 2D, and 3D arrays
-- DataFrames
-"""
-
-using DataFrames
-using Dates
-
-
-# %% -----------------
-# Simple variables
-# --------------------
-a_int   = 42
-a_float = 3.14159
-a_str   = "vim-replica test"
-a_bool  = true
-a_nothing = nothing
-
-
-# --------------------
-# 1D arrays (Vectors)
-# --------------------
-vec_int = [1, 2, 3, 4, 5]
-vec_float = [0.1, 0.2, 0.3]
-vec_mixed = [1.0, 2.5, 3.75]
-
-
-# %% -----------------
-# 2D arrays (Matrices)
-# --------------------
-mat_int = [
-    1 2 3
-    4 5 6
-]
-
-mat_float = [
-    0.1 0.2
-    0.3 0.4
-    0.5 0.6
-]
-
-
-# --------------------
-# 3D arrays
-# --------------------
-arr_3d = reshape(collect(1:8), 2, 2, 2)
-# Dimensions: (2, 2, 2)
-# arr_3d[:, :, 1] = [1 3; 2 4]
-# arr_3d[:, :, 2] = [5 7; 6 8]
-
-
-# --------------------
-# DataFrames
-# --------------------
-df_simple = DataFrame(
-    A = [1, 2, 3],
-    B = [4, 5, 6],
-)
-
-# %%
-df_mixed = DataFrame(
-    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
-    value = [0.1, 0.2, 0.3, 0.4],
-    flag  = [true, false, true, false],
-)
-
-df_categorical = DataFrame(
-    category = ["x", "x", "y", "y"],
-    id       = [1, 2, 1, 2],
-    value    = [10, 20, 30, 40],
-)
-END
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
@@ -600,85 +523,6 @@ def g:Test_julia_getcompletion()
   v:errmsg = ''
   v:errors = []
   messages clear
-
-  const src_name = 'testfile.jl'
-  const code_lines =<< trim END
-"""
-Test file for vim-replica (Julia)
-
-Includes:
-- Simple scalar variables
-- 1D, 2D, and 3D arrays
-- DataFrames
-"""
-
-using DataFrames
-using Dates
-
-
-# %% -----------------
-# Simple variables
-# --------------------
-a_int   = 42
-a_float = 3.14159
-a_str   = "vim-replica test"
-a_bool  = true
-a_nothing = nothing
-
-
-# --------------------
-# 1D arrays (Vectors)
-# --------------------
-vec_int = [1, 2, 3, 4, 5]
-vec_float = [0.1, 0.2, 0.3]
-vec_mixed = [1.0, 2.5, 3.75]
-
-
-# %% -----------------
-# 2D arrays (Matrices)
-# --------------------
-mat_int = [
-    1 2 3
-    4 5 6
-]
-
-mat_float = [
-    0.1 0.2
-    0.3 0.4
-    0.5 0.6
-]
-
-
-# --------------------
-# 3D arrays
-# --------------------
-arr_3d = reshape(collect(1:8), 2, 2, 2)
-# Dimensions: (2, 2, 2)
-# arr_3d[:, :, 1] = [1 3; 2 4]
-# arr_3d[:, :, 2] = [5 7; 6 8]
-
-
-# --------------------
-# DataFrames
-# --------------------
-df_simple = DataFrame(
-    A = [1, 2, 3],
-    B = [4, 5, 6],
-)
-
-# %%
-df_mixed = DataFrame(
-    time  = Date(2024, 1, 1):Day(1):Date(2024, 1, 4),
-    value = [0.1, 0.2, 0.3, 0.4],
-    flag  = [true, false, true, false],
-)
-
-df_categorical = DataFrame(
-    category = ["x", "x", "y", "y"],
-    id       = [1, 2, 1, 2],
-    value    = [10, 20, 30, 40],
-)
-END
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
