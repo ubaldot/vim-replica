@@ -10,50 +10,13 @@ import "../plugin/replica.vim"
 import "../lib/ftcommands_mappings.vim" as ftcm
 
 import "./common.vim"
-var WaitForAssert = common.WaitForAssert
-
-def Generate_testfile(lines: list<string>, src_name: string)
-  writefile(lines, src_name)
-enddef
-
-def Cleanup_testfile(src_name: string)
-  delete(src_name)
-enddef
-
-def WaitForPrompt(expected_prompt: string)
-  const buf_nr = term_list()[0]
-  var counter = 0
-  const max_count = 50 * 2  # 20*(2*50ms) = 2 seconds max
-  var line = ''
-
-  while counter < max_count
-    line = LastNonEmptyLine(buf_nr)
-    if line =~# expected_prompt
-      # Expected prompt appeared, return immediately
-      break
-    endif
-    sleep 50m
-    counter += 1
-  endwhile
-
-  # Timeout reached, fail with actual last line
-  if counter == max_count
-    throw $"Prompt not found: {expected_prompt}, got: {line} after waiting {counter * 50} ms"
-  endif
-enddef
-
-# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
-# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
-# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
-def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, 1, '$')
-  for l in reverse(lines)
-    if trim(l) !=# ''
-      return l
-    endif
-  endfor
-  return ''
-enddef
+const WaitForAssert = common.WaitForAssert
+const WaitForPrompt = common.WaitForPrompt
+const LastNonEmptyLine = common.LastNonEmptyLine
+const PatternCaught = common.PatternCaught
+const ReplStarted = common.ReplStarted
+const Generate_testfile = common.Generate_testfile
+const Cleanup_testfile = common.Cleanup_testfile
 
 # Tests start here
 def g:Test_sh_basic()

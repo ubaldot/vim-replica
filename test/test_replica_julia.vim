@@ -10,92 +10,16 @@ import "../plugin/replica.vim"
 import "../lib/repl.vim"
 
 import "./common.vim"
-var WaitForAssert = common.WaitForAssert
+const WaitForAssert = common.WaitForAssert
+const WaitForPrompt = common.WaitForPrompt
+const LastNonEmptyLine = common.LastNonEmptyLine
+const PatternCaught = common.PatternCaught
+const ReplStarted = common.ReplStarted
+const Generate_testfile = common.Generate_testfile
+const Cleanup_testfile = common.Cleanup_testfile
 
 const expected_prompt = 'julia> '
 const init_ready_pattern = "Vim connected from "
-
-def Generate_testfile(lines: list<string>, filename: string)
-  writefile(lines, filename)
-enddef
-
-def Cleanup_testfile(filename: string)
-  delete(filename)
-enddef
-
-# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
-# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
-# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
-def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, line('w0'), '$')
-  for l in reverse(lines)
-    if trim(l) !=# ''
-      return l
-    endif
-  endfor
-  return ''
-enddef
-
-
-def WaitForPrompt(expected: string)
-  var counter = 0
-  var period = 100
-  const max_count = 200
-
-  while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
-    exe $"sleep {period}m"
-    counter += 1
-    redraw
-  endwhile
-
-  # Timeout reached, fail with actual last line
-  if counter == max_count
-    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:repl_bufnr)} after waiting {counter * period} ms"
-  endif
-enddef
-
-
-def PatternCaught(buf_nr: number, pattern: string): bool
-  # Return true if pattern appears in the visible window. This is useful when
-  # there are asynchronous jobs around and they print in the console in
-  # random order
-  #
-  # OBS! The following will not work, so we need to take the whole buffer
-  # const startline = line('w0', win_id)
-  # const endline = line('w$', win_id)
-  #
-  const win_id = bufwinid(buf_nr)
-  const startline = 1
-  const endline = line('$', win_id)
-  # echom "lines: " .. string(getbufline(buf_nr, startline, endline))
-  return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
-enddef
-
-def ReplStarted(
-    repl_bufnr: number,
-    pattern_1: string,
-    pattern_2: string): bool
-
-  # We have to secure that
-  #   A. the REPL has stared,
-  #   B. Vim is connected to the server,
-
-  var counter = 0
-  var counter_max = 100
-  while !(PatternCaught(repl_bufnr, pattern_1)
-      && PatternCaught(repl_bufnr, pattern_2))
-        && counter < counter_max
-    sleep 200m
-    counter += 1
-    redraw
-  endwhile
-   if counter == counter_max
-     return false
-   else
-     return true
-   endif
-enddef
-
 
 def WaitForJuliaSymbol(symbol: string)
   # The symbol is not necessarily the last line, because you are not reading
@@ -391,20 +315,20 @@ def g:Test_julia_variable_explorer_basic()
 
 #   # --- test %whos
 #   #  TODO: test won't pass on Windows
-#   # OBS! The way %whos display variables, may change with the repl
-#   # versions, so you cannot really test it reliably. At most, you can check
-#   # that a split window happened
+  # OBS! The way %whos display variables, may change with the repl
+  # versions, so you cannot really test it reliably. At most, you can check
+  # that a split window happened
 
-#   # exe "ReplicaInspect"
-#   # WaitForAssert(() => assert_equal(3, winnr('$')))
-#   # redraw
+  exe "ReplicaInspect"
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw
 
-#   # buf_name = 'Workspace'
-#   # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  buf_name = 'Workspace'
+  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # # Test <esc> mapping
-#   # exe "norm \<esc>"
-#   # WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
 #   # -- Test array
   expected_variable_explorer = [

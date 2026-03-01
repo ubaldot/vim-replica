@@ -413,6 +413,10 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
 
   logger.Info('displaying variable')
 
+  const new_statusline = empty(variable_to_inspect)
+    ? "Workspace"
+    : $"Variable explorer: {variable_to_inspect}"
+
   if bufexists(variable_to_inspect)
     logger.Info($"reusing existing {g:replica_config.display_variables}")
     var buf = bufnr(variable_to_inspect)
@@ -425,15 +429,15 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
 
     if g:replica_config.display_variables == 'split'
       new
-      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      setwinvar(win_getid(), '&statusline', new_statusline)
       nnoremap <buffer> <silent> <esc> <cmd>close<cr>
     elseif g:replica_config.display_variables == 'vsplit'
       vnew
-      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      setwinvar(win_getid(), '&statusline', new_statusline)
       nnoremap <buffer> <silent> <esc> <cmd>close<cr>
     elseif g:replica_config.display_variables == 'tab'
       tabnew
-      setwinvar(win_getid(), '&statusline', $"Variable explorer: {variable_to_inspect}")
+      setwinvar(win_getid(), '&statusline', new_statusline)
       nnoremap <buffer> <silent> <esc> <cmd>tabclose<cr>
     endif
 
