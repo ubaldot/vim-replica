@@ -7,7 +7,7 @@ using Sockets, JSON, DataFrames
 const _HOST = ip"127.0.0.1"
 const _PORT = 6969
 const _server_running = Ref(true)
-const _initial_vars = Set(Core.eval(Main, :(names(Main, all=true))))
+const _initial_vars = Set(@invokelatest names(Main, all=true))
 
 # -------------------------------
 # Helper to send JSON-RPC messages to Vim
@@ -71,7 +71,11 @@ function vim_whos(conn::TCPSocket, id::Int, params::Dict)
 end
 
 function vim_variable_names(conn::TCPSocket, id::Int, params::Dict)
-  names_list = [string(n) for n in Core.eval(Main, :(names(Main, all=true))) if n ∉ _initial_vars]
+  names_list = [
+      string(n)
+      for n in (@invokelatest names(Main, all=true))
+      if n ∉ _initial_vars
+  ]
   send_response(conn, Dict("jsonrpc"=>"2.0","id"=>id,"result"=>sort(names_list)))
 end
 
