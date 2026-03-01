@@ -689,14 +689,15 @@ END
     throw v:errmsg
   endif
 
-  const expected_prompt = 'julia> '
-  WaitForPrompt(expected_prompt)
+  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+    return
+  endif
 
-  var bufnr = b:repl_bufnr
-  var lastline = LastNonEmptyLine(bufnr)
-  assert_match(expected_prompt, lastline)
+  # Sometimes, when you send messages through TCP, julia won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:repl_bufnr, "\n")
 
-  # ReplicaSendCell
   # Now the game starts
   exe 'ReplicaSendFile'
   WaitForPrompt(expected_prompt)
