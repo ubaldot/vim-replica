@@ -708,7 +708,7 @@ END
   exe 'ReplicaSendFile'
   WaitForPrompt(expected_prompt)
 
-  lastline = LastNonEmptyLine(bufnr)
+  var lastline = LastNonEmptyLine(bufnr)
   assert_match(expected_prompt, lastline)
 
   # test start
