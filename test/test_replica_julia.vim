@@ -250,6 +250,9 @@ END
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
   term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:repl_bufnr, "\n")
 
   # ReplicaSendCell
   cursor(1, 1)
