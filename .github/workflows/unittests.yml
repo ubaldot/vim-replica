@@ -36,10 +36,7 @@ jobs:
           r-version: 'release'
 
       - name: Install R packages
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache: true
-          cache-version: 2
+        run: Rscript .github/scripts/packages.R
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
@@ -93,10 +90,7 @@ jobs:
           r-version: 'release'
 
       - name: Install R packages
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache: true
-          cache-version: 2
+        run: Rscript .github/scripts/packages.R
 
       - name: Setup Python
         uses: actions/setup-python@v6.1.0
