@@ -103,10 +103,12 @@ if !exists('g:replica_config.repl_options')
 endif
 
 # Dicts. Keys must be Vim filetypes
+const r_init_path = $"{replica_path}/languages/r/r_init.R"->substitute("\\", "/", "g")
+
 var start_cmds = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
-  r: "R",
+  r: $"R --no-save --no-restore --quiet -e \"source('{r_init_path}')\"",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"
 }
@@ -128,7 +130,7 @@ var run_scripts = {
 }
 
 # Filetypes that support the TCP-based variable inspector (:ReplicaInspect)
-const inspect_filetypes = ['python', 'julia']
+const inspect_filetypes = ['python', 'julia', 'r']
 
 # ---- ftcommands_mappings.vim setup ------
 if !exists('g:replica_config.use_default_mapping')
