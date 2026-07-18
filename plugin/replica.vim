@@ -108,7 +108,7 @@ const r_init_path = $"{replica_path}/languages/r/r_init.R"->substitute("\\", "/"
 var start_cmds = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
-  r: $"R --no-save --no-restore --quiet -e \"source('{r_init_path}')\"",
+  r: $"R --interactive --no-save --no-restore --quiet -e \"source('{r_init_path}')\"",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"
 }

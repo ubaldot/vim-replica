@@ -243,7 +243,12 @@ export def ConsoleShutoff()
 
   if ConsoleExists()
     var console_name = b:console_name
+    if ch_status(repl_channel) == 'open'
+      ch_close(repl_channel)
+      repl_channel = null_channel
+    endif
     exe "bw! " .. bufnr($'^{console_name}$')
+    sleep 200m   # let the OS release port 6969 before next test
     # When the console is closed the focused buffer can be of any type and
     # therefore it may not have b:console_name.
     echo $"Console {console_name} shutoff."

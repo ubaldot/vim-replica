@@ -76,6 +76,8 @@ def g:Test_R_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
     return
   endif
@@ -121,6 +123,8 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' after restart"
     return
   endif
@@ -167,6 +171,8 @@ def g:Test_R_variable_explorer_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
     return
   endif
@@ -249,6 +255,8 @@ def g:Test_R_getcompletion()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
     return
   endif

@@ -92,7 +92,7 @@ fi
 # Check the test results
 cat results.txt
 echo "-------------------------------"
-if grep -qw FAIL results.txt; then
+if grep -q "FAIL" results.txt; then
 	echo "ERROR: Some test(s) failed."
 	echo
 	rm "$VIMRC"

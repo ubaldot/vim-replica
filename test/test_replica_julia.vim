@@ -18,8 +18,8 @@ const ReplStarted = common.ReplStarted
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile = common.Cleanup_testfile
 
-const expected_prompt = 'julia> '
-const init_ready_pattern = "Vim connected from "
+const expected_prompt = 'julia>\s*'
+const init_ready_pattern = "Vim connected from"
 
 def WaitForJuliaSymbol(symbol: string)
   # The symbol is not necessarily the last line, because you are not reading
@@ -168,6 +168,8 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -227,6 +229,8 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -281,6 +285,8 @@ def g:Test_julia_variable_explorer_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -464,6 +470,8 @@ def g:Test_julia_getcompletion()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
