@@ -62,7 +62,7 @@ export def InstallConsoleCommands()
     command -buffer ReplicaConsoleShutoff repl.ConsoleShutoff()
   endif
 
-  if !exists(":ReplicaInspect")
+  if get(b:, 'supports_inspect', false) && !exists(":ReplicaInspect")
     command -complete=customlist,repl.GetCompleteList -nargs=? -buffer
           \ ReplicaInspect
           \ repl.VimInspect(<q-args>)

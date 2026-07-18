@@ -62,7 +62,7 @@ def g:Test_python_basic()
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -74,7 +74,7 @@ def g:Test_python_basic()
   for [line, prompt] in items(lines_prompts)
     exe "ReplicaSendCell"
     WaitForPrompt(prompt)
-    lastline = LastNonEmptyLine(b:repl_bufnr)
+    lastline = LastNonEmptyLine(b:console_bufnr)
     assert_match(prompt, lastline)
     # Check that in the editor you end up in the correct line
     assert_equal(str2nr(line), line('.'))
@@ -88,7 +88,7 @@ def g:Test_python_basic()
     exe "ReplicaSendLine"
     WaitForPrompt(prompt)
     redraw
-    lastline = LastNonEmptyLine(b:repl_bufnr)
+    lastline = LastNonEmptyLine(b:console_bufnr)
     assert_match(prompt, lastline)
     # Check that in the editor you end up in the correct line
     assert_equal(str2nr(line), line('.'))
@@ -114,7 +114,7 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_equal(2, winnr('$')))
   sleep 200m
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -123,7 +123,7 @@ def g:Test_python_basic()
   exe "ReplicaSendFile"
   expected_prompt = 'In\s\[2\]:\s*$'
   WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(b:repl_bufnr)
+  lastline = LastNonEmptyLine(b:console_bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -264,7 +264,7 @@ def g:Test_python_variable_explorer_basic()
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -434,7 +434,7 @@ def g:Test_python_getcompletion()
   # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -445,7 +445,7 @@ def g:Test_python_getcompletion()
   WaitForPrompt(expected_prompt)
   redraw
 
-  var lastline = LastNonEmptyLine(b:repl_bufnr)
+  var lastline = LastNonEmptyLine(b:console_bufnr)
   assert_match(expected_prompt, lastline)
 
   # test start

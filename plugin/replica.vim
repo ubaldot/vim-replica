@@ -127,6 +127,9 @@ var run_scripts = {
   zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
 }
 
+# Filetypes that support the TCP-based variable inspector (:ReplicaInspect)
+const inspect_filetypes = ['python', 'julia']
+
 # ---- ftcommands_mappings.vim setup ------
 if !exists('g:replica_config.use_default_mapping')
   g:replica_config.use_default_mapping = false
@@ -172,6 +175,8 @@ def InitBuffers()
   b:run_script = run_scripts[&filetype]
 
   b:repl_options = exists('g:replica_config.repl_options') ? g:replica_config.repl_options[&filetype] : ''
+
+  b:supports_inspect = index(inspect_filetypes, &filetype) >= 0
 
   # -- highlight init ----
   b:cells_delimiter = cell_delimiters[&filetype]

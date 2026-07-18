@@ -53,7 +53,7 @@ send the content of the current buffer.
 
 #### Mappings
 
-By setting `g:replica_use_default_mapping = true` you will get the following
+By setting `g:replica_config.use_default_mapping = true` you will get the following
 mappings.
 
 ```
@@ -77,41 +77,36 @@ nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 
 ```
 # Default values
-g:replica_display_range = false
-g:replica_enable_highlight = true
-g:replica_console_position = "L"
-g:replica_console_height = &lines
-g:replica_console_width = floor(&columns/2)
-g:replica_kernels = {python: "python3",
-                   julia: "julia-1.8"}
-g:replica_cells_delimiters = { python: "# %%",
-                             julia: "# %%"}
-g:replica_repl_options = {
-                    python: "",
-                    julia: ""}
+g:replica_config.console_position = "L"
+g:replica_config.display_range = true
+g:replica_config.enable_highlight = true
+g:replica_config.alt_highlight = false
+g:replica_config.use_default_mapping = false
+g:replica_config.display_variables = 'vsplit'
+g:replica_config.repl_options = {
+    python: "",
+    julia: "",
+    r: "",
+    sh: "",
+    zsh: ""}
 ```
 
 ## Adding new languages
 
-At the moment Replica support _python_ and _julia_ but adding new languages
-should not be too difficult.<br>
+At the moment Replica supports _python_, _julia_, _R_, _sh_ and _zsh_ but adding new
+languages should not be too difficult.<br>
 
 Say that you want to add `foo` language to Replica. You proceed in two steps:
 
-1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
-   `g:replica_jupyter_console_options`, `g:replica_cells_delimiters` and
-   `g:replica_run_commands` dictionaries. Take a look at `:h replica.txt` to
-   understand how to set them.
-2. Duplicate any existing file in `vim-replica/ftplugin/` file and rename it
-   as `foo.vim`. Note that `foo` must be a recognized vim _filetype_.
+1. Edit `plugin/replica.vim` and add a new key-value pair to the four internal
+   dictionaries: `start_cmds`, `console_names`, `run_scripts`, and
+   `cell_delimiters`. Take a look at `:h replica.txt` for details on what each
+   entry should contain.
+2. If the new REPL requires extra start-up options, add a corresponding entry
+   to `g:replica_config.repl_options` in your `vimrc`.
 
 Done!<br> Your new language is now added to vim-replica! If you add a new
 language consider to issue a PR.
-
-> **Note**
->
-> You could also use the global `ftplugin` folder instead of the plugin
-> `vim-replica/ftplugin` folder but that has not been tested yet.
 
 ## Troubleshooting
 
@@ -131,15 +126,15 @@ Next, be sure that in the current virtual environment:
 
 #### Q: When I open the REPL the layout is horrible!
 
-A: Set a desired value of `g:replica_console_height` and
-`g:replica_console_width` in your `vimrc`.<br> The units are number of lines
+A: Set a desired value of `g:replica_config.console_height` and
+`g:replica_config.console_width` in your `vimrc`.<br> The units are number of lines
 and number of columns, respectively. <br>
 
 #### Q. Vim slow down a lot with this st"pid plugin!
 
-A: You can try to set `g:replica_alt_highlight = true` in your _vimrc_.<br>
+A: You can try to set `g:replica_config.alt_highlight = true` in your _vimrc_.<br>
 Or, if still slow, you can try to disable the cells highlighting by setting
-`g:replica_enable_highlight` to `false`.
+`g:replica_config.enable_highlight` to `false`.
 
 #### Q. I am using matplotlib and the figures are not interactive.
 

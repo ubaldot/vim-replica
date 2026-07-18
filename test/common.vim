@@ -104,7 +104,7 @@ export def WaitForPrompt(expected: string)
   var period = 100
   const max_count = 200
 
-  while counter < max_count && LastNonEmptyLine(b:repl_bufnr) !~# expected
+  while counter < max_count && LastNonEmptyLine(b:console_bufnr) !~# expected
     exe $"sleep {period}m"
     counter += 1
     redraw
@@ -112,7 +112,7 @@ export def WaitForPrompt(expected: string)
 
   # Timeout reached, fail with actual last line
   if counter == max_count
-    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:repl_bufnr)} after waiting {counter * period} ms"
+    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:console_bufnr)} after waiting {counter * period} ms"
   endif
 enddef
 

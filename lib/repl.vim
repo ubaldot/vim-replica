@@ -122,7 +122,7 @@ enddef
 def ConsoleOpen()
   # messages clear
   var console_win_id = 0
-  var job_id = -1
+  var console_bufnr = -1
   if !ConsoleExists()
     Init()
     logger.Info("create new console")
@@ -136,10 +136,10 @@ def ConsoleOpen()
     #            REPL & Server start
     # ===============================================
     try
-      job_id = term_start(start_cmd,
+      console_bufnr = term_start(start_cmd,
         {term_name: b:console_name})
 
-      if job_id <= 0
+      if console_bufnr <= 0
         Echoerr($'Failed to start terminal: {start_cmd}')
         logger.Error($'Failed to run {start_cmd}')
         return
@@ -208,11 +208,11 @@ def ConsoleOpen()
 
   # Cursor back to the editor
   wincmd p
-  b:repl_bufnr = job_id
+  b:console_bufnr = console_bufnr
 
   setbufvar(bufnr('$'), 'console_name', b:console_name)
   setbufvar(bufnr('$'), 'repl_start_cmd', b:repl_start_cmd)
-  setbufvar(bufnr('$'), 'repl_bufnr', b:repl_bufnr)
+  setbufvar(bufnr('$'), 'console_bufnr', b:console_bufnr)
 
 enddef
 

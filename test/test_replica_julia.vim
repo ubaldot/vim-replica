@@ -34,7 +34,7 @@ def WaitForJuliaSymbol(symbol: string)
   # If now you read the last line, it is 'julia>'.
   #
   # The last line is generally the prompt.
-  const buf_nr = b:repl_bufnr
+  const buf_nr = b:console_bufnr
   const marker = '__VIM_REPLICA_READY__'
   const max_count = 50
   var counter = 0
@@ -167,14 +167,14 @@ def g:Test_julia_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # ReplicaSendCell
   cursor(1, 1)
@@ -204,7 +204,7 @@ def g:Test_julia_basic()
 
   # Double Toggle
   # lastline should be the prompt at this point of the test
-  var lastline = LastNonEmptyLine(b:repl_bufnr)
+  var lastline = LastNonEmptyLine(b:console_bufnr)
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
   WaitForAssert(() => assert_true(bufexists('JULIA')))
@@ -226,19 +226,19 @@ def g:Test_julia_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(b:repl_bufnr)
+  lastline = LastNonEmptyLine(b:console_bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -280,20 +280,20 @@ def g:Test_julia_variable_explorer_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
   WaitForJuliaSymbol("DataFrame")
-  var lastline = LastNonEmptyLine(b:repl_bufnr)
+  var lastline = LastNonEmptyLine(b:console_bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -463,20 +463,20 @@ def g:Test_julia_getcompletion()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, julia won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # Now the game starts
   exe 'ReplicaSendFile'
   WaitForPrompt(expected_prompt)
 
-  var lastline = LastNonEmptyLine(b:repl_bufnr)
+  var lastline = LastNonEmptyLine(b:console_bufnr)
   assert_match(expected_prompt, lastline)
 
   # test start

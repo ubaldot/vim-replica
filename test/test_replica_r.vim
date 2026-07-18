@@ -97,14 +97,14 @@ def g:Test_R_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, the repl won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # ReplicaSendCell
   cursor(1, 1)
@@ -150,14 +150,14 @@ def g:Test_R_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, the repl won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
@@ -203,14 +203,14 @@ def g:Test_R_variable_explorer_basic()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, the repl won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # Send current buffer
   exe "ReplicaSendFile"
@@ -325,14 +325,14 @@ def g:Test_R_getcompletion()
     throw v:errmsg
   endif
 
-  if !ReplStarted(b:repl_bufnr, expected_prompt, init_ready_pattern)
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
   # Sometimes, when you send messages through TCP, the repl won't show
   # the prompt, but it needs a manual \n
-  term_sendkeys(b:repl_bufnr, "\n")
+  term_sendkeys(b:console_bufnr, "\n")
 
   # Now the game starts
   exe 'ReplicaSendFile'
