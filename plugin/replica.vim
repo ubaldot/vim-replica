@@ -4,7 +4,7 @@ vim9script
 # Maintainer:	Ubaldo Tiberi
 # License: BSD3-Clause
 
-const replica_path = expand('<sfile>:h:h')
+const replica_path = expand('<sfile>:h:h')->substitute("\\", "/", "g")
 
 # ----- DeprecationWarnings --------------------
 def DeprecationWarnings(param: string)
@@ -102,13 +102,11 @@ if !exists('g:replica_config.repl_options')
   }
 endif
 
-# Dicts. Keys must be Vim filetypes
-const r_init_path = $"{replica_path}/languages/r/r_init.R"->substitute("\\", "/", "g")
 
 var start_cmds = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
-  r: $"R --interactive --no-save --no-restore --quiet -e \"source('{r_init_path}')\"",
+  r: $"Rterm --ess --no-save --no-restore --quiet -e \"source('{replica_path}/languages/r/r_init.R')\"",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"
 }

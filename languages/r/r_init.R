@@ -1,99 +1,248 @@
-# r_init.R — vim-replica TCP server for R
+# r_init.R -- vim-replica TCP server for R
 #
-# Starts a JSON-RPC TCP server on port 6969, mirroring the Python/Julia
-# servers. The server runs non-blockingly via the 'later' package, which
-# fires callbacks in R's event loop while R is idle at the interactive prompt.
+# Simple single-client JSON-RPC server.
 #
-# Requires: jsonlite, later
+# Requires:
+#   install.packages("jsonlite")
 
-for (.pkg in c("jsonlite", "later")) {
-  if (!requireNamespace(.pkg, quietly = TRUE))
-    stop(sprintf("[vim-replica] Package '%s' is required. Install with: install.packages('%s')",
-                 .pkg, .pkg))
-}
-rm(.pkg)
+message("interactive = ", interactive())
+
+if (!requireNamespace("jsonlite", quietly = TRUE))
+  stop(
+    "[vim-replica] Package 'jsonlite' is required. ",
+    "Install with install.packages('jsonlite')"
+  )
 
 library(jsonlite, quietly = TRUE)
-library(later,    quietly = TRUE)
 
 .VIM_PORT <- 6969L
-.vim_srv  <- serverSocket(.VIM_PORT)
-.vim_conn <- NULL
 
-# --- JSON-RPC transport -----------------------------------------------------
+# ---------------------------------------------------------------------------
+# Transport
+# ---------------------------------------------------------------------------
 
 .vim_send_response <- function(conn, data) {
-  payload <- charToRaw(jsonlite::toJSON(data, auto_unbox = TRUE))
-  header  <- charToRaw(sprintf("Content-Length: %d\r\n\r\n", length(payload)))
+
+  payload <- charToRaw(
+    jsonlite::toJSON(
+      data,
+      auto_unbox = TRUE,
+      null = "null"
+    )
+  )
+
+  header <- charToRaw(
+    sprintf(
+      "Content-Length: %d\r\n\r\n",
+      length(payload)
+    )
+  )
+
   writeBin(c(header, payload), conn)
   flush(conn)
 }
 
 .vim_error_response <- function(conn, id, code, msg) {
+
   .vim_send_response(conn, list(
-    jsonrpc = "2.0", id = id,
-    error = list(code = code, message = msg)
+    jsonrpc = "2.0",
+    id = id,
+    error = list(
+      code = code,
+      message = msg
+    )
   ))
 }
 
 .vim_read_message <- function(conn) {
+
   tryCatch({
-    hdr <- trimws(readLines(conn, n = 1L, warn = FALSE))
-    if (!nzchar(hdr)) return(NULL)
-    n <- as.integer(regmatches(hdr, regexpr("[0-9]+", hdr)))
-    if (is.na(n)) return(NULL)
-    readLines(conn, n = 1L, warn = FALSE)        # blank separator line
-    body <- readBin(conn, raw(), n = n)
-    if (!length(body)) return(NULL)
-    jsonlite::fromJSON(rawToChar(body), simplifyVector = FALSE)
-  }, error = function(e) NULL)
+
+    hdr <- trimws(
+      readLines(
+        conn,
+        n = 1L,
+        warn = FALSE
+      )
+    )
+
+    if (!nzchar(hdr))
+      return(NULL)
+
+    n <- as.integer(
+      regmatches(
+        hdr,
+        regexpr("[0-9]+", hdr)
+      )
+    )
+
+    if (is.na(n))
+      return(NULL)
+
+    readLines(
+      conn,
+      n = 1L,
+      warn = FALSE
+    )
+
+    body <- readBin(
+      conn,
+      raw(),
+      n = n
+    )
+
+    if (!length(body))
+      return(NULL)
+
+    jsonlite::fromJSON(
+      rawToChar(body),
+      simplifyVector = FALSE
+    )
+
+  }, error = function(e) {
+    NULL
+  })
 }
 
-# --- Handlers ---------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Handlers
+# ---------------------------------------------------------------------------
 
 .vim_inspect <- function(conn, id, params) {
-  expr  <- params[["variable"]]
+
+  expr <- params[["variable"]]
+
   lines <- tryCatch({
-    obj <- eval(parse(text = expr), envir = .GlobalEnv)
+
+    obj <- eval(
+      parse(text = expr),
+      envir = .GlobalEnv
+    )
+
     capture.output(print(obj))
-  }, error = function(e) conditionMessage(e))
-  .vim_send_response(conn, list(jsonrpc = "2.0", id = id, result = as.list(lines)))
+
+  }, error = function(e) {
+
+    conditionMessage(e)
+
+  })
+
+  .vim_send_response(conn, list(
+    jsonrpc = "2.0",
+    id = id,
+    result = as.list(lines)
+  ))
 }
 
 .vim_whos <- function(conn, id, params) {
+
   lines <- tryCatch({
+
     capture.output({
-      nms <- setdiff(ls(envir = .GlobalEnv),
-                     c(".__S3MethodsTable__.", ".Random.seed"))
+
+      nms <- setdiff(
+        ls(envir = .GlobalEnv),
+        c(
+          ".__S3MethodsTable__.",
+          ".Random.seed"
+        )
+      )
+
       nms <- nms[!startsWith(nms, ".")]
-      if (!length(nms)) { cat("No user variables.\n"); return() }
+
+      if (!length(nms)) {
+        cat("No user variables.\n")
+        return()
+      }
+
       info <- lapply(nms, function(nm) {
-        obj <- get(nm, envir = .GlobalEnv)
-        sz  <- if (is.data.frame(obj) || is.matrix(obj))
-                 paste(dim(obj), collapse = "x")
-               else if (length(obj) > 1L && is.atomic(obj))
-                 paste0("len=", length(obj))
-               else ""
-        c(nm, class(obj)[[1L]], sz)
+
+        obj <- get(
+          nm,
+          envir = .GlobalEnv
+        )
+
+        sz <- if (is.data.frame(obj) || is.matrix(obj)) {
+          paste(dim(obj), collapse = "x")
+        } else if (is.atomic(obj) && length(obj) > 1L) {
+          paste0("len=", length(obj))
+        } else {
+          ""
+        }
+
+        c(
+          nm,
+          class(obj)[1],
+          sz
+        )
       })
-      m  <- do.call(rbind, info)
-      ws <- apply(m, 2L, function(x) max(nchar(x, "width")))
-      for (i in seq_len(nrow(m)))
-        cat(sprintf("%-*s  %-*s  %s\n",
-                    ws[1L], m[i, 1L], ws[2L], m[i, 2L], m[i, 3L]))
+
+      m <- do.call(rbind, info)
+
+      widths <- apply(
+        m,
+        2,
+        function(x) max(nchar(x))
+      )
+
+      for (i in seq_len(nrow(m))) {
+
+        cat(sprintf(
+          "%-*s  %-*s  %s\n",
+          widths[1],
+          m[i, 1],
+          widths[2],
+          m[i, 2],
+          m[i, 3]
+        ))
+      }
     })
-  }, error = function(e) conditionMessage(e))
-  .vim_send_response(conn, list(jsonrpc = "2.0", id = id, result = as.list(lines)))
+
+  }, error = function(e) {
+
+    conditionMessage(e)
+
+  })
+
+  .vim_send_response(conn, list(
+    jsonrpc = "2.0",
+    id = id,
+    result = as.list(lines)
+  ))
 }
 
 .vim_variable_names <- function(conn, id, params) {
-  nms <- tryCatch({
-    objs <- setdiff(ls(envir = .GlobalEnv),
-                    c(".__S3MethodsTable__.", ".Random.seed"))
-    sort(objs[!startsWith(objs, ".")])
-  }, error = function(e) character(0L))
-  .vim_send_response(conn, list(jsonrpc = "2.0", id = id, result = as.list(nms)))
+
+  vars <- tryCatch({
+
+    objs <- setdiff(
+      ls(envir = .GlobalEnv),
+      c(
+        ".__S3MethodsTable__.",
+        ".Random.seed"
+      )
+    )
+
+    sort(
+      objs[!startsWith(objs, ".")]
+    )
+
+  }, error = function(e) {
+
+    character(0)
+
+  })
+
+  .vim_send_response(conn, list(
+    jsonrpc = "2.0",
+    id = id,
+    result = as.list(vars)
+  ))
 }
+
+# ---------------------------------------------------------------------------
+# Dispatcher
+# ---------------------------------------------------------------------------
 
 .VIM_METHODS <- list(
   "runtime/vim_inspect"        = .vim_inspect,
@@ -102,53 +251,86 @@ library(later,    quietly = TRUE)
 )
 
 .vim_handle_request <- function(conn, msg) {
-  id      <- msg[["id"]]
-  method  <- msg[["method"]]
-  params  <- if (!is.null(msg[["params"]])) msg[["params"]] else list()
+
+  id <- msg[["id"]]
+  method <- msg[["method"]]
+
   handler <- .VIM_METHODS[[method]]
+
   if (is.null(handler)) {
-    .vim_error_response(conn, id, -32601L, paste0("Method not found: ", method))
+
+    .vim_error_response(
+      conn,
+      id,
+      -32601L,
+      paste("Method not found:", method)
+    )
+
     return(invisible(NULL))
   }
-  tryCatch(
-    handler(conn, id, params),
-    error = function(e) .vim_error_response(conn, id, -32603L, conditionMessage(e))
-  )
-}
 
-# --- Non-blocking poll loop (via 'later') -----------------------------------
-#
-# later::later() schedules callbacks in R's event loop, which fires even
-# while R is idle at the interactive prompt — unlike addTaskCallback(), which
-# only fires between top-level expressions.
+  params <- msg[["params"]]
 
-.vim_poll <- function() {
+  if (is.null(params))
+    params <- list()
+
   tryCatch({
-    if (is.null(.vim_conn)) {
-      # Check for an incoming connection on the server socket
-      if (isTRUE(socketSelect(list(.vim_srv), timeout = 0)[[1L]])) {
-        .vim_conn <<- socketAccept(.vim_srv, open = "r+b")
-        message("Vim connected from localhost")
-      }
-    } else {
-      # Check if data is available on the existing connection
-      if (isTRUE(socketSelect(list(.vim_conn), timeout = 0)[[1L]])) {
-        msg <- .vim_read_message(.vim_conn)
-        if (!is.null(msg)) {
-          .vim_handle_request(.vim_conn, msg)
-        } else {
-          # Client closed the connection
-          close(.vim_conn)
-          .vim_conn <<- NULL
-        }
-      }
-    }
+
+    handler(
+      conn,
+      id,
+      params
+    )
+
   }, error = function(e) {
-    if (!is.null(.vim_conn))
-      tryCatch({ close(.vim_conn); .vim_conn <<- NULL }, error = function(e) NULL)
+
+    .vim_error_response(
+      conn,
+      id,
+      -32603L,
+      conditionMessage(e)
+    )
+
   })
-  later::later(.vim_poll, delay = 0.05)   # reschedule every 50 ms
 }
 
-message("R TCP server running on 127.0.0.1:", .VIM_PORT)
-later::later(.vim_poll, delay = 0.1)
+# ---------------------------------------------------------------------------
+# Server
+# ---------------------------------------------------------------------------
+
+.vim_srv <- serverSocket(.VIM_PORT)
+
+message(
+  "R TCP server running on 127.0.0.1:",
+  .VIM_PORT
+)
+
+repeat {
+
+  message("Waiting for Vim connection...")
+
+  conn <- socketAccept(
+    .vim_srv,
+    blocking = TRUE,
+    open = "r+b"
+  )
+
+  message("Vim connected")
+
+  repeat {
+
+    msg <- .vim_read_message(conn)
+
+    if (is.null(msg))
+      break
+
+    .vim_handle_request(
+      conn,
+      msg
+    )
+  }
+
+  try(close(conn), silent = TRUE)
+
+  message("Connection closed")
+}
