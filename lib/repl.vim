@@ -152,6 +152,13 @@ def ConsoleOpen()
       return
     endtry
 
+    # DEBUG (only for R)
+    sleep 500m
+    term_sendkeys(
+        console_bufnr,
+        $"source('./languages/r/r_init.R')\n"
+    )
+
     # =============================================
     #  Wait for server before opening a channel
     # =============================================

@@ -106,7 +106,8 @@ endif
 var start_cmds = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
-  r: $"Rterm --ess --no-save --no-restore --quiet -e \"source('{replica_path}/languages/r/r_init.R')\"",
+  # r: $"R --ess --no-save --no-restore --quiet -e \"source('{replica_path}/languages/r/r_init.R')\"",
+  r: $"R --no-save --no-restore --quiet",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"
 }

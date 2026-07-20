@@ -1,21 +1,33 @@
 # r_init.R -- vim-replica TCP server for R
 #
-# Simple single-client JSON-RPC server.
-#
 # Requires:
-#   install.packages("jsonlite")
+#   install.packages(c("jsonlite", "later"))
 
 message("interactive = ", interactive())
 
-if (!requireNamespace("jsonlite", quietly = TRUE))
-  stop(
-    "[vim-replica] Package 'jsonlite' is required. ",
-    "Install with install.packages('jsonlite')"
-  )
+for (.pkg in c("jsonlite", "later")) {
+  if (!requireNamespace(.pkg, quietly = TRUE))
+    stop(sprintf(
+      "[vim-replica] Package '%s' is required. Install with install.packages('%s')",
+      .pkg,
+      .pkg
+    ))
+}
+rm(.pkg)
 
 library(jsonlite, quietly = TRUE)
+library(later, quietly = TRUE)
 
 .VIM_PORT <- 6969L
+
+# ---------------------------------------------------------------------------
+# Global state
+# ---------------------------------------------------------------------------
+
+.vim_srv <- serverSocket(.VIM_PORT)
+.vim_conn <- NULL
+
+message("R TCP server running on 127.0.0.1:", .VIM_PORT)
 
 # ---------------------------------------------------------------------------
 # Transport
@@ -100,7 +112,9 @@ library(jsonlite, quietly = TRUE)
     )
 
   }, error = function(e) {
+
     NULL
+
   })
 }
 
@@ -179,7 +193,7 @@ library(jsonlite, quietly = TRUE)
 
       m <- do.call(rbind, info)
 
-      widths <- apply(
+      ws <- apply(
         m,
         2,
         function(x) max(nchar(x))
@@ -189,9 +203,9 @@ library(jsonlite, quietly = TRUE)
 
         cat(sprintf(
           "%-*s  %-*s  %s\n",
-          widths[1],
+          ws[1],
           m[i, 1],
-          widths[2],
+          ws[2],
           m[i, 2],
           m[i, 3]
         ))
@@ -255,6 +269,11 @@ library(jsonlite, quietly = TRUE)
   id <- msg[["id"]]
   method <- msg[["method"]]
 
+  params <- msg[["params"]]
+
+  if (is.null(params))
+    params <- list()
+
   handler <- .VIM_METHODS[[method]]
 
   if (is.null(handler)) {
@@ -268,11 +287,6 @@ library(jsonlite, quietly = TRUE)
 
     return(invisible(NULL))
   }
-
-  params <- msg[["params"]]
-
-  if (is.null(params))
-    params <- list()
 
   tryCatch({
 
@@ -295,42 +309,88 @@ library(jsonlite, quietly = TRUE)
 }
 
 # ---------------------------------------------------------------------------
-# Server
+# Polling
 # ---------------------------------------------------------------------------
 
-.vim_srv <- serverSocket(.VIM_PORT)
+.vim_poll <- function() {
 
-message(
-  "R TCP server running on 127.0.0.1:",
-  .VIM_PORT
-)
+  tryCatch({
 
-repeat {
+    if (is.null(.vim_conn)) {
 
-  message("Waiting for Vim connection...")
+      ready <- socketSelect(
+        list(.vim_srv),
+        timeout = 0
+      )[[1]]
 
-  conn <- socketAccept(
-    .vim_srv,
-    blocking = TRUE,
-    open = "r+b"
-  )
+      if (isTRUE(ready)) {
 
-  message("Vim connected")
+        .vim_conn <<- socketAccept(
+          .vim_srv,
+          blocking = FALSE,
+          open = "r+b"
+        )
 
-  repeat {
+        message("Vim connected")
+      }
 
-    msg <- .vim_read_message(conn)
+    } else {
 
-    if (is.null(msg))
-      break
+      repeat {
 
-    .vim_handle_request(
-      conn,
-      msg
+        ready <- socketSelect(
+          list(.vim_conn),
+          timeout = 0
+        )[[1]]
+
+        if (!isTRUE(ready))
+          break
+
+        msg <- .vim_read_message(.vim_conn)
+
+        if (is.null(msg)) {
+
+          try(close(.vim_conn), silent = TRUE)
+
+          .vim_conn <<- NULL
+
+          message("Connection closed")
+          break
+        }
+
+        .vim_handle_request(
+          .vim_conn,
+          msg
+        )
+      }
+    }
+
+  }, error = function(e) {
+
+    message(
+      "[vim-replica] ",
+      conditionMessage(e)
     )
-  }
 
-  try(close(conn), silent = TRUE)
+    if (!is.null(.vim_conn)) {
 
-  message("Connection closed")
+      try(close(.vim_conn), silent = TRUE)
+
+      .vim_conn <<- NULL
+    }
+  })
+
+  later::later(.vim_poll, 0.05)
 }
+
+# ---------------------------------------------------------------------------
+# Diagnostics
+# ---------------------------------------------------------------------------
+
+later::later(function() {
+  message("[vim-replica] later callback is running")
+}, 1)
+
+later::later(.vim_poll, 0.05)
+
+message("[vim-replica] polling started")
