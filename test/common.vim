@@ -118,6 +118,12 @@ export def WaitForPrompt(expected: string)
       # Empty reads mean ConPTY hasn't flushed yet — not a genuine mismatch.
       counter += 1
     endif
+    # Some REPLs (R) need a repeated newline to re-display their prompt after
+    # cell/file execution completes. Gated by b:waitforprompt_nudge so that
+    # IPython (which increments its counter on empty Enter) is never nudged.
+    if get(b:, 'waitforprompt_nudge', false)
+      term_sendkeys(b:console_bufnr, "\n")
+    endif
   endwhile
 
   # Timeout reached, fail with actual last line
