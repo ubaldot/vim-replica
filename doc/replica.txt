@@ -103,7 +103,7 @@ COMMANDS                                                     *ReplicaCommands*
 :ReplicaInspect [{variable}]    Display {variable}. If {variable} is empty,
                                 then display all the variables in the current
                                 repl session.
-                                Tab completion is available.
+                                |<tab>| completion is available.
                                 Available for Python, Julia and R only.
 
                                                    *:ReplicaLogShow*
