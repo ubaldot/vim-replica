@@ -150,6 +150,7 @@ def g:Test_R_basic()
 
   for line in expected_lines
     exe "ReplicaSendLine"
+    term_sendkeys(b:console_bufnr, "\n")
     WaitForPrompt(expected_prompt)
     assert_equal(line, line('.'))
   endfor
@@ -188,6 +189,7 @@ def g:Test_R_basic()
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
+  term_sendkeys(b:console_bufnr, "\n")
   WaitForPrompt(expected_prompt)
   lastline = LastNonEmptyLine(b:console_bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -237,6 +239,7 @@ def g:Test_R_variable_explorer_basic()
   term_sendkeys(b:console_bufnr, "\n")
 
   exe "ReplicaSendFile"
+  term_sendkeys(b:console_bufnr, "\n")
   WaitForPrompt(expected_prompt)
   WaitForRSymbol("greet")
   var lastline = LastNonEmptyLine(b:console_bufnr)
@@ -314,6 +317,7 @@ def g:Test_R_getcompletion()
   term_sendkeys(b:console_bufnr, "\n")
 
   exe 'ReplicaSendFile'
+  term_sendkeys(b:console_bufnr, "\n")
   WaitForPrompt(expected_prompt)
   WaitForRSymbol("greet")
 
