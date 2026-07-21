@@ -1,14 +1,13 @@
 :ReplicaConsoleRestart	replica.txt	/*:ReplicaConsoleRestart*
 :ReplicaConsoleShutoff	replica.txt	/*:ReplicaConsoleShutoff*
 :ReplicaConsoleToggle	replica.txt	/*:ReplicaConsoleToggle*
-:ReplicaDelete	replica.txt	/*:ReplicaDelete*
 :ReplicaInspect	replica.txt	/*:ReplicaInspect*
+:ReplicaLogDelete	replica.txt	/*:ReplicaLogDelete*
+:ReplicaLogShow	replica.txt	/*:ReplicaLogShow*
 :ReplicaRemoveCells	replica.txt	/*:ReplicaRemoveCells*
 :ReplicaSendCell	replica.txt	/*:ReplicaSendCell*
 :ReplicaSendFile	replica.txt	/*:ReplicaSendFile*
 :ReplicaSendLines	replica.txt	/*:ReplicaSendLines*
-:ReplicaShow	replica.txt	/*:ReplicaShow*
-ReplicaAddLanguages	replica.txt	/*ReplicaAddLanguages*
 ReplicaCommands	replica.txt	/*ReplicaCommands*
 ReplicaConfiguration	replica.txt	/*ReplicaConfiguration*
 ReplicaContents	replica.txt	/*ReplicaContents*

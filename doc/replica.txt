@@ -18,10 +18,9 @@ CONTENTS                                                     *ReplicaContents*
          3.1 Commands ....... |ReplicaCommands|
          3.2 Mappings ....... |ReplicaMappings|
     4. Configuration ........ |ReplicaConfiguration|
-    5. Add new languages .... |ReplicaAddLanguages|
+    5. Contributing ......... |ReplicaContributing|
     6. Troubleshooting ...... |ReplicaTroubleshooting|
-    7. Contributing ......... |ReplicaContributing|
-    8. License .............. |ReplicaLicense|
+    7. License .............. |ReplicaLicense|
 
 
 ==============================================================================

@@ -10,10 +10,18 @@
 
 ## Introduction
 
-Replica integrates interactive REPL shells directly into Vim for a wide range
-of filetypes: _Python_ (IPython), _Julia_, _R_, _sh_, _zsh_, and _PowerShell_ (ps1).
+Replica integrates with the following REPL programs:
 
-It supports the following key features:
+- IPython
+- Julia
+- R
+- sh
+- zsh
+- PowerShell
+
+Additional REPL can be easily included. See `:h ReplicaContributing`.
+
+Replica supports the following key features:
 
 1. Send lines, files and code-cells to a REPL,
 2. Highlight code-cells,
@@ -26,7 +34,7 @@ If you like this plugin you may also want to take a look at [vim-outline][3].
 
 ## Requirements
 
-Replica is entirely written in _Vim9script_, hence you need at least Vim 9.0
+Replica is entirely written in Vim9script, hence you need at least Vim 9.0
 compiled with `python3` support.
 
 ## Usage
@@ -46,8 +54,8 @@ compiled with `python3` support.
 
 #### Mappings
 
-By setting `g:replica_config.use_default_mapping = true` you will get the following
-mappings:
+By setting `g:replica_config.use_default_mapping = true` you will get the
+following mappings:
 
 ```vim
 # Default mappings
@@ -127,7 +135,7 @@ Or, if still slow, you can try to disable the cells highlighting by setting
 A: This is more a matplotlib setting than a replica problem. :)
 
 You should change the matplotlib backend. For example, you could use the magic
-`%matplotlib qt` to use the `qt` backend. See matplotlib docs for more info.
+`%matplotlib qt` to use the `qt` backend. See [matplotlib][4] docs for more info.
 
 #### Q. The variable explorer is too small for my 800x800 matrix.
 
@@ -191,10 +199,6 @@ augroup END
 > example, it does not work the other way around, i.e. if you change folder
 > from a _terminal_ buffer then the Vim current folder won't change.
 
-## Contributing
-
-Contributions are more than welcome!
-
 ## Help
 
 This README is a good start to get some insights on Replica, but you can find
@@ -207,4 +211,5 @@ BSD3-Clause.
 <!-- DO NOT REMOVE vim-markdown-extras references DO NOT REMOVE-->
 [1]: https://github.com/jpalardy/vim-slime
 [2]: https://github.com/sillybun/vim-repl
+[4]: https://matplotlib.org/stable/index.html
 [3]: https://github.com/ubaldot/vim-outline
