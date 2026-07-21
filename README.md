@@ -1,12 +1,14 @@
 # **REPL**ica.vim
 
-<p align="center">
-<!-- asciinema demo goes here -->
+<p align="left">
+  <a href="https://asciinema.org/a/7Jx4xDjYEezxtm3I">
+    <img src="https://asciinema.org/a/7Jx4xDjYEezxtm3I.svg?size=large" alt="Demo" width="600"/>
+  </a>
 </p>
 
-<p align="center" style="font-size:38;">
-* The ultimate REPL! *
-</p>
+<!-- <p align="center" style="font-size:38;"> -->
+<!-- * The ultimate REPL! * -->
+<!-- </p> -->
 
 ## Introduction
 
