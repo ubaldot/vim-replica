@@ -416,10 +416,13 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   var resp = ch_evalexpr(repl_channel, req)
 
   if empty(resp)
-    Echoerr("Empty response from the server")
+    # Do NOT call Echoerr() here: echoerr aborts the function in Vim9script,
+    # causing the completion function to return a number instead of a List
+    # and triggering E1303.  Log silently and return an empty list.
+    logger.Error("Empty response from the server")
     return []
   elseif !Repl_response_OK(resp)
-    Echoerr($'Error, code: {resp.error.code}, {resp.error.message}')
+    logger.Error($'Error, code: {resp.error.code}, {resp.error.message}')
     return []
   endif
 

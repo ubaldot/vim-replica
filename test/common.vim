@@ -101,10 +101,12 @@ enddef
 
 export def WaitForPrompt(expected: string)
   var counter = 0
+  var total_loops = 0     # hard wall: always increments, prevents infinite loop
   var period = 100
   const max_count = 200
+  const max_total = 400   # 400 × 100 ms = 40 s absolute ceiling
 
-  while counter < max_count
+  while counter < max_count && total_loops < max_total
     # Flush ConPTY buffer before reading; on Windows the terminal buffer may
     # not update until redraw is triggered.
     redraw
@@ -113,6 +115,7 @@ export def WaitForPrompt(expected: string)
       break
     endif
     exe $"sleep {period}m"
+    total_loops += 1
     if lastline !=# ''
       # Only count polls where the buffer had content but the wrong prompt.
       # Empty reads mean ConPTY hasn't flushed yet — not a genuine mismatch.
@@ -126,9 +129,8 @@ export def WaitForPrompt(expected: string)
     endif
   endwhile
 
-  # Timeout reached, fail with actual last line
-  if counter == max_count
-    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:console_bufnr)} after waiting {counter * period} ms"
+  if counter >= max_count || total_loops >= max_total
+    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:console_bufnr)} after waiting {total_loops * period} ms"
   endif
 enddef
 
