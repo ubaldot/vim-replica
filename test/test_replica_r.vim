@@ -22,7 +22,7 @@ const init_ready_pattern = 'Vim connected'
 def WaitForRSymbol(symbol: string)
   # Polls until R reports the symbol as defined in .GlobalEnv.
   # R's source() is synchronous, but this guards against slow machines and
-  # the later-based TCP loop firing with a slight delay.
+  # the socket polling callback firing with a slight delay.
   const buf_nr = b:console_bufnr
   const marker = '__VIM_REPLICA_READY__'
   const max_count = 50
