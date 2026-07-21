@@ -89,7 +89,7 @@ enddef
 # something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
 # '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
 export def LastNonEmptyLine(buf_nr: number): string
-  var lines = getbufline(buf_nr, line('w0'), '$')
+  var lines = getbufline(buf_nr, 1, '$')
   for l in reverse(lines)
     if trim(l) !=# ''
       return l
@@ -109,7 +109,7 @@ export def WaitForPrompt(expected: string)
   while counter < max_count && total_loops < max_total
     # Flush ConPTY buffer before reading; on Windows the terminal buffer may
     # not update until redraw is triggered.
-    redraw
+    redraw!
     var lastline = LastNonEmptyLine(b:console_bufnr)
     if lastline =~# expected
       break

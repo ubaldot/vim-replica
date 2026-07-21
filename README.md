@@ -34,8 +34,8 @@ compiled with `python3` support.
 #### Commands
 
 `:ReplicaConsoleToggle`        # Un-hide and hide the REPL
-`:ReplicaConsoleRestart`       # Restart the REP
-`:ReplicaConsoleShutoff`       # Wipeout the buffer associated to the REP
+`:ReplicaConsoleRestart`       # Restart the REPL
+`:ReplicaConsoleShutoff`       # Wipeout the buffer associated to the REPL
 `:[range]ReplicaSendLines`     # Send the lines in `[range]` to the REPL
 `:ReplicaSendCell`             # Send the current code cell
 `:ReplicaSendFile [{file}]`    # Send `{file}` to the REPL. If no file is given,
@@ -47,7 +47,7 @@ compiled with `python3` support.
 #### Mappings
 
 By setting `g:replica_config.use_default_mapping = true` you will get the following
-mappings.
+mappings:
 
 ```vim
 # Default mappings
@@ -58,17 +58,18 @@ nmap <F5> <Plug>ReplicaSendFile<cr>
 nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
-## Example Configuration
+##### Configuration
 
 ```vim
-# Default values
-g:replica_config.console_position = "L"
-g:replica_config.display_range = true
-g:replica_config.enable_highlight = true
-g:replica_config.alt_highlight = false
-g:replica_config.use_default_mapping = false
-g:replica_config.display_variables = 'tab'
-g:replica_config.repl_options = {
+# Example
+g:replica_config = {}
+g:replica_config['console_position'] = "L"
+g:replica_config['display_range'] = true
+g:replica_config['enable_highlight'] = true
+g:replica_config['alt_highlight'] = false
+g:replica_config['use_default_mapping'] = false
+g:replica_config['display_variables'] = 'tab'
+g:replica_config['repl_options'] = {
     python: "",
     julia: "",
     r: "",

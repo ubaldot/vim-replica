@@ -258,8 +258,9 @@ def ConsoleOpen()
 
   elseif empty(ConsoleWinID())
     logger.Info("opening existing console")
-    exe 'sbuffer ' .. bufnr($"^{b:console_name}$")
-    console_win_id = win_findbuf(bufnr($'^{b:console_name}$'))[0]
+    console_bufnr = bufnr($"^{b:console_name}$")
+    exe 'sbuffer ' .. console_bufnr
+    console_win_id = win_findbuf(console_bufnr)[0]
   endif
 
   exe $'wincmd {g:replica_config.console_position}'

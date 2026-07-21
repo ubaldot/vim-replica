@@ -59,6 +59,16 @@ def RunTests(test_file: string)
 		try
 			exe $'call {test}'
 		catch
+			# Cleanup any open consoles / buffers so that subsequent tests don't
+			# inherit a running TCP server on port 6969 or stale terminal buffers.
+			try
+				exe "ReplicaConsoleShutoff"
+			catch
+			endtry
+			try
+				:%bw!
+			catch
+			endtry
 			# From test assertions
 			writefile([$'{test}: {RED}FAIL{END}'], test_results_filepath, 'a')
 			writefile(['', 'Assertions errors:', '--------------------'], test_results_filepath, 'a')
