@@ -41,14 +41,20 @@ compiled with `python3` support.
 
 #### Commands
 
-`:ReplicaConsoleToggle`        # Un-hide and hide the REPL
-`:ReplicaConsoleRestart`       # Restart the REPL
-`:ReplicaConsoleShutoff`       # Wipeout the buffer associated to the REPL
-`:[range]ReplicaSendLines`     # Send the lines in `[range]` to the REPL
-`:ReplicaSendCell`             # Send the current code cell
-`:ReplicaSendFile [{file}]`    # Send `{file}` to the REPL. If no file is given,
-                               # send the content of the current buffer
-`:ReplicaRemoveCells`          # Remove all the cells from the current buffer
+`:ReplicaConsoleToggle` # Un-hide and hide the REPL
+
+`:ReplicaConsoleRestart` # Restart the REPL
+
+`:ReplicaConsoleShutoff` # Wipeout the buffer associated to the REPL
+
+`:[range]ReplicaSendLines` # Send the lines in `[range]` to the REPL
+
+`:ReplicaSendCell` # Send the current code cell
+
+`:ReplicaSendFile [{file}]` # Send `{file}` to the REPL. If no file is given,
+                            # send the content of the current buffer
+`:ReplicaRemoveCells` # Remove all the cells from the current buffer
+
 `:ReplicaInspect [{variable}]` # Display `{variable}`. If no argument is given,
                                # display all variables in the current session
 
