@@ -2,9 +2,10 @@ vim9script
 
 # Module devoted to repl interaction
 
-import "../lib/highlight.vim"
-import "../lib/logger.vim"
-import "../lib/ftcommands_mappings.vim"
+import autoload "../plugin/replica.vim"
+import autoload "../lib/highlight.vim"
+import autoload "../lib/logger.vim"
+import autoload "../lib/ftcommands_mappings.vim"
 
 var console_geometry = {}
 export var repl_channel: channel = null_channel
@@ -152,12 +153,27 @@ def ConsoleOpen()
       return
     endtry
 
-    # DEBUG (only for R)
-    sleep 500m
-    term_sendkeys(
+
+    # Only for R.
+    # When sourcing a script via command-line arguments, then R
+    # execute the script and exit. It won't stay in interactive mode.
+    # See: https://stackoverflow.com/questions/79982261/r-exe-e-source-foo-r-runs-the-script-and-immediately-close-the-repl-sess?noredirect=1#comment141115549_79982261
+    #
+    if getbufvar('#', 'console_name' ) ==# "R"
+      var startup_delay = exists('g:replica_config.r_startup_time')
+        ? g:replica_config.r_startup_time
+        : 500
+
+      exe $"sleep {startup_delay}m"
+
+      term_sendkeys(
         console_bufnr,
-        $"source('./languages/r/r_init.R')\n"
-    )
+        $"source('{replica.replica_path}/languages/r/r_init.R')\n"
+      )
+
+      sleep 100m
+    endif
+
 
     # =============================================
     #  Wait for server before opening a channel
@@ -426,8 +442,8 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
   logger.Info('displaying variable')
 
   const new_statusline = empty(variable_to_inspect)
-    ? "Workspace"
-    : $"Variable explorer: {variable_to_inspect}"
+    ? "Workspace - <esc> to close"
+    : $"Variable explorer: {variable_to_inspect} - <esc> to close"
 
   if bufexists(variable_to_inspect)
     logger.Info($"reusing existing {g:replica_config.display_variables}")

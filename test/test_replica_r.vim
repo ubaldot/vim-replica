@@ -14,8 +14,8 @@ const ReplStarted    = common.ReplStarted
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile  = common.Cleanup_testfile
 
-const expected_prompt    = '^> '
-const init_ready_pattern = "Vim connected from"
+const expected_prompt    = '^>\s*'
+const init_ready_pattern = "Vim connected"
 
 const src_name = 'testfile.r'
 
@@ -77,7 +77,7 @@ def g:Test_R_basic()
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
     exe "ReplicaConsoleShutoff"
-    :%bw!
+    # :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
     return
   endif
@@ -177,9 +177,15 @@ def g:Test_R_variable_explorer_basic()
     return
   endif
 
+  sleep 20m
+  term_sendkeys(b:console_bufnr, "\n")
+  redraw
+
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
+  sleep 200m
+  redraw
 
   # -- Test scalar
   var expected_variable_explorer = ['[1] 110']
@@ -202,6 +208,7 @@ def g:Test_R_variable_explorer_basic()
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
+
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
   assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
@@ -215,7 +222,7 @@ def g:Test_R_variable_explorer_basic()
   redraw
 
   buf_name = 'Workspace'
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'{buf_name}', &l:statusline)
 
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))

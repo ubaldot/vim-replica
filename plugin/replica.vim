@@ -4,7 +4,7 @@ vim9script
 # Maintainer:	Ubaldo Tiberi
 # License: BSD3-Clause
 
-const replica_path = expand('<sfile>:h:h')->substitute("\\", "/", "g")
+export const replica_path = expand('<sfile>:h:h')->substitute("\\", "/", "g")
 
 # ----- DeprecationWarnings --------------------
 def DeprecationWarnings(param: string)
@@ -106,7 +106,6 @@ endif
 var start_cmds = {
   python: $"ipython -i {replica_path}/languages/python/ipython_init.py",
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
-  # r: $"R --ess --no-save --no-restore --quiet -e \"source('{replica_path}/languages/r/r_init.R')\"",
   r: $"R --no-save --no-restore --quiet",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i"

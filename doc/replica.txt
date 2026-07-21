@@ -28,16 +28,7 @@ CONTENTS                                                     *ReplicaContents*
 INTRODUCTION                                         *ReplicaIntroduction*
 
 
-For zsh and bash, you need to specify the variables that you want to see with _VIM_USER_VARS+=("BAR")
-manually source ~/.zshrc
-
-  bash --noprofile --norc -i
-If user wants his stuff, then use:
-  let g:repl_option = '--rcfile ~/.bashrc'
-
-
-Replica allows REPL programs such as Python or Julia, inside Vim in a seamless
-way.
+Replica allows REPL programs, inside Vim in a seamless way.
 
 Replica supports the following key features:
 
@@ -69,6 +60,7 @@ USAGE                                                     *ReplicaUsage*
 
 Enter any 'filetype' supported buffer and run any |ReplicaCommands| described
 below. |ReplicaCommands| are self-explanatory.
+
 Note: The commands work only if they are run from a buffer whose 'filetype' is
 supported.
 
@@ -203,18 +195,6 @@ adding any keys.
         "log_max_size"    Maximum size of the log file.
                           Default: 1 MB.
 
-            "use_utf16"   If |true|, assume terminal utf-16le encoding.
-                          Default: |true| on Windows, |false| otherwise.
-
-          "force_prompt"  If |true|, use a default prompt for the repl. Useful
-                          when user-prompt is difficult to parse through regex.
-                          Default: |false|.
-"forced_prompt_colored"   If |true|, the default prompt is colored.
-                          Set it to |false| if your terminal does not support
-                          colors.
-                          Default: |true|.
-
-
 
 ==============================================================================
 ADD NEW LANGUAGES                                     *ReplicaAddLanguages*
@@ -321,15 +301,13 @@ Note: It does not work the other way around, i.e. if you change folder from a
 CONTRIBUTING                                            *ReplicaContributing*
 
 Contributions are most than welcome!
-In the source code there are TODO items.
-Feel free to address any of them or propose your own changes. :)
 
 ==============================================================================
 LICENSE                                                    *ReplicaLicense*
 
 BSD 3-Clause License
 
-Copyright (c) 2025, Ubaldo Tiberi.
+Copyright (c) 2026, Ubaldo Tiberi.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

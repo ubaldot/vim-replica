@@ -149,6 +149,7 @@ export def ReplStarted(
         && counter < counter_max
     sleep 200m
     counter += 1
+		term_sendkeys(repl_bufnr, "\n")
     redraw
   endwhile
    if counter == counter_max
