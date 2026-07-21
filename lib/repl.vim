@@ -407,23 +407,13 @@ enddef
 # ---------------------------------------
 # Functions for variable explorer
 # ---------------------------------------
-
-export def GetCompleteList(A: string, L: string, P: number): list<string>
-
-  logger.Info($"getting variable names for complete list")
-
-  var req = {}
-  req.id = msg_id + 1
-  req.method = 'runtime/vim_variable_names'
-
-  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
+def RequestWithRetries(req: dict<any>, max_retries: number = 8): any
   var resp = {}
   var retries = 0
-  const max_retries = 8
 
   while retries < max_retries
-    # R pumps socket events at top-level task boundaries; sending an empty
-    # command gives it a deterministic chance to drain pending requests.
+    # R pumps socket events at top-level task boundaries; this no-op command
+    # gives it a deterministic chance to drain pending requests.
     if get(b:, 'console_name', '') ==# 'R' && get(b:, 'console_bufnr', -1) > 0
       term_sendkeys(b:console_bufnr, "invisible(NULL)\n")
     endif
@@ -435,6 +425,20 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
     sleep 100m
     retries += 1
   endwhile
+
+  return resp
+enddef
+
+export def GetCompleteList(A: string, L: string, P: number): list<string>
+
+  logger.Info($"getting variable names for complete list")
+
+  var req = {}
+  req.id = msg_id + 1
+  req.method = 'runtime/vim_variable_names'
+
+  logger.Info($"channel_status: '{ch_status(repl_channel)}'")
+  var resp = RequestWithRetries(req)
 
   if empty(resp)
     # Do NOT call Echoerr() here: echoerr aborts the function in Vim9script,
@@ -580,19 +584,7 @@ export def VimInspect(
     req.params = {variable: variable_single_quoted}
 
     logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-    var retries_inspect = 0
-    const max_retries_inspect = 8
-    while retries_inspect < max_retries_inspect
-      if get(b:, 'console_name', '') ==# 'R' && get(b:, 'console_bufnr', -1) > 0
-        term_sendkeys(b:console_bufnr, "invisible(NULL)\n")
-      endif
-      resp = ch_evalexpr(repl_channel, req, {timeout: 400})
-      if !empty(resp)
-        break
-      endif
-      sleep 100m
-      retries_inspect += 1
-    endwhile
+    resp = RequestWithRetries(req)
 
     if empty(resp)
       Echoerr("Empty response from the server")
@@ -611,19 +603,7 @@ export def VimInspect(
     req.params = {variable: ''}
 
     logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-    var retries_whos = 0
-    const max_retries_whos = 8
-    while retries_whos < max_retries_whos
-      if get(b:, 'console_name', '') ==# 'R' && get(b:, 'console_bufnr', -1) > 0
-        term_sendkeys(b:console_bufnr, "invisible(NULL)\n")
-      endif
-      resp = ch_evalexpr(repl_channel, req, {timeout: 400})
-      if !empty(resp)
-        break
-      endif
-      sleep 100m
-      retries_whos += 1
-    endwhile
+    resp = RequestWithRetries(req)
 
     if empty(resp)
       Echoerr("Empty response from the server")
