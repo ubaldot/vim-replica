@@ -8,19 +8,10 @@ jobs:
       matrix:
         vim:
           - nightly
-          - v9.0.0000
+          - v9.1.2125
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v7.0.0
-        with:
-          python-version: '3.12'
-
-      - name: Install jupyter_console
-        run: |
-          pip install jupyter_console
-
       - name: Setup Vim
         uses: rhysd/action-setup-vim@v1
         id: vim
@@ -29,6 +20,32 @@ jobs:
 
       - name: Checkout vim-replica plugin code
         uses: actions/checkout@v7
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Cache Julia environment
+        uses: julia-actions/cache@v2
+
+      - name: Install Julia packages
+        run: julia .github/scripts/packages.jl
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Install R packages
+        run: Rscript .github/scripts/packages.R
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install python packages
+        run: pip install -r ./.github/scripts/requirements.txt
 
       - name: Run Tests
         run: |
@@ -46,18 +63,9 @@ jobs:
       matrix:
         vim:
           - nightly
-          - v9.0.0000
+          - v9.1.2125
 
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v7.0.0
-        with:
-          python-version: '3.12'
-
-      - name: Install jupyter_console
-        run: |
-          pip install jupyter_console
-
       - name: Setup Vim
         uses: rhysd/action-setup-vim@v1
         id: vim
@@ -67,6 +75,32 @@ jobs:
       - name: Checkout vim-replica plugin code
         uses: actions/checkout@v7
 
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Cache Julia environment
+        uses: julia-actions/cache@v2
+
+      - name: Install Julia packages
+        run: julia .github/scripts/packages.jl
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Install R packages
+        run: Rscript .github/scripts/packages.R
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install python packages
+        run: pip install -r ./.github/scripts/requirements.txt
+
       - name: Run Tests
         run: |
           systeminfo
@@ -74,4 +108,4 @@ jobs:
           $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
           & $Env:VIMPRG --version
           cd test
-          .\run_tests.cmd
+          .\run_tests.ps1

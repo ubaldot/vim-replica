@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script to run the unit-tests for the vim-replica.vim
-# Copied and adapted from Vim LSP plugin
+# On GITHUB we call the script with an argument to secure the runner to quit
+# when there is an error.
+# Locally, we don't need to shut off everything when there is an error.
 
 GITHUB=1
 
@@ -11,6 +12,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 VIM_PRG=${VIM_PRG:=$(which vim)}
+
 if [ -z "$VIM_PRG" ]; then
   echo "ERROR: vim (\$VIM_PRG) is not found in PATH"
   if [ "$GITHUB" -eq 1 ]; then
@@ -22,55 +24,97 @@ fi
 # OBS: You can also run the following lines in the test file because it is
 # source before running the tests anyway. See Vim9-conversion-aid
 VIMRC="VIMRC"
-echo "set runtimepath+=.." > "$VIMRC"
-echo "set runtimepath+=../after" >> "$VIMRC"
-echo "filetype plugin on" >> "$VIMRC"
+LOGGER_DEF_FILE="logger.vim"
 
-# Construct the VIM_CMD with correct variable substitution and quoting
-# VIM_CMD="$VIM_PRG -u $VIMRC -U NONE -i NONE --noplugin -N --not-a-term"
-VIM_CMD="$VIM_PRG --clean -u $VIMRC -i NONE -N --not-a-term"
+# Fix logger file to be used by runner.vim
+cat >"$LOGGER_DEF_FILE" <<'EOF' &&
+vim9script
 
-# Add space separated tests, i.e. "test_replica.vim test_pippo.vim etc"
-TESTS="test_replica.vim"
+g:logger = g:replica_config.log_filepath
+EOF
 
-RunTestsInFile() {
-  testfile=$1
-  echo "Running tests in $testfile"
-  # If you want to see the output remove the & from the line below
-  eval $VIM_CMD " -c \"vim9cmd g:TestName = '$testfile'\" -S runner.vim"
 
-  if ! [ -f results.txt ]; then
-    echo "ERROR: Test results file 'results.txt' is not found."
-	if [ "$GITHUB" -eq 1 ]; then
-	   rm VIMRC
-	   exit 2
-	fi
-  fi
+# Fix .vimrc - make atomic write (overkill to me, but still...)
+tmp="$(mktemp "${VIMRC}.XXXX")"
 
-  cat results.txt
+cat >"$tmp" <<'EOF' &&
+vim9script
 
-  if grep -qw FAIL results.txt; then
-    echo "ERROR: Some test(s) in $testfile failed."
-		if [ "$GITHUB" -eq 1 ]; then
-			exit 3
-		fi
-	else
-		echo "SUCCESS: All the tests in $testfile passed."
-		echo
-  fi
-}
+set runtimepath+=..
+filetype indent plugin on
 
-for testfile in $TESTS
-do
-  RunTestsInFile $testfile
-done
+g:replica_config = {}
+g:replica_config.debug = true
+g:replica_config.log_level = 'Error'
 
-echo "SUCCESS: All the tests passed."
-# UBA: uncomment the line below
-if [ "$GITHUB" -eq 1 ]; then
-  exit 0
+g:TestFiles = [
+		'test_replica_python.vim',
+		'test_replica_julia.vim',
+    'test_replica_r.vim',
+    'test_replica_sh.vim',
+    'test_replica_zsh.vim'
+  ]
+EOF
+
+mv "$tmp" "$VIMRC"
+
+# Display vimrc content
+echo "----- vimrc content ------"
+cat $VIMRC
+echo ""
+
+echo "----- logger info ------"
+cat $LOGGER_DEF_FILE
+echo ""
+
+# Build command: this may change depending on the plugin
+VIM_CMD=(
+    "$VIM_PRG"
+    --clean
+    -u "$VIMRC"
+    -i NONE
+    -N
+    --not-a-term
+		-S "$LOGGER_DEF_FILE"
+    -S runner.vim
+)
+
+printf 'Starting Vim  and executing tests...\n\n'
+# Execute Vim
+"${VIM_CMD[@]}"
+
+# Check that Vim started and that the runner did its job
+if [ $? -eq 0 ]; then
+		printf 'Vim successfully started.\n\n'
+else
+		printf "Vim execution failed with exit code %s.\n" "$?"
+		exit 1
 fi
 
-rm "$VIMRC"
+# Check the test results
+cat results.txt
+echo "-------------------------------"
+# grep -w won't match here: results.txt contains ANSI-colored text such as
+# "\033[1;31mFAIL\033[0m" where 'm' immediately precedes FAIL — that 'm' is a
+# word character so -w never fires a word-boundary match.  Use -q (plain
+# substring) instead.
+if grep -q FAIL results.txt; then
+	echo "ERROR: Some test(s) failed."
+	echo
+	rm "$VIMRC"
+	rm "$LOGGER_DEF_FILE"
+	if [ "$GITHUB" -eq 1 ]; then
+		rm results.txt
+		exit 3
+	fi
+else
+	echo "SUCCESS: All the tests  passed."
+	echo
+	rm "$VIMRC"
+	rm "$LOGGER_DEF_FILE"
+	rm results.txt
+	exit 0
+fi
+
 # kill %- > /dev/null
 # vim: shiftwidth=2 softtabstop=2 noexpandtab

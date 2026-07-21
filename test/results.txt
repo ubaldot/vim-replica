@@ -1,2 +1,0 @@
-Test_python_basic(): pass
-Test_unsupported_filetypes(): pass

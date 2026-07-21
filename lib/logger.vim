@@ -1,0 +1,84 @@
+vim9script
+
+# The builtin ch_log() is a bit limiting. We created a new one.
+#
+# Usage:
+#   logger.Debug('starting replica')
+#   logger.Warn('fallback triggered')
+
+import "../lib/repl.vim"
+
+enum LEVELS
+  Debug,
+  Info,
+  Warn,
+  Error,
+endenum
+
+# This is needed to link the user debug level choice to the internal LEVELS enum
+const LEVELS_MAP = {
+  Debug: LEVELS.Debug,
+  Info:  LEVELS.Info,
+  Warn:  LEVELS.Warn,
+  Error: LEVELS.Error,
+}
+
+const user_level_str = get(g:replica_config, 'log_level', 'Error')
+
+def ShouldLog(level: LEVELS): bool
+
+  if !exists('g:replica_config.debug') || !g:replica_config.debug
+    return false
+  endif
+
+  if index(keys(LEVELS_MAP), user_level_str) != -1
+    return level.ordinal >= LEVELS_MAP[user_level_str].ordinal
+  else
+    # Disable logging in case of errors
+    g:replica_config.debug = false
+    repl.Echoerr($"[vim-replica]: Variable 'g:replica_config.log_level' shall be one of {string(keys(LEVELS_MAP))}. Logging disabled.")
+    return false
+  endif
+
+enddef
+
+def Write(level: LEVELS, msg: string)
+
+  if !ShouldLog(level)
+    return
+  endif
+
+  var lines = [$'{level.name}: {msg}']
+
+  try
+    writefile(lines, g:replica_config.log_filepath, 'a')
+  catch
+    repl.Echoerr($'Cannot write {g:replica_config.log_filepath}')
+  endtry
+enddef
+
+export def Debug(msg: string)
+  Write(LEVELS.Debug, msg)
+enddef
+
+export def Info(msg: string)
+  Write(LEVELS.Info, msg)
+enddef
+
+export def Warn(msg: string)
+  Write(LEVELS.Warn, msg)
+enddef
+
+export def Error(msg: string)
+  if !empty(msg)
+    Write(LEVELS.Error, msg)
+  endif
+enddef
+
+export def BlankLine()
+  try
+    writefile([''], g:replica_config.log_filepath, 'a')
+  catch
+    repl.Echoerr($"Cannot write {g:replica_config.log_filepath}")
+  endtry
+enddef

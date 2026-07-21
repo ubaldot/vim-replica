@@ -1,4 +1,4 @@
-vim9scrip
+vim9script
 # Common routines used for running the unit tests
 
 
@@ -76,6 +76,140 @@ export def WaitFor(expr: any, ...itemlist: list<number>)
   endif
   return slept
 enddef
+
+export def Generate_testfile(lines: list<string>, filename: string)
+  writefile(lines, filename)
+enddef
+
+export def Cleanup_testfile(filename: string)
+  delete(filename)
+enddef
+
+# When you read a terminal buffer with getbufline(buf_nr, 1, '$'), you get
+# something like: ['bla bla', 'foo foo', '', 'bar bar', 'In [2]: ', '', '',
+# '', '', '', '', '', '', '', '', '', '', '', '', '', '', ]
+export def LastNonEmptyLine(buf_nr: number): string
+  var lines = getbufline(buf_nr, 1, '$')
+  for l in reverse(lines)
+    if trim(l) !=# ''
+      return l
+    endif
+  endfor
+  return ''
+enddef
+
+
+export def WaitForPrompt(expected: string)
+  var counter = 0
+  var total_loops = 0     # hard wall: always increments, prevents infinite loop
+  var period = 100
+  const max_count = 200
+  const max_total = 400   # 400 × 100 ms = 40 s absolute ceiling
+
+  while counter < max_count && total_loops < max_total
+    # Flush ConPTY buffer before reading; on Windows the terminal buffer may
+    # not update until redraw is triggered.
+    redraw!
+    var lastline = LastNonEmptyLine(b:console_bufnr)
+    if lastline =~# expected
+      break
+    endif
+    exe $"sleep {period}m"
+    total_loops += 1
+    if lastline !=# ''
+      # Only count polls where the buffer had content but the wrong prompt.
+      # Empty reads mean ConPTY hasn't flushed yet — not a genuine mismatch.
+      counter += 1
+    endif
+    # Some REPLs (R) need a repeated newline to re-display their prompt after
+    # cell/file execution completes. Gated by b:waitforprompt_nudge so that
+    # IPython (which increments its counter on empty Enter) is never nudged.
+    if get(b:, 'waitforprompt_nudge', false)
+      term_sendkeys(b:console_bufnr, "\n")
+    endif
+  endwhile
+
+  if counter >= max_count || total_loops >= max_total
+    echoerr $"Prompt not found: {expected}, got: {LastNonEmptyLine(b:console_bufnr)} after waiting {total_loops * period} ms"
+  endif
+enddef
+
+
+export def PatternCaught(buf_nr: number, pattern: string): bool
+  # Return true if pattern appears in the visible window. This is useful when
+  # there are asynchronous jobs around and they print in the console in
+  # random order
+  #
+  # OBS! The following will not work, so we need to take the whole buffer
+  # const startline = line('w0', win_id)
+  # const endline = line('w$', win_id)
+  #
+  const win_id = bufwinid(buf_nr)
+  const startline = 1
+  const endline = line('$', win_id)
+  # echom "lines: " .. string(getbufline(buf_nr, startline, endline))
+  return getbufline(buf_nr, startline, endline)->map($"v:val =~# '{pattern}'")->index(true) != -1
+enddef
+
+export def ReplStarted(
+    console_bufnr: number,
+    pattern_1: string,
+    pattern_2: string): bool
+
+  # We have to secure that
+  #   A. the REPL has stared,
+  #   B. Vim is connected to the server,
+
+  var counter = 0
+  var counter_max = 100
+  # Empty pattern_2 means no second condition (no TCP server for this filetype).
+  while !(PatternCaught(console_bufnr, pattern_1)
+      && (empty(pattern_2) || PatternCaught(console_bufnr, pattern_2)))
+        && counter < counter_max
+    sleep 200m
+    counter += 1
+    redraw
+  endwhile
+   if counter == counter_max
+     return false
+   else
+     return true
+   endif
+enddef
+
+# Start (or restart) the REPL console and wait until it is ready.
+# cmd defaults to "ReplicaConsoleToggle"; pass "ReplicaConsoleRestart"
+# for the restart case. Returns false and cleans up if startup fails,
+# so callers only need: if !StartConsole(...) | return | endif
+export def StartConsole(
+    expected_prompt: string,
+    init_ready_pattern: string,
+    cmd: string = "ReplicaConsoleToggle"): bool
+  exe cmd
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  if !empty(v:errmsg)
+    :%bw!
+    throw v:errmsg
+  endif
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
+    return false
+  endif
+  return true
+enddef
+
+# Print "Test passed!" or "Test failed!" based on v:errors / v:errmsg.
+# Call this as the last statement before :%bw! + Cleanup_testfile().
+export def TestReport()
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+enddef
+
 
 
 # vim: shiftwidth=2 softtabstop=2 noexpandtab

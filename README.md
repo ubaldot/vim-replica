@@ -1,194 +1,171 @@
 # **REPL**ica.vim
 
 <p align="center">
-<img src="/ReplicaDemo.gif" width="75%" height="75%">
+<!-- asciinema demo goes here -->
 </p>
 
 <p align="center" style="font-size:38;">
-* Enjoy Jupyter through Vim! *
+* The ultimate REPL! *
 </p>
 
 ## Introduction
 
-Replica allows REPL shells such as IPython or Julia inside Vim in a seamless
-way.
+Replica integrates with the following REPL programs:
 
-It supports the following key features:
+- IPython
+- Julia
+- R
+- sh
+- zsh
+- PowerShell
 
-1. Send lines, files and code-cells to a REPL,
-2. Highlight code-cells.
+Additional REPL can be easily included. See `:h ReplicaContributing`.
 
-I wrote vim-replica because I always had problems with
-[vim-slime](https://github.com/jpalardy/vim-slime) under Windows and
-[vim-REPL](https://github.com/sillybun/vim-repl) crashes too often when using
-the toggle function and I discovered
-[jupyter-vim](https://github.com/jupyter-vim/jupyter-vim) too late.
+I wrote vim-replica because I always had problems with [vim-slime][1] under
+Windows and [vim-REPL][2] crashes too often when using the toggle function.
 
-If you like this plugin you may also want to take a look at
-[vim-outline](https://github.com/ubaldot/vim-outline).
+If you like this plugin you may also want to take a look at [vim-outline][3].
 
 ## Requirements
 
-Replica is entirely written in _Vim9script_, hence you need at least Vim 9.0
+Replica is entirely written in Vim9script, hence you need at least Vim 9.0
 compiled with `python3` support.
-
-You also need [jupyter console](https://github.com/jupyter/jupyter_console)
-and the [kernels](https://github.com/jupyter/jupyter/wiki/Jupyter-kernels) of
-the languages you would like to use.<br><br> That is pretty much all.
 
 ## Usage
 
 #### Commands
 
-`:ReplicaConsoleToggle` - un-hide and hide the REPL.
-
-`:ReplicaConsoleRestart` - restart the REPL.
-
-`:ReplicaConsoleShutoff` - wipeout the buffer associated to the REPL.
-
-`:[range]ReplicaSendLines` - send the lines in _[range]_ to the REPL.
-
-`:ReplicaSendCell` - send the current code-cell.
-
-`:ReplicaSendFile [{file}]` - send {file} to the REPL. If no file is given,
-send the content of the current buffer.
-
-`:ReplicaRemoveCells` - remove all the cells from the current buffer.
+```vim
+:ReplicaConsoleToggle         # Un-hide and hide the REPL
+:[range]ReplicaSendLines      # Send the lines in [range] to the REPL
+:ReplicaSendCell              # Send the current code cell
+:ReplicaSendFile [{file}]     # Send {file} to the REPL. If no file is given, it send the current buffer
+:ReplicaRemoveCells           # Remove all the cells from the current buffer
+:ReplicaInspect [{variable}]  # Display {variable}. If no argument is given, display all variables
+                              # in the current session. <tab> completion available.
+:ReplicaConsoleRestart        # Restart the REPL
+:ReplicaConsoleShutoff        # Wipeout the buffer associated to the REPL
+```
 
 #### Mappings
 
-By setting `g:replica_use_default_mapping = true` you will get the following
-mappings.
+By setting `g:replica_config.use_default_mapping = true` you will get the
+following mappings:
 
-```
+```vim
 # Default mappings
 nmap <F2> <Plug>ReplicaConsoleToggle<cr>
-
 nmap <F9> <Plug>ReplicaSendLines<cr>
 xmap <F9> <Plug>ReplicaSendLines<cr>
-
 nmap <F5> <Plug>ReplicaSendFile<cr>
-
 nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
-> **Warning**
->
-> Both the above commands and mappings work if they are run from a buffer
-> whose _filetype_ is supported.
+#### Configuration
 
-## Basic Configuration
-
-```
-# Default values
-g:replica_display_range = false
-g:replica_enable_highlight = true
-g:replica_console_position = "L"
-g:replica_console_height = &lines
-g:replica_console_width = floor(&columns/2)
-g:replica_kernels = {python: "python3",
-                   julia: "julia-1.8"}
-g:replica_cells_delimiters = { python: "# %%",
-                             julia: "# %%"}
-g:replica_jupyter_console_options = {
-                    python: "",
-                    julia: ""}
+```vim
+# Example
+g:replica_config = {}
+g:replica_config['console_position'] = "L"
+g:replica_config['display_range'] = true
+g:replica_config['enable_highlight'] = true
+g:replica_config['alt_highlight'] = false
+g:replica_config['use_default_mapping'] = false
+g:replica_config['display_variables'] = 'tab'
+g:replica_config['repl_options'] = {
+    python: "",
+    julia: "",
+    r: "",
+    sh: "",
+    zsh: "",
+    ps1: ""}
 ```
 
 ## Adding new languages
 
-At the moment Replica support _python_ and _julia_ but adding new languages
-should not be too difficult.<br>
+At the moment Replica supports _python_, _julia_, _R_, _sh_, _zsh_ and _ps1_ but adding new
+languages should not be too difficult.
 
 Say that you want to add `foo` language to Replica. You proceed in two steps:
 
-1. Add a new key-value pair to the `g:replica_kernels`, `g:replica_names`,
-   `g:replica_jupyter_console_options`, `g:replica_cells_delimiters` and
-   `g:replica_run_commands` dictionaries. Take a look at `:h replica.txt` to
-   understand how to set them.
-2. Duplicate any existing file in `vim-replica/ftplugin/` file and rename it
-   as `foo.vim`. Note that `foo` must be a recognized vim _filetype_.
+1. Edit `plugin/replica.vim` and add a new key-value pair to the internal
+   dictionaries.
+   Take a look at `:h replica.txt` for details on what each entry should contain.
+2. If the new REPL requires extra start-up options, add a corresponding entry
+   to `g:replica_config.repl_options` in your `vimrc`.
 
-Done!<br> Your new language is now added to vim-replica! If you add a new
+Done!
+
+Your new language is now added to vim-replica! If you add a new
 language consider to issue a PR.
-
-> **Note**
->
-> You could also use the global `ftplugin` folder instead of the plugin
-> `vim-replica/ftplugin` folder but that has not been tested yet.
 
 ## Troubleshooting
 
-#### Q: The REPL does not even start!
+### Q: The REPL does not even start!
 
 A: Ok, let's start with some basic checks:
 
-1. run `:echo has('python3')`. The answer should be `1`.
-2. if you are using Windows, make sure that Python and Vim are both 32- or 64
-   bit.
+1. Make sure the REPL executable is in your `$PATH` (e.g. `ipython`, `julia`,
+   `Rscript`, `bash`, `zsh`, `pwsh`).
+2. If you are using Python, make sure the virtual environment is active and
+   `ipython` is installed in it, then launch Vim from that environment.
+3. Run `:echo has('terminal')` — the answer must be `1`.
 
-Next, be sure that in the current virtual environment:
+### Q: When I open the REPL the layout is horrible!
 
-1. `jupyter console` is installed,
-2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
-3. vim is launched from this virtual environment.
+A: Set a desired value of `g:replica_config.console_height` and
+`g:replica_config.console_width` in your `vimrc`.
 
-#### Q: When I open the REPL the layout is horrible!
+The units are number of lines and number of columns, respectively.
 
-A: Set a desired value of `g:replica_console_height` and
-`g:replica_console_width` in your `vimrc`.<br> The units are number of lines
-and number of columns, respectively. <br>
+### Q. Vim slow down a lot with this st\*pid plugin!
 
-#### Q. Vim slow down a lot with this st"pid plugin!
+A: You can try to set `g:replica_config.alt_highlight = true` in your _vimrc_.
 
-A: You can try to set `g:replica_alt_highlight = true` in your _vimrc_.<br>
 Or, if still slow, you can try to disable the cells highlighting by setting
-`g:replica_enable_highlight` to `false`.
+`g:replica_config.enable_highlight` to `false`.
 
-#### Q. I am using matplotlib and the figures are not interactive.
+### Q. I am using matplotlib and the figures are not interactive.
 
-A: This is more a matplotlib setting than a replica problem. :) You should
-change the matplotlib backend. For example, you could use the magic
-`%matplotlib qt` to use the `qt` backend. See matplotlib docs for more info.
+A: This is more a matplotlib setting than a replica problem. :)
 
-#### Q. Is it possible to embed figures in the console?
+You should change the matplotlib backend. For example, you could use the magic
+`%matplotlib qt` to use the `qt` backend. See [matplotlib][4] docs for more info.
 
-A: I am not a fan of inline figures, so I haven't tested but I will try to
-give you an answer anyway. In general, you cannot display pictures in terminal
-emulators, but there are some that allows you to do that (I think kitty is one
-but there should be others out there). Hence, to display inline figures I
-think that you need (but I may be wrong) the following:
+### Q. The variable explorer is too small for my 800x800 matrix.
 
-1.  A terminal emulator that support images display,
-2.  A library that allows inline figures.
+You can switch how you want to explore your variables through
+`g:replica_config.display_variables`. Possible choices are `split`, `vsplit`,
+`tab` and `popup`.
 
-Again, I prefer floating, interactive figure, but it you succeed in displaying
-inline figures while using Replica, out of curiosity, please let us know. :)
 
-#### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
+### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
 A: Replica commands work if executed from a buffer with a supported
-_filetype_. <br> That is, if you have an _IPYTHON_ console displayed in a
+_filetype_.
+
+That is, if you have an _IPYTHON_ console displayed in a
 window and you call `:ReplicaConsoleToggle` from a `text` _filetype_ buffer,
-then nothing will happen. This because if you have a Python and a Julia
+then nothing will happen.
+
+This because if you have a Python and a Julia
 console open and you are editing a .txt file, then which console should close?
-Python? Julia? Both? At the moment, you can close the window where the console
+Python? Julia? Both?
+
+At the moment, you can close the window where the console
 is running with standard Vim commands such as `<c-w>q`, `:close`, `:$close`,
 etc. Such a behavior may change if there is a sufficiently large amount of
 users who wants that. :)
 
 #### Q. Is it possible to copy from the REPL to a buffer?
 
-A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
-There you can yank everything you want.<br> To re-enable the REPL press `i`
-with the cursor located on the REPL window.
+A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
 
-#### Q. How do I know which kernel is running on a given console?
+There you can yank everything you want.
 
-A: Go on the open console, hit `<c-w>` and type `:echo b:kernel_name`.
+To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 #### Q. Is it possible to automatically change the REPL folder when I change
-
 #### Vim folder?
 
 A: Yes, but you need to define your own function, something like the
@@ -217,11 +194,6 @@ augroup END
 > example, it does not work the other way around, i.e. if you change folder
 > from a _terminal_ buffer then the Vim current folder won't change.
 
-## Contributing
-
-Contributions are more than welcome!<br> In the source code there are TODO
-items. Feel free to address any of them or propose your own change.
-
 ## Help
 
 This README is a good start to get some insights on Replica, but you can find
@@ -230,3 +202,9 @@ more info in `:h replica.txt`.
 ## License
 
 BSD3-Clause.
+
+<!-- DO NOT REMOVE vim-markdown-extras references DO NOT REMOVE-->
+[1]: https://github.com/jpalardy/vim-slime
+[2]: https://github.com/sillybun/vim-repl
+[4]: https://matplotlib.org/stable/index.html
+[3]: https://github.com/ubaldot/vim-outline
