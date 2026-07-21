@@ -41,7 +41,8 @@ compiled with `python3` support.
 :ReplicaSendCell              # Send the current code cell
 :ReplicaSendFile [{file}]     # Send {file} to the REPL. If no file is given, it send the current buffer
 :ReplicaRemoveCells           # Remove all the cells from the current buffer
-:ReplicaInspect [{variable}]  # Display {variable}. If no argument is given, display all variables in the current session. <tab> completion available.
+:ReplicaInspect [{variable}]  # Display {variable}. If no argument is given, display all variables
+                              # in the current session. <tab> completion available.
 :ReplicaConsoleRestart        # Restart the REPL
 :ReplicaConsoleShutoff        # Wipeout the buffer associated to the REPL
 ```
@@ -100,7 +101,7 @@ language consider to issue a PR.
 
 ## Troubleshooting
 
-#### Q: The REPL does not even start!
+### Q: The REPL does not even start!
 
 A: Ok, let's start with some basic checks:
 
@@ -110,35 +111,35 @@ A: Ok, let's start with some basic checks:
    `ipython` is installed in it, then launch Vim from that environment.
 3. Run `:echo has('terminal')` — the answer must be `1`.
 
-#### Q: When I open the REPL the layout is horrible!
+### Q: When I open the REPL the layout is horrible!
 
 A: Set a desired value of `g:replica_config.console_height` and
 `g:replica_config.console_width` in your `vimrc`.
 
 The units are number of lines and number of columns, respectively.
 
-#### Q. Vim slow down a lot with this st\*pid plugin!
+### Q. Vim slow down a lot with this st\*pid plugin!
 
 A: You can try to set `g:replica_config.alt_highlight = true` in your _vimrc_.
 
 Or, if still slow, you can try to disable the cells highlighting by setting
 `g:replica_config.enable_highlight` to `false`.
 
-#### Q. I am using matplotlib and the figures are not interactive.
+### Q. I am using matplotlib and the figures are not interactive.
 
 A: This is more a matplotlib setting than a replica problem. :)
 
 You should change the matplotlib backend. For example, you could use the magic
 `%matplotlib qt` to use the `qt` backend. See [matplotlib][4] docs for more info.
 
-#### Q. The variable explorer is too small for my 800x800 matrix.
+### Q. The variable explorer is too small for my 800x800 matrix.
 
 You can switch how you want to explore your variables through
 `g:replica_config.display_variables`. Possible choices are `split`, `vsplit`,
 `tab` and `popup`.
 
 
-#### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
+### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
 
 A: Replica commands work if executed from a buffer with a supported
 _filetype_.
