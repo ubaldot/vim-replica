@@ -104,7 +104,7 @@ language consider to issue a PR.
 ### Q: The REPL does not even start!
 ---
 
-A: Ok, let's start with some basic checks:
+Ok, let's start with some basic checks:
 
 1. Make sure the REPL executable is in your `$PATH` (e.g. `ipython`, `julia`,
    `Rscript`, `bash`, `zsh`, `pwsh`).
@@ -115,26 +115,29 @@ A: Ok, let's start with some basic checks:
 ### Q: When I open the REPL the layout is horrible!
 ---
 
-A: Set a desired value of `g:replica_config.console_height` and
+Set a desired value of `g:replica_config.console_height` and
 `g:replica_config.console_width` in your `vimrc`.
 
 The units are number of lines and number of columns, respectively.
 
 ### Q. Vim slow down a lot with this st\*pid plugin!
+---
 
-A: You can try to set `g:replica_config.alt_highlight = true` in your _vimrc_.
+You can try to set `g:replica_config.alt_highlight = true` in your _vimrc_.
 
 Or, if still slow, you can try to disable the cells highlighting by setting
 `g:replica_config.enable_highlight` to `false`.
 
 ### Q. I am using matplotlib and the figures are not interactive.
+---
 
-A: This is more a matplotlib setting than a replica problem. :)
+This is more a matplotlib setting than a replica problem. :)
 
 You should change the matplotlib backend. For example, you could use the magic
 `%matplotlib qt` to use the `qt` backend. See [matplotlib][4] docs for more info.
 
 ### Q. The variable explorer is too small for my 800x800 matrix.
+---
 
 You can switch how you want to explore your variables through
 `g:replica_config.display_variables`. Possible choices are `split`, `vsplit`,
@@ -142,8 +145,9 @@ You can switch how you want to explore your variables through
 
 
 ### Q. When I call `:ReplicaConsoleToggle` the console window won't close.
+---
 
-A: Replica commands work if executed from a buffer with a supported
+Replica commands work if executed from a buffer with a supported
 _filetype_.
 
 That is, if you have an _IPYTHON_ console displayed in a
@@ -160,16 +164,18 @@ etc. Such a behavior may change if there is a sufficiently large amount of
 users who wants that. :)
 
 ### Q. Is it possible to copy from the REPL to a buffer?
+---
 
-A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
+Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
 
 There you can yank everything you want.
 
 To re-enable the REPL press `i` with the cursor located on the REPL window.
 
 ### Q. Is it possible to automatically change the REPL folder when I change Vim folder?
+---
 
-A: Yes, but you need to define your own function, something like the
+Yes, but you need to define your own function, something like the
 following:
 
 ```
