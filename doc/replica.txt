@@ -36,6 +36,8 @@ Replica supports the following key features:
     2. Code-cells highlighting,
     3. Variable explorer.
 
+Supported filetypes: python, julia, R, sh, zsh, ps1.
+
 Each REPL is a console initiated with a specific command and running in a
 'terminal' buffer.  For each 'filetype' replica provides you one
 REPL to send text in.
@@ -103,14 +105,15 @@ COMMANDS                                                     *ReplicaCommands*
                                 then display all the variables in the current
                                 repl session.
                                 Tab completion is available.
+                                Available for Python, Julia and R only.
 
-                                                   *:ReplicaShow*
+                                                   *:ReplicaLogShow*
 :ReplicaLogShow                 Open the log file.
                                 Note: this command is Available only when
                                 `g:replica_config['debug'] = true`
 
 
-                                                   *:ReplicaDelete*
+                                                   *:ReplicaLogDelete*
 :ReplicaLogDelete               Delete the log file.
                                 Note: this command is Available only when
                                 `g:replica_config['debug'] = true`
@@ -150,7 +153,7 @@ adding any keys.
                           split.
                           Default: 'columns'/2.
 
-        "console_height"  Width of the repl console when opened in
+        "console_height"  Height of the repl console when opened in
                           horizontal split.
                           Default: 'lines'/2.
 
@@ -178,15 +181,11 @@ adding any keys.
                           To figure out such a path run the following command:
                           `:echo g:replica_config.log_filepath`
 
-            "log_level"   Level of logging.
-                          It can be "Debug", "Info", "Warn" or "Error".
-                          Default: "Error"
-
     "console_position"    Position of the console. Possible values are H,J,K,L.
                           Default: L.
 
   "use_default_mapping"   If |true| use default mappings, see below.
-                          Default: |true|
+                          Default: |false|.
 
       "display_range"     If |true| show the current cell range in the
                           command line.
@@ -194,6 +193,15 @@ adding any keys.
 
         "log_max_size"    Maximum size of the log file.
                           Default: 1 MB.
+
+"server_startup_timeout"  Timeout (ms) waiting for the TCP server to start.
+                          Increase on slow machines or when testing Julia with
+                          large packages.
+                          Default: 30000 (30 s).
+
+        "repl_options"    Per-filetype string of extra flags passed to the REPL
+                          executable. Keys: python, julia, r, sh, zsh, ps1.
+                          Default: "" for all filetypes.
 
 
 ==============================================================================
@@ -204,36 +212,34 @@ Replica is nicely extendable and adding new languages is fairly easy.
 Say that a new language is associated to a certain 'filetype'.
 Then, you can add it to replica in two steps:
 
-    1. Add a new key-value pair to the |g:replica_kernels|, |g:replica_names|,
-       |g:replica_jupyter_console_options|,
-       |g:replica_cells_delimiters| and |g:replica_run_commands| dictionaries.
-    2. Duplicate any existing vim-replica/ftplugin/*.vim file and rename it
-       according to the newly included 'filetype'.
+    1. Edit plugin/replica.vim and add a new key-value pair to the four
+       internal dictionaries: start_cmds, console_names, run_scripts and
+       cell_delimiters. If the language needs extra startup flags, also add
+       a key to g:replica_config.repl_options.
+    2. If the new REPL supports a TCP-based variable inspector, add its
+       'filetype' to the inspect_filetypes list and supply the server init
+       script under languages/{filetype}/.
 
 Done!
 Feel free to contribute by adding new languages!
 
-You may use the global ftplugin folder but it has not been tested yet.
-
 ==============================================================================
 TROUBLESHOOTING                                      *ReplicaTroubleshooting*
 
-Q. IPython won't start.
-A. Be sure that in the current virtual environment:
-
-1. jupyter console is installed,
-2. some ipython jupyter kernel (e.g. pyhon3) is installed,
-3. vim is launched from this virtual environment.
+Q. The REPL does not start.
+A. Make sure the REPL executable is in your $PATH (ipython, julia, R,
+bash, zsh, pwsh). For Python, activate the virtual environment that has
+ipython installed before launching Vim.
 
 Q. When I open the REPL the layout is horrible!
-A. Set a desired value of |g:replica_console_height| and
-|g:replica_console_width| in your |vimrc|.
+A. Set a desired value of g:replica_config.console_height and
+g:replica_config.console_width in your |vimrc|.
 The units are number of lines and number of columns, respectively.
 
 Q. My Vim became very slow!
-A. You can try to set |g:replica_alt_highlight| = true in your 'vimrc'.
+A. You can try to set g:replica_config.alt_highlight = true in your 'vimrc'.
 Or, if it is still very slow, you can try to completely disable the cells
-highlighting by setting |g:replica_enable_highlight| to false.
+highlighting by setting g:replica_config.enable_highlight to false.
 
 
 Q. I am using matplotlib and the figures are not interactive.
@@ -268,9 +274,6 @@ you call |:ReplicaConsoleToggle|  from a text filetype buffer, then nothing
 will happen.
 However, you can close the window where the console is running with standard
 Vim commands such as <c-w>q, :close, :$close, etc.
-
-Q. How do I know which kernel is running on a given console?
-A. Go on the open console, hit <c-w> and type :echo b:kernel_name.
 
 Q. Is it possible to automatically change the REPL folder when I change
 Vim folder?
