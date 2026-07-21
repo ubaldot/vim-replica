@@ -1,6 +1,6 @@
 vim9script
 
-# Basic test for sh (bash) filetype support in vim-replica.
+# Basic test for zsh filetype support in vim-replica.
 
 import "./common.vim"
 const WaitForAssert     = common.WaitForAssert
@@ -11,10 +11,10 @@ const TestReport        = common.TestReport
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile  = common.Cleanup_testfile
 
-# bash --noprofile --norc -i shows a prompt ending in $ or # (root)
-const expected_prompt = '[$#]\s*$'
+# zsh -f -i (no rc files) shows a prompt ending in % (or %% for a literal %)
+const expected_prompt = '%\s*$'
 
-const src_name = 'testfile.sh'
+const src_name = 'testfile.zsh'
 const code_lines =<< trim END
   # %%
   X=hello
@@ -24,13 +24,13 @@ const code_lines =<< trim END
   echo "$Y"
 END
 
-def g:Test_sh_basic()
+def g:Test_zsh_basic()
   v:errors = []
   v:errmsg = ''
   messages clear
 
-  if exepath('bash')->empty()
-    echom "Skipped: 'bash' not found in PATH"
+  if exepath('zsh')->empty()
+    echom "Skipped: 'zsh' not found in PATH"
     return
   endif
 
@@ -38,7 +38,7 @@ def g:Test_sh_basic()
   exe $"edit {src_name}"
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  # No TCP server for sh — pass '' as init_ready_pattern
+  # No TCP server for zsh — pass '' as init_ready_pattern
   if !StartConsole(expected_prompt, '')
     return
   endif
@@ -59,7 +59,7 @@ def g:Test_sh_basic()
   var lastline = LastNonEmptyLine(b:console_bufnr)
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
-  WaitForAssert(() => assert_true(bufexists('BASH')))
+  WaitForAssert(() => assert_true(bufexists('ZSH')))
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
@@ -79,7 +79,7 @@ def g:Test_sh_basic()
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('BASH')))
+  WaitForAssert(() => assert_false(bufexists('ZSH')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   TestReport()

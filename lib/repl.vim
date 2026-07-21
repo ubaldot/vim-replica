@@ -352,7 +352,7 @@ export def SendLines(firstline: number, lastline: number)
   endif
 
   for line in getline(firstline, lastline)
-    term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}\n")
+    term_sendkeys(bufnr($'^{b:console_name}$'), $"{line}{get(b:, 'term_enter', "\n")}")
     logger.Info($"sent lines: '{line}'")
   endfor
   norm! ^j
@@ -374,7 +374,7 @@ export def SendCell()
   # Overwrite tmp file
   writefile(getline(line_in, line_out), g:replica_config.tmp_filepath)
   term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_script(g:replica_config.tmp_filepath)}\n")
+    $"{b:run_script(g:replica_config.tmp_filepath)}{get(b:, 'term_enter', "\n")}")
 
   logger.Info($"sent cell: {string(getline(line_in, line_out))}")
 enddef
@@ -395,7 +395,7 @@ export def SendFile(filename: string = '')
     logger.Info($"sent file: '{filename}'")
   endif
   term_sendkeys(bufnr($'^{b:console_name}$'),
-    $"{b:run_script(g:replica_config.tmp_filepath)}\n")
+    $"{b:run_script(g:replica_config.tmp_filepath)}{get(b:, 'term_enter', "\n")}")
 enddef
 
 # ---------------------------------------

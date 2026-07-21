@@ -160,8 +160,9 @@ export def ReplStarted(
 
   var counter = 0
   var counter_max = 100
+  # Empty pattern_2 means no second condition (no TCP server for this filetype).
   while !(PatternCaught(console_bufnr, pattern_1)
-      && PatternCaught(console_bufnr, pattern_2))
+      && (empty(pattern_2) || PatternCaught(console_bufnr, pattern_2)))
         && counter < counter_max
     sleep 200m
     counter += 1

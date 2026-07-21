@@ -177,6 +177,18 @@ if !exists('g:replica_config.server_startup_timeout')
   g:replica_config.server_startup_timeout = 30000
 endif
 
+# PowerShell's PSReadLine treats "\n" as a new line within the multi-line
+# editor (does NOT execute), while "\r" (carriage return) is the actual
+# "execute" key.  All other shells use "\n" as Enter.
+var term_enters = {
+  python: "\n",
+  julia: "\n",
+  r: "\n",
+  sh: "\n",
+  zsh: "\n",
+  ps1: "\r"
+}
+
 def InitBuffers()
 
   g:loaded_replica = true
@@ -185,6 +197,7 @@ def InitBuffers()
   b:repl_start_cmd = start_cmds[&filetype]
   b:console_name = console_names[&filetype]
   b:run_script = run_scripts[&filetype]
+  b:term_enter = term_enters[&filetype]
 
   b:repl_options = exists('g:replica_config.repl_options') ? g:replica_config.repl_options[&filetype] : ''
 

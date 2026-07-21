@@ -1,6 +1,6 @@
 vim9script
 
-# Basic test for sh (bash) filetype support in vim-replica.
+# Basic test for ps1 (PowerShell) filetype support in vim-replica.
 
 import "./common.vim"
 const WaitForAssert     = common.WaitForAssert
@@ -11,26 +11,26 @@ const TestReport        = common.TestReport
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile  = common.Cleanup_testfile
 
-# bash --noprofile --norc -i shows a prompt ending in $ or # (root)
-const expected_prompt = '[$#]\s*$'
+# pwsh default prompt ends in "> " (e.g. "PS C:\path> " or "PS /home/user> ")
+const expected_prompt = '>\s*$'
 
-const src_name = 'testfile.sh'
+const src_name = 'testfile.ps1'
 const code_lines =<< trim END
   # %%
-  X=hello
-  echo "$X"
+  $X = "hello"
+  Write-Output $X
   # %%
-  Y=world
-  echo "$Y"
+  $Y = "world"
+  Write-Output $Y
 END
 
-def g:Test_sh_basic()
+def g:Test_ps1_basic()
   v:errors = []
   v:errmsg = ''
   messages clear
 
-  if exepath('bash')->empty()
-    echom "Skipped: 'bash' not found in PATH"
+  if exepath('pwsh')->empty()
+    echom "Skipped: 'pwsh' not found in PATH"
     return
   endif
 
@@ -38,7 +38,7 @@ def g:Test_sh_basic()
   exe $"edit {src_name}"
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  # No TCP server for sh — pass '' as init_ready_pattern
+  # No TCP server for ps1 — pass '' as init_ready_pattern
   if !StartConsole(expected_prompt, '')
     return
   endif
@@ -59,7 +59,7 @@ def g:Test_sh_basic()
   var lastline = LastNonEmptyLine(b:console_bufnr)
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(1, winnr('$')))
-  WaitForAssert(() => assert_true(bufexists('BASH')))
+  WaitForAssert(() => assert_true(bufexists('PWSH')))
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_true(lastline =~# expected_prompt))
@@ -79,7 +79,7 @@ def g:Test_sh_basic()
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('BASH')))
+  WaitForAssert(() => assert_false(bufexists('PWSH')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   TestReport()
