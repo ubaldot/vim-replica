@@ -154,7 +154,6 @@ def ConsoleOpen()
       return
     endtry
 
-
     # Only for R.
     # When sourcing a script via command-line arguments, then R
     # execute the script and exit. It won't stay in interactive mode.
@@ -189,7 +188,9 @@ def ConsoleOpen()
 
     const server_available_msg = "server running on"
     var counter = 0
-    const counter_max = 40
+    # Derive counter_max from g:replica_config.server_startup_timeout (ms / 200 per iteration).
+    # Default 60 s covers Julia's JIT compilation of DataFrames on slow Windows machines.
+    const counter_max = get(g:replica_config, 'server_startup_timeout', 60000) / 200
     while !PatternCaught(bufnr('$'), server_available_msg) && counter < counter_max
       sleep 200m
       redraw
@@ -199,6 +200,11 @@ def ConsoleOpen()
     if counter == counter_max
       Echoerr($'Failed to run {start_cmd}: timeout')
       logger.Error($'Failed to run {start_cmd}: timeout')
+      # Wipe the orphaned terminal buffer; without this the running job blocks
+      # subsequent tests with E948 "Job still running".
+      if console_bufnr > 0
+        exe "bw! " .. console_bufnr
+      endif
       return
     endif
 
@@ -224,6 +230,7 @@ def ConsoleOpen()
         var probe_req = {id: 0, method: 'runtime/vim_variable_names'}
         var probe_counter = 0
         const probe_max = 10
+
         while probe_counter < probe_max
           var probe_resp = ch_evalexpr(repl_channel, probe_req, {timeout: 300})
           if !empty(probe_resp) && !has_key(probe_resp, 'error')
@@ -232,6 +239,7 @@ def ConsoleOpen()
           sleep 100m
           probe_counter += 1
         endwhile
+
         if probe_counter == probe_max
           Echowarn('Server readiness probe timed out; first inspect may be slow')
         else

@@ -165,6 +165,13 @@ if !exists('g:replica_config.display_variables')
   g:replica_config.display_variables = 'vsplit'
 endif
 
+# Timeout (ms) for waiting for "server running on" in the terminal buffer.
+# Julia's JIT compilation of DataFrames can take 30-90 s on Windows — raise
+# this if julia tests time out on slow machines.
+if !exists('g:replica_config.server_startup_timeout')
+  g:replica_config.server_startup_timeout = 60000
+endif
+
 def InitBuffers()
 
   g:loaded_replica = true
