@@ -18,7 +18,7 @@ const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile = common.Cleanup_testfile
 
 
-const init_ready_pattern = "Vim connected from "
+const init_ready_pattern = "Vim connected from"
 
 # Tests start here
 def g:Test_python_basic()
@@ -63,6 +63,8 @@ def g:Test_python_basic()
   var expected_prompt = 'In\s\[1\]:'
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -112,9 +114,10 @@ def g:Test_python_basic()
   exe "ReplicaConsoleRestart"
   expected_prompt = 'In\s\[1\]:\s*$'
   WaitForAssert(() => assert_equal(2, winnr('$')))
-  sleep 200m
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -265,6 +268,8 @@ def g:Test_python_variable_explorer_basic()
   var expected_prompt = 'In\s\[1\]:'
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -435,6 +440,8 @@ def g:Test_python_getcompletion()
   var expected_prompt = 'In\s\[1\]:'
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -457,9 +464,9 @@ def g:Test_python_getcompletion()
   assert_equal(expected_value, actual_value)
 
   # ---- teardown tests ----
-  # exe "ReplicaConsoleShutoff"
-  # WaitForAssert(() => assert_false(bufexists('IPYTHON')))
-  # WaitForAssert(() => assert_equal(1, winnr('$')))
+  exe "ReplicaConsoleShutoff"
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
+  WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"

@@ -247,7 +247,6 @@ def g:Test_R_variable_explorer_basic()
   var expected_variable_explorer = ['[1] TRUE']
   var buf_name = 'bool_scalar'
   exe $"ReplicaInspect {buf_name}"
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -262,7 +261,6 @@ def g:Test_R_variable_explorer_basic()
   # OBS! The way %whos displays variables may change with R versions, so we
   # only check that the split window opened correctly.
   exe "ReplicaInspect"
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -321,7 +319,6 @@ def g:Test_R_getcompletion()
 
   var lastline = LastNonEmptyLine(b:console_bufnr)
   assert_match(expected_prompt, lastline)
-  sleep 100m
 
   const expected_value = [
     'bool_scalar',

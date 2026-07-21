@@ -104,11 +104,20 @@ export def WaitForPrompt(expected: string)
   var period = 100
   const max_count = 200
 
-  while counter < max_count && LastNonEmptyLine(b:console_bufnr) !~# expected
-		term_sendkeys(b:console_bufnr, "\n")
-    exe $"sleep {period}m"
-    counter += 1
+  while counter < max_count
+    # Flush ConPTY buffer before reading; on Windows the terminal buffer may
+    # not update until redraw is triggered.
     redraw
+    var lastline = LastNonEmptyLine(b:console_bufnr)
+    if lastline =~# expected
+      break
+    endif
+    exe $"sleep {period}m"
+    if lastline !=# ''
+      # Only count polls where the buffer had content but the wrong prompt.
+      # Empty reads mean ConPTY hasn't flushed yet — not a genuine mismatch.
+      counter += 1
+    endif
   endwhile
 
   # Timeout reached, fail with actual last line

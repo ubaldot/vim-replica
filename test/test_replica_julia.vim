@@ -18,8 +18,8 @@ const ReplStarted = common.ReplStarted
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile = common.Cleanup_testfile
 
-const expected_prompt = 'julia> '
-const init_ready_pattern = "Vim connected from "
+const expected_prompt = 'julia>\s*'
+const init_ready_pattern = "Vim connected from"
 
 def WaitForJuliaSymbol(symbol: string)
   # The symbol is not necessarily the last line, because you are not reading
@@ -168,6 +168,8 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -227,6 +229,8 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -281,6 +285,8 @@ def g:Test_julia_variable_explorer_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -302,8 +308,6 @@ def g:Test_julia_variable_explorer_basic()
   var expected_variable_explorer = ['42']
   var buf_name = 'a_int'
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -341,8 +345,6 @@ def g:Test_julia_variable_explorer_basic()
   ]
   buf_name = 'mat_int'
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -359,8 +361,6 @@ def g:Test_julia_variable_explorer_basic()
 
   buf_name = 'mat_int[1, :]'
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -383,8 +383,6 @@ def g:Test_julia_variable_explorer_basic()
 END
   buf_name = 'arr_3d'
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
@@ -409,8 +407,6 @@ END
 
   buf_name = 'df_mixed'
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
@@ -427,8 +423,6 @@ END
 
   buf_name = "df_mixed.flag"
   exe $"ReplicaInspect {buf_name}"
-  # Wait a bit the server
-  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw!
 
@@ -481,6 +475,8 @@ def g:Test_julia_getcompletion()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -495,7 +491,6 @@ def g:Test_julia_getcompletion()
 
   var lastline = LastNonEmptyLine(b:console_bufnr)
   assert_match(expected_prompt, lastline)
-  sleep 100m
 
   # test start
   const expected_value = [

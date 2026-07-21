@@ -214,6 +214,30 @@ def ConsoleOpen()
     else
       logger.Info($'Channel status: {channel_status}, address: {host}:{port}')
       Echowarn($'Channel status: {channel_status}')
+
+      # Probe until the server is actually processing requests, not just
+      # accepting connections.  ch_open() succeeds as soon as the TCP
+      # handshake completes; the request handler (e.g. R's later::later()
+      # at 50 ms) may not have fired yet.  We send a no-op request and
+      # retry until we receive a valid response.
+      if get(b:, 'supports_inspect', false)
+        var probe_req = {id: 0, method: 'runtime/vim_variable_names'}
+        var probe_counter = 0
+        const probe_max = 10
+        while probe_counter < probe_max
+          var probe_resp = ch_evalexpr(repl_channel, probe_req, {timeout: 300})
+          if !empty(probe_resp) && !has_key(probe_resp, 'error')
+            break
+          endif
+          sleep 100m
+          probe_counter += 1
+        endwhile
+        if probe_counter == probe_max
+          Echowarn('Server readiness probe timed out; first inspect may be slow')
+        else
+          logger.Info($'Server ready after {probe_counter} probe(s)')
+        endif
+      endif
     endif
 
     ftcommands_mappings.InstallConsoleCommands()
@@ -272,7 +296,20 @@ export def ConsoleShutoff()
       repl_channel = null_channel
     endif
     exe "bw! " .. bufnr($'^{console_name}$')
-    sleep 200m   # let the OS release port 6969 before next test
+    # Poll until port 6969 is no longer accepting connections; prevents
+    # port-reuse races between sequential tests, especially on Windows
+    # where TIME_WAIT recycling is slower.
+    var _port_counter = 0
+    const _port_max = 50
+    while _port_counter < _port_max
+      var _probe: channel = ch_open($'{host}:{port}', {mode: "lsp", waittime: 50})
+      if ch_status(_probe) != 'open'
+        break
+      endif
+      ch_close(_probe)
+      sleep 100m
+      _port_counter += 1
+    endwhile
     # When the console is closed the focused buffer can be of any type and
     # therefore it may not have b:console_name.
     echo $"Console {console_name} shutoff."
