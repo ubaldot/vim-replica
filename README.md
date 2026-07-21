@@ -21,12 +21,6 @@ Replica integrates with the following REPL programs:
 
 Additional REPL can be easily included. See `:h ReplicaContributing`.
 
-Replica supports the following key features:
-
-1. Send lines, files and code-cells to a REPL,
-2. Highlight code-cells,
-3. Variable inspector (Python, Julia, R).
-
 I wrote vim-replica because I always had problems with [vim-slime][1] under
 Windows and [vim-REPL][2] crashes too often when using the toggle function.
 
@@ -42,14 +36,14 @@ compiled with `python3` support.
 #### Commands
 
 ```vim
-`:ReplicaConsoleToggle`         # Un-hide and hide the REPL
-`:ReplicaConsoleRestart`        # Restart the REPL
-`:ReplicaConsoleShutoff`        # Wipeout the buffer associated to the REPL
-`:[range]ReplicaSendLines`      # Send the lines in `[range]` to the REPL
-`:ReplicaSendCell`              # Send the current code cell
-`:ReplicaSendFile [{file}]`     # Send `{file}` to the REPL. If no file is given, it send the current buffer
-`:ReplicaRemoveCells`           # Remove all the cells from the current buffer
-`:ReplicaInspect [{variable}]`  # Display `{variable}`. If no argument is given, display all variables in the current session
+:ReplicaConsoleToggle         # Un-hide and hide the REPL
+:[range]ReplicaSendLines      # Send the lines in [range] to the REPL
+:ReplicaSendCell              # Send the current code cell
+:ReplicaSendFile [{file}]     # Send {file} to the REPL. If no file is given, it send the current buffer
+:ReplicaRemoveCells           # Remove all the cells from the current buffer
+:ReplicaInspect [{variable}]  # Display {variable}. If no argument is given, display all variables in the current session
+:ReplicaConsoleRestart        # Restart the REPL
+:ReplicaConsoleShutoff        # Wipeout the buffer associated to the REPL
 ```
 
 #### Mappings
@@ -66,7 +60,7 @@ nmap <F5> <Plug>ReplicaSendFile<cr>
 nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
-##### Configuration
+#### Configuration
 
 ```vim
 # Example
