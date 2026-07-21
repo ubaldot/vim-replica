@@ -178,55 +178,58 @@ def ConsoleOpen()
     # =============================================
     #  Wait for server before opening a channel
     # =============================================
-    # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
-    # Using a while loop with a sleep won't work either
-    #
-    # The only way is to see when the server us running, and then we can open
-    # the channel. We check the string "server running on" but we have to be
-    # sure that the scripts in ./languages/ explicitly print "server running
-    # on" string
+    # Only for languages with a TCP variable-inspector server (Python, Julia,
+    # R).  sh/zsh/ps1 have no server so skip this block entirely — the
+    # terminal is ready as soon as term_start() returns.
+    if get(b:, 'supports_inspect', false)
+      # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
+      # Using a while loop with a sleep won't work either
+      #
+      # The only way is to see when the server us running, and then we can open
+      # the channel. We check the string "server running on" but we have to be
+      # sure that the scripts in ./languages/ explicitly print "server running
+      # on" string
 
-    const server_available_msg = "server running on"
-    var counter = 0
-    # Derive counter_max from g:replica_config.server_startup_timeout (ms / 200 per iteration).
-    # Default 60 s covers Julia's JIT compilation of DataFrames on slow Windows machines.
-    const counter_max = get(g:replica_config, 'server_startup_timeout', 60000) / 200
-    while !PatternCaught(bufnr('$'), server_available_msg) && counter < counter_max
-      sleep 200m
-      redraw
-      counter += 1
-    endwhile
+      const server_available_msg = "server running on"
+      var counter = 0
+      # Derive counter_max from g:replica_config.server_startup_timeout (ms / 200 per iteration).
+      # Default 60 s covers Julia's JIT compilation of DataFrames on slow Windows machines.
+      const counter_max = get(g:replica_config, 'server_startup_timeout', 60000) / 200
+      while !PatternCaught(bufnr('$'), server_available_msg) && counter < counter_max
+        sleep 200m
+        redraw
+        counter += 1
+      endwhile
 
-    if counter == counter_max
-      Echoerr($'Failed to run {start_cmd}: timeout')
-      logger.Error($'Failed to run {start_cmd}: timeout')
-      # Wipe the orphaned terminal buffer; without this the running job blocks
-      # subsequent tests with E948 "Job still running".
-      if console_bufnr > 0
-        exe "bw! " .. console_bufnr
+      if counter == counter_max
+        Echoerr($'Failed to run {start_cmd}: timeout')
+        logger.Error($'Failed to run {start_cmd}: timeout')
+        # Wipe the orphaned terminal buffer; without this the running job blocks
+        # subsequent tests with E948 "Job still running".
+        if console_bufnr > 0
+          exe "bw! " .. console_bufnr
+        endif
+        return
       endif
-      return
-    endif
 
 
-    # ===============================================
-    #             Open channel
-    # ===============================================
-    repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
-    var channel_status = ch_status(repl_channel)
+      # ===============================================
+      #             Open channel
+      # ===============================================
+      repl_channel = ch_open($'{host}:{port}', {mode: "lsp"})
+      var channel_status = ch_status(repl_channel)
 
-    if channel_status != 'open'
-      Echoerr($'Failed to open channnel: {channel_status}')
-    else
-      logger.Info($'Channel status: {channel_status}, address: {host}:{port}')
-      Echowarn($'Channel status: {channel_status}')
+      if channel_status != 'open'
+        Echoerr($'Failed to open channnel: {channel_status}')
+      else
+        logger.Info($'Channel status: {channel_status}, address: {host}:{port}')
+        Echowarn($'Channel status: {channel_status}')
 
-      # Probe until the server is actually processing requests, not just
-      # accepting connections.  ch_open() succeeds as soon as the TCP
-      # handshake completes; the request handler (e.g. R's later::later()
-      # at 50 ms) may not have fired yet.  We send a no-op request and
-      # retry until we receive a valid response.
-      if get(b:, 'supports_inspect', false)
+        # Probe until the server is actually processing requests, not just
+        # accepting connections.  ch_open() succeeds as soon as the TCP
+        # handshake completes; the request handler (e.g. R's later::later()
+        # at 50 ms) may not have fired yet.  We send a no-op request and
+        # retry until we receive a valid response.
         var probe_req = {id: 0, method: 'runtime/vim_variable_names'}
         var probe_counter = 0
         const probe_max = 10
