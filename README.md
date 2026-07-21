@@ -102,6 +102,7 @@ language consider to issue a PR.
 ## Troubleshooting
 
 ### Q: The REPL does not even start!
+---
 
 A: Ok, let's start with some basic checks:
 
@@ -112,6 +113,7 @@ A: Ok, let's start with some basic checks:
 3. Run `:echo has('terminal')` — the answer must be `1`.
 
 ### Q: When I open the REPL the layout is horrible!
+---
 
 A: Set a desired value of `g:replica_config.console_height` and
 `g:replica_config.console_width` in your `vimrc`.
@@ -157,7 +159,7 @@ is running with standard Vim commands such as `<c-w>q`, `:close`, `:$close`,
 etc. Such a behavior may change if there is a sufficiently large amount of
 users who wants that. :)
 
-#### Q. Is it possible to copy from the REPL to a buffer?
+### Q. Is it possible to copy from the REPL to a buffer?
 
 A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.
 
@@ -165,8 +167,7 @@ There you can yank everything you want.
 
 To re-enable the REPL press `i` with the cursor located on the REPL window.
 
-#### Q. Is it possible to automatically change the REPL folder when I change
-#### Vim folder?
+### Q. Is it possible to automatically change the REPL folder when I change Vim folder?
 
 A: Yes, but you need to define your own function, something like the
 following:
