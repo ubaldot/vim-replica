@@ -94,7 +94,11 @@ fi
 # Check the test results
 cat results.txt
 echo "-------------------------------"
-if grep -qw FAIL results.txt; then
+# grep -w won't match here: results.txt contains ANSI-colored text such as
+# "\033[1;31mFAIL\033[0m" where 'm' immediately precedes FAIL — that 'm' is a
+# word character so -w never fires a word-boundary match.  Use -q (plain
+# substring) instead.
+if grep -q FAIL results.txt; then
 	echo "ERROR: Some test(s) failed."
 	echo
 	rm "$VIMRC"
