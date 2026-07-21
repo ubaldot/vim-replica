@@ -110,7 +110,7 @@ var start_cmds = {
   r: $"R --no-save --no-restore --quiet",
   sh: "bash --noprofile --norc -i",
   zsh: "zsh -f -i",
-  ps1: "pwsh -NoProfile -NoLogo"
+  ps1: "pwsh -NoProfile -NoLogo -ExecutionPolicy Bypass"
 }
 
 var console_names = {
@@ -128,7 +128,7 @@ var run_scripts = {
   r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
   sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
   zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
-  ps1: (filename) => $". '{filename->substitute("\\", "/", "g")}'"
+  ps1: (filename) => $"Invoke-Expression (Get-Content '{filename->substitute("\\", "/", "g")}' -Raw)"
 }
 
 # Filetypes that support the TCP-based variable inspector (:ReplicaInspect)
