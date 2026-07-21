@@ -20,6 +20,7 @@ set runtimepath+=..
 g:replica_config = {}
 g:replica_config.debug = true
 g:replica_config.log_level = 'Error'
+g:replica_config.display_variables = 'vsplit'
 
 g:TestFiles = [
     'test_replica_python.vim',

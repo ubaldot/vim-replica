@@ -523,9 +523,10 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
 
   logger.Info('displaying variable')
 
-  const new_statusline = empty(variable_to_inspect)
+  const statusline_base = empty(variable_to_inspect)
     ? "Workspace"
     : $"Variable explorer: {variable_to_inspect}"
+  const new_statusline = $"{statusline_base} (<esc> to close)"
 
   if bufexists(variable_to_inspect)
     logger.Info($"reusing existing {g:replica_config.display_variables}")
