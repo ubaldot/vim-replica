@@ -110,6 +110,7 @@ def g:Test_R_basic()
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
+  b:waitforprompt_nudge = true
 
   # Check that buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
@@ -218,6 +219,7 @@ def g:Test_R_variable_explorer_basic()
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
+  b:waitforprompt_nudge = true
 
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
@@ -296,6 +298,7 @@ def g:Test_R_getcompletion()
 
   Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
+  b:waitforprompt_nudge = true
 
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 

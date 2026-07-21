@@ -185,11 +185,6 @@ def InitBuffers()
 
   b:supports_inspect = index(inspect_filetypes, &filetype) >= 0
 
-  # R needs a repeated "\n" nudge in WaitForPrompt to re-display its ">" prompt
-  # after cell/file execution — other REPLs do not (it would increment IPython's
-  # prompt counter or produce spurious Julia output).
-  b:waitforprompt_nudge = (&filetype ==# 'r')
-
   # -- highlight init ----
   b:cells_delimiter = cell_delimiters[&filetype]
   if g:replica_config.enable_highlight
