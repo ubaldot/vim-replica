@@ -253,6 +253,9 @@ def ConsoleOpen()
       endif
     endif
 
+    # Propagate supports_inspect to the terminal buffer so that
+    # :ReplicaInspect is available directly from the console window.
+    b:supports_inspect = supports_inspect
     ftcommands_mappings.InstallConsoleCommands()
     console_win_id = win_findbuf(bufnr('$'))[0]
 
@@ -261,6 +264,7 @@ def ConsoleOpen()
     console_bufnr = bufnr($"^{b:console_name}$")
     exe 'sbuffer ' .. console_bufnr
     console_win_id = win_findbuf(console_bufnr)[0]
+    ftcommands_mappings.InstallConsoleCommands()
   endif
 
   exe $'wincmd {g:replica_config.console_position}'
