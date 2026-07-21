@@ -105,6 +105,7 @@ export def WaitForPrompt(expected: string)
   const max_count = 200
 
   while counter < max_count && LastNonEmptyLine(b:console_bufnr) !~# expected
+		term_sendkeys(b:console_bufnr, "\n")
     exe $"sleep {period}m"
     counter += 1
     redraw
