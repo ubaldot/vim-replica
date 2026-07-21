@@ -33,24 +33,23 @@ compiled with `python3` support.
 
 #### Commands
 
-`:ReplicaConsoleToggle` - un-hide and hide the REPL.
-
-`:ReplicaConsoleRestart` - restart the REPL.
-
-`:ReplicaConsoleShutoff` - wipeout the buffer associated to the REPL.
-
-`:[range]ReplicaSendLines` - send the lines in _[range]_ to the REPL.
-
-`:ReplicaSendCell` - send the current code-cell.
-
-`:ReplicaSendFile [{file}]` - send {file} to the REPL. If no file is given,
-send the content of the current buffer.
-
-`:ReplicaRemoveCells` - remove all the cells from the current buffer.
-
-`:ReplicaInspect [{variable}]` - display `{variable}` in a split window. If
-no argument is given, display all variables in the current session. Tab
-completion is available. _Available for Python, Julia, and R only._
+| `:ReplicaConsoleToggle`        | Un-hide and hide the REPL                        |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaConsoleRestart`       | Restart the REP                                 |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaConsoleShutoff`       | Wipeout the buffer associated to the REP        |
+|--------------------------------|-------------------------------------------------|
+| `:[range]ReplicaSendLines`     | Send the lines in `[range]` to the REPL         |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaSendCell`             | Send the current code cell                      |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaSendFile [{file}]`    | Send `{file}` to the REPL. If no file is given, |
+|                                | send the content of the current buffer          |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaRemoveCells`          | Remove all the cells from the current buffer    |
+|--------------------------------|-------------------------------------------------|
+| `:ReplicaInspect [{variable}]` | Display `{variable}`. If no argument is given,  |
+|                                | display all variables in the current session    |
 
 #### Mappings
 
@@ -60,12 +59,9 @@ mappings.
 ```vim
 # Default mappings
 nmap <F2> <Plug>ReplicaConsoleToggle<cr>
-
 nmap <F9> <Plug>ReplicaSendLines<cr>
 xmap <F9> <Plug>ReplicaSendLines<cr>
-
 nmap <F5> <Plug>ReplicaSendFile<cr>
-
 nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 ```
 
@@ -95,10 +91,9 @@ languages should not be too difficult.
 
 Say that you want to add `foo` language to Replica. You proceed in two steps:
 
-1. Edit `plugin/replica.vim` and add a new key-value pair to the four internal
-   dictionaries: `start_cmds`, `console_names`, `run_scripts`, and
-   `cell_delimiters`. Take a look at `:h replica.txt` for details on what each
-   entry should contain.
+1. Edit `plugin/replica.vim` and add a new key-value pair to the internal
+   dictionaries.
+   Take a look at `:h replica.txt` for details on what each entry should contain.
 2. If the new REPL requires extra start-up options, add a corresponding entry
    to `g:replica_config.repl_options` in your `vimrc`.
 
