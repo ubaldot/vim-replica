@@ -1,7 +1,7 @@
 # **REPL**ica.vim
 
 <p align="center">
-<img src="/ReplicaDemo.gif" width="75%" height="75%">
+<!-- asciinema demo goes here -->
 </p>
 
 <p align="center" style="font-size:38;">
@@ -10,13 +10,15 @@
 
 ## Introduction
 
-Replica allows REPL shells such as IPython or Julia inside Vim in a seamless
-way.
+Replica integrates interactive REPL shells directly into Vim for a wide range
+of filetypes: _Python_ (IPython), _Julia_, _R_, _sh_, _zsh_, and _PowerShell_
+(ps1).
 
 It supports the following key features:
 
 1. Send lines, files and code-cells to a REPL,
-2. Highlight code-cells.
+2. Highlight code-cells,
+3. Variable inspector (Python, Julia, R).
 
 I wrote vim-replica because I always had problems with
 [vim-slime](https://github.com/jpalardy/vim-slime) under Windows and
@@ -51,6 +53,10 @@ send the content of the current buffer.
 
 `:ReplicaRemoveCells` - remove all the cells from the current buffer.
 
+`:ReplicaInspect [{variable}]` - display `{variable}` in a split window. If
+no argument is given, display all variables in the current session. Tab
+completion is available. _Available for Python, Julia, and R only._
+
 #### Mappings
 
 By setting `g:replica_config.use_default_mapping = true` you will get the following
@@ -73,6 +79,24 @@ nmap <c-enter> <Plug>ReplicaSendCell<cr>j
 > Both the above commands and mappings work if they are run from a buffer
 > whose _filetype_ is supported.
 
+## Variable Inspector
+
+For _Python_, _Julia_, and _R_, Replica includes a TCP-based variable
+inspector. After sending code to the REPL, use:
+
+```
+:ReplicaInspect FOO        " inspect variable FOO
+:ReplicaInspect            " inspect the whole workspace
+```
+
+The result opens in a split window (configurable via
+`g:replica_config.display_variables`). Tab-completion on `:ReplicaInspect`
+lists the variables currently defined in the REPL session.
+
+> **Note**
+>
+> `:ReplicaInspect` is **not** available for sh, zsh, or ps1.
+
 ## Basic Configuration
 
 ```
@@ -88,12 +112,13 @@ g:replica_config.repl_options = {
     julia: "",
     r: "",
     sh: "",
-    zsh: ""}
+    zsh: "",
+    ps1: ""}
 ```
 
 ## Adding new languages
 
-At the moment Replica supports _python_, _julia_, _R_, _sh_ and _zsh_ but adding new
+At the moment Replica supports _python_, _julia_, _R_, _sh_, _zsh_ and _ps1_ but adding new
 languages should not be too difficult.<br>
 
 Say that you want to add `foo` language to Replica. You proceed in two steps:
@@ -114,15 +139,11 @@ language consider to issue a PR.
 
 A: Ok, let's start with some basic checks:
 
-1. run `:echo has('python3')`. The answer should be `1`.
-2. if you are using Windows, make sure that Python and Vim are both 32- or 64
-   bit.
-
-Next, be sure that in the current virtual environment:
-
-1. `jupyter console` is installed,
-2. some `ipython` jupyter kernel (e.g. `pyhon3`) is installed,
-3. vim is launched from this virtual environment.
+1. Make sure the REPL executable is in your `$PATH` (e.g. `ipython`, `julia`,
+   `Rscript`, `bash`, `zsh`, `pwsh`).
+2. If you are using Python, make sure the virtual environment is active and
+   `ipython` is installed in it, then launch Vim from that environment.
+3. Run `:echo has('terminal')` — the answer must be `1`.
 
 #### Q: When I open the REPL the layout is horrible!
 
@@ -173,10 +194,6 @@ users who wants that. :)
 A: Yes! If you `<c-w>N` in your REPL, then it becomes an ordinary buffer.<br>
 There you can yank everything you want.<br> To re-enable the REPL press `i`
 with the cursor located on the REPL window.
-
-#### Q. How do I know which kernel is running on a given console?
-
-A: Go on the open console, hit `<c-w>` and type `:echo b:kernel_name`.
 
 #### Q. Is it possible to automatically change the REPL folder when I change
 
