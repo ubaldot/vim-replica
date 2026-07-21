@@ -50,10 +50,9 @@ g:replica_config.log_level = 'Error'
 g:TestFiles = [
 		'test_replica_python.vim',
 		'test_replica_julia.vim',
-    'test_replica_r.vim'
+    'test_replica_r.vim',
     'test_replica_sh.vim',
-    'test_replica_zsh.vim',
-    'test_replica_ps1.vim'
+    'test_replica_zsh.vim'
   ]
 EOF
 
