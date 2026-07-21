@@ -174,6 +174,39 @@ export def ReplStarted(
    endif
 enddef
 
+# Start (or restart) the REPL console and wait until it is ready.
+# cmd defaults to "ReplicaConsoleToggle"; pass "ReplicaConsoleRestart"
+# for the restart case. Returns false and cleans up if startup fails,
+# so callers only need: if !StartConsole(...) | return | endif
+export def StartConsole(
+    expected_prompt: string,
+    init_ready_pattern: string,
+    cmd: string = "ReplicaConsoleToggle"): bool
+  exe cmd
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  if !empty(v:errmsg)
+    :%bw!
+    throw v:errmsg
+  endif
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    exe "ReplicaConsoleShutoff"
+    :%bw!
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
+    return false
+  endif
+  return true
+enddef
+
+# Print "Test passed!" or "Test failed!" based on v:errors / v:errmsg.
+# Call this as the last statement before :%bw! + Cleanup_testfile().
+export def TestReport()
+  if !empty(v:errors) || !empty(v:errmsg)
+    echom "Test failed!"
+  else
+    echom "Test passed!"
+  endif
+enddef
+
 
 
 # vim: shiftwidth=2 softtabstop=2 noexpandtab

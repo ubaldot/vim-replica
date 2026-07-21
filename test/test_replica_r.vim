@@ -11,6 +11,8 @@ const WaitForPrompt    = common.WaitForPrompt
 const LastNonEmptyLine = common.LastNonEmptyLine
 const PatternCaught    = common.PatternCaught
 const ReplStarted      = common.ReplStarted
+const StartConsole     = common.StartConsole
+const TestReport       = common.TestReport
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile  = common.Cleanup_testfile
 
@@ -116,18 +118,7 @@ def g:Test_R_basic()
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -171,18 +162,7 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
 
   # Restart repl
-  exe "ReplicaConsoleRestart"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string after restart"
+  if !StartConsole(expected_prompt, init_ready_pattern, "ReplicaConsoleRestart")
     return
   endif
 
@@ -201,11 +181,7 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(src_name)
@@ -223,18 +199,7 @@ def g:Test_R_variable_explorer_basic()
 
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -280,11 +245,7 @@ def g:Test_R_variable_explorer_basic()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(src_name)
@@ -302,18 +263,7 @@ def g:Test_R_getcompletion()
 
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -355,11 +305,7 @@ def g:Test_R_getcompletion()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(src_name)

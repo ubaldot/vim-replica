@@ -14,6 +14,8 @@ const WaitForPrompt = common.WaitForPrompt
 const LastNonEmptyLine = common.LastNonEmptyLine
 const PatternCaught = common.PatternCaught
 const ReplStarted = common.ReplStarted
+const StartConsole = common.StartConsole
+const TestReport = common.TestReport
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile = common.Cleanup_testfile
 
@@ -49,23 +51,10 @@ def g:Test_python_basic()
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  # Start console
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  # The startup is done when both Vim is connected to the server and the repl
-  # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  # Start console
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -111,14 +100,8 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_equal(search('# %%', 'cnw'), 0))
 
  # Restart repl
-  exe "ReplicaConsoleRestart"
   expected_prompt = 'In\s\[1\]:\s*$'
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  if !StartConsole(expected_prompt, init_ready_pattern, "ReplicaConsoleRestart")
     return
   endif
 
@@ -136,11 +119,7 @@ def g:Test_python_basic()
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
  :%bw!
   Cleanup_testfile(src_name)
@@ -217,11 +196,7 @@ def g:Test_unsupported_filetypes()
   exe "ReplicaConsoleShutoff"
 
   # ---- teardown tests ----
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(python_filename)
@@ -254,23 +229,10 @@ def g:Test_python_variable_explorer_basic()
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  # Start console
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  # The startup is done when both Vim is connected to the server and the repl
-  # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  # Start console
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -390,11 +352,7 @@ END
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   # ---- teardown tests ----
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(src_name)
@@ -426,23 +384,10 @@ def g:Test_python_getcompletion()
   # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
-  # Start console
-  exe "ReplicaConsoleToggle"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  if !empty(v:errmsg)
-    :%bw!
-    throw v:errmsg
-  endif
-
-  # The startup is done when both Vim is connected to the server and the repl
-  # is ready (you see it from the prompt)
   var expected_prompt = 'In\s\[1\]:'
 
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
+  # Start console
+  if !StartConsole(expected_prompt, init_ready_pattern)
     return
   endif
 
@@ -468,11 +413,7 @@ def g:Test_python_getcompletion()
   WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
-  if !empty(v:errors) || !empty(v:errmsg)
-    echom "Test failed!"
-  else
-    echom "Test passed!"
-  endif
+  TestReport()
 
   :%bw!
   Cleanup_testfile(src_name)
