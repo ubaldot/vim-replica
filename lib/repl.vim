@@ -130,6 +130,8 @@ def ConsoleOpen()
     logger.Info("create new console")
 
     var start_cmd = $"{b:repl_start_cmd} {b:repl_options}"
+    # Capture before term_start() switches the current buffer to the terminal.
+    const supports_inspect = get(b:, 'supports_inspect', false)
 
     # Send scripts to enable __vim_inspect() to the repl
     logger.Info($'start_cmd: {start_cmd}')
@@ -181,7 +183,7 @@ def ConsoleOpen()
     # Only for languages with a TCP variable-inspector server (Python, Julia,
     # R).  sh/zsh/ps1 have no server so skip this block entirely — the
     # terminal is ready as soon as term_start() returns.
-    if get(b:, 'supports_inspect', false)
+    if supports_inspect
       # You could poll ch_open() but open-close, open-close, ...,  -> create error in the server
       # Using a while loop with a sleep won't work either
       #
