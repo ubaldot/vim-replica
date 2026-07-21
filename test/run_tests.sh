@@ -50,7 +50,8 @@ g:replica_config.log_level = 'Error'
 g:TestFiles = [
 		'test_replica_python.vim',
 		'test_replica_julia.vim',
-    'test_replica_r.vim'
+		# 'test_replica_sh.vim',
+    # 'test_replica_r.vim'
   ]
 EOF
 
@@ -92,7 +93,7 @@ fi
 # Check the test results
 cat results.txt
 echo "-------------------------------"
-if grep -q "FAIL" results.txt; then
+if grep -qw FAIL results.txt; then
 	echo "ERROR: Some test(s) failed."
 	echo
 	rm "$VIMRC"

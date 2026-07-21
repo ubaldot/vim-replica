@@ -124,6 +124,7 @@ def ConsoleOpen()
   # messages clear
   var console_win_id = 0
   var console_bufnr = -1
+
   if !ConsoleExists()
     Init()
     logger.Info("create new console")
@@ -314,10 +315,12 @@ export def SendCell()
   if !ConsoleExists()
     ConsoleOpen()
   endif
+
   # Get beginning and end of the cell
   var extremes = highlight.GetExtremes()
   var line_in = extremes[0]
   var line_out = extremes[1]
+
   # Jump to the next cell
   cursor(line_out, getcurpos()[2])
   # Overwrite tmp file
@@ -335,6 +338,7 @@ export def SendFile(filename: string = '')
   if !ConsoleExists()
     ConsoleOpen()
   endif
+
   if empty(filename)
     writefile(getline(1, '$'), g:replica_config.tmp_filepath)
     logger.Info('sent: current buffer')
@@ -442,8 +446,8 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
   logger.Info('displaying variable')
 
   const new_statusline = empty(variable_to_inspect)
-    ? "Workspace - <esc> to close"
-    : $"Variable explorer: {variable_to_inspect} - <esc> to close"
+    ? "Workspace"
+    : $"Variable explorer: {variable_to_inspect}"
 
   if bufexists(variable_to_inspect)
     logger.Info($"reusing existing {g:replica_config.display_variables}")

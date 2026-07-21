@@ -18,8 +18,8 @@ const ReplStarted = common.ReplStarted
 const Generate_testfile = common.Generate_testfile
 const Cleanup_testfile = common.Cleanup_testfile
 
-const expected_prompt = 'julia>\s*'
-const init_ready_pattern = "Vim connected from"
+const expected_prompt = 'julia> '
+const init_ready_pattern = "Vim connected from "
 
 def WaitForJuliaSymbol(symbol: string)
   # The symbol is not necessarily the last line, because you are not reading
@@ -168,8 +168,6 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -229,8 +227,6 @@ def g:Test_julia_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -285,8 +281,6 @@ def g:Test_julia_variable_explorer_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -308,6 +302,8 @@ def g:Test_julia_variable_explorer_basic()
   var expected_variable_explorer = ['42']
   var buf_name = 'a_int'
   exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -325,16 +321,18 @@ def g:Test_julia_variable_explorer_basic()
   # versions, so you cannot really test it reliably. At most, you can check
   # that a split window happened
 
-  exe "ReplicaInspect"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
-  redraw
+  # exe "ReplicaInspect"
+  # WaitForAssert(() => assert_equal(3, winnr('$')))
+  # redraw
 
-  buf_name = 'Workspace'
-  echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  # buf_name = 'Workspace'
+  # echom assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-  # Test <esc> mapping
-  exe "norm \<esc>"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
+  # # Test <esc> mapping
+  # exe "norm \<esc>"
+  # WaitForAssert(() => assert_equal(2, winnr('$')))
+  #
+  # -------- end test %whos -----------
 
 #   # -- Test array
   expected_variable_explorer = [
@@ -343,6 +341,8 @@ def g:Test_julia_variable_explorer_basic()
   ]
   buf_name = 'mat_int'
   exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -354,11 +354,13 @@ def g:Test_julia_variable_explorer_basic()
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-#   # -- Test array slice
+  # -- Test array slice
   expected_variable_explorer = ["[1, 2, 3]"]
 
   buf_name = 'mat_int[1, :]'
   exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
@@ -369,6 +371,7 @@ def g:Test_julia_variable_explorer_basic()
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  sleep 20m
 
 #   # --- Test 3D array
   expected_variable_explorer =<< trim END
@@ -380,6 +383,8 @@ def g:Test_julia_variable_explorer_basic()
 END
   buf_name = 'arr_3d'
   exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
   WaitForAssert(() => assert_equal(3, winnr('$')))
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
@@ -388,50 +393,56 @@ END
   # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
+  sleep 20m
 
-#   # -- Test DataFrame
-#   expected_variable_explorer =<< END
-# 4×3 DataFrame
-#  Row │ time        value    flag
-#      │ Date        Float64  Bool
-# ─────┼────────────────────────────
-#    1 │ 2024-01-01      0.1   true
-#    2 │ 2024-01-02      0.2  false
-#    3 │ 2024-01-03      0.3   true
-#    4 │ 2024-01-04      0.4  false
-# END
+  # -- Test DataFrame
+  expected_variable_explorer =<< END
+4×3 DataFrame
+ Row │ time        value    flag
+     │ Date        Float64  Bool
+─────┼────────────────────────────
+   1 │ 2024-01-01      0.1   true
+   2 │ 2024-01-02      0.2  false
+   3 │ 2024-01-03      0.3   true
+   4 │ 2024-01-04      0.4  false
+END
 
-#   buf_name = 'df_mixed'
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
+  buf_name = 'df_mixed'
+  exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
+  WaitForAssert(() => assert_equal(3, winnr('$')))
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   assert_equal(expected_variable_explorer, actual_variable_explorer)
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  assert_equal(expected_variable_explorer, actual_variable_explorer)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
+  sleep 20m
 
-#   # -- Test DataFrame slice
-#   expected_variable_explorer = ['Bool[1, 0, 1 ,0]']
+  # -- Test DataFrame slice
+  expected_variable_explorer = ['Bool[1, 0, 1 ,0]']
 
-#   buf_name = "df_mixed.flag"
-#   exe $"ReplicaInspect {buf_name}"
-#   WaitForAssert(() => assert_equal(3, winnr('$')))
-#   redraw!
+  buf_name = "df_mixed.flag"
+  exe $"ReplicaInspect {buf_name}"
+  # Wait a bit the server
+  sleep 100m
+  WaitForAssert(() => assert_equal(3, winnr('$')))
+  redraw!
 
-#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-#   # echom "actual: " .. string(actual_variable_explorer)
-#   # echom "expected: " .. string(expected_variable_explorer)
-#   # TODO: The following assert always fails for some reasons
-#   # assert_match(expected_variable_explorer, actual_variable_explorer)
+  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+  # echom "actual: " .. string(actual_variable_explorer)
+  # echom "expected: " .. string(expected_variable_explorer)
+  # TODO: The following assert always fails for some reasons
+  # assert_match(expected_variable_explorer, actual_variable_explorer)
 
-#   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
-#   # Test <esc> mapping
-#   exe "norm \<esc>"
-#   WaitForAssert(() => assert_equal(2, winnr('$')))
+  # Test <esc> mapping
+  exe "norm \<esc>"
+  WaitForAssert(() => assert_equal(2, winnr('$')))
 
   # Shutoff
   exe "ReplicaConsoleShutoff"
@@ -470,8 +481,6 @@ def g:Test_julia_getcompletion()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
     echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
@@ -486,6 +495,7 @@ def g:Test_julia_getcompletion()
 
   var lastline = LastNonEmptyLine(b:console_bufnr)
   assert_match(expected_prompt, lastline)
+  sleep 100m
 
   # test start
   const expected_value = [

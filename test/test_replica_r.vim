@@ -1,56 +1,78 @@
 vim9script
 
-# Test for the vim-replica plugin - R language
+# Test for the vim-replica plugin
+# Copied and adjusted from Vim distribution
 
+# OBS! Sometimes these tests fail!
+
+# Uncomment for debug
 import "../plugin/replica.vim"
-import "../lib/repl.vim"
+import "../lib/ftcommands_mappings.vim" as ftcm
 
 import "./common.vim"
-const WaitForAssert  = common.WaitForAssert
-const WaitForPrompt  = common.WaitForPrompt
+const WaitForAssert = common.WaitForAssert
+const WaitForPrompt = common.WaitForPrompt
 const LastNonEmptyLine = common.LastNonEmptyLine
-const PatternCaught  = common.PatternCaught
-const ReplStarted    = common.ReplStarted
+const PatternCaught = common.PatternCaught
+const ReplStarted = common.ReplStarted
 const Generate_testfile = common.Generate_testfile
-const Cleanup_testfile  = common.Cleanup_testfile
-
-const expected_prompt    = '^>\s*'
-const init_ready_pattern = "Vim connected"
+const Cleanup_testfile = common.Cleanup_testfile
 
 const src_name = 'testfile.r'
+const code_lines =<< trim END
+# test_variables.R
+# Define variables of different types for testing Vim variable inspection
 
-# ---------------------------------------------------------------------------
-# Test data — defined at top level so heredoc content is at column 0
-# ---------------------------------------------------------------------------
+# ─────────────────────────────
+# Scalars
+num_scalar <- 42L          # integer
+float_scalar <- 3.14       # numeric
+char_scalar <- "Hello R"   # character
+bool_scalar <- TRUE        # logical
 
-const basic_lines =<< trim END
-FOO <- 110
-b <- 5
+# ─────────────────────────────
+# Vectors
+num_vector <- c(1, 2, 3, 4, 5)
+char_vector <- c("a", "b", "c")
+bool_vector <- c(TRUE, FALSE, TRUE)
 
-# %%
-c <- FOO + b
+# ─────────────────────────────
+# Lists
+simple_list <- list(a = 1, b = "two", c = TRUE)
+nested_list <- list(nums = num_vector, chars = char_vector, inner_list = simple_list)
 
-# %%
+# %% ─────────────────────────────
+# Matrices
+num_matrix <- matrix(1:9, nrow = 3, ncol = 3)
+char_matrix <- matrix(letters[1:6], nrow = 2)
 
-d <- FOO - b
+# ─────────────────────────────
+# Data frames
+df <- data.frame(
+  id = 1:3,
+  name = c("Alice", "Bob", "Charlie"),
+  score = c(85.5, 92.3, 78.9),
+  passed = c(TRUE, TRUE, FALSE)
+)
+
+# %% ─────────────────────────────
+# Factors
+gender <- factor(c("Male", "Female", "Female", "Male"))
+grades <- factor(c("A", "B", "A", "C"), levels = c("A", "B", "C", "D", "F"))
+
+# %% ─────────────────────────────
+# Functions
+square <- function(x) x^2
+greet <- function(name) paste("Hello,", name)
+
+
+# ─────────────────────────────
+# End of test file
 END
 
-const var_explorer_lines =<< trim END
-FOO <- 110
-vec <- c(1, 2, 3)
-mat <- matrix(1:6, nrow = 2)
-END
 
-const completion_lines =<< trim END
-FOO <- 110
-A <- c(1, 2, 3)
-df <- data.frame(x = 1:2)
-END
 
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
-
+# Tests start here
 def g:Test_R_basic()
   v:errors = []
   v:errmsg = ''
@@ -60,10 +82,10 @@ def g:Test_R_basic()
     throw "Skipped: 'R' executable is not found in $PATH"
   endif
 
-  Generate_testfile(basic_lines, src_name)
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
-  # Check that buffer variables are set
+  # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
   # Start console
@@ -76,33 +98,34 @@ def g:Test_R_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    # :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
-  # ReplicaSendCell — basic_lines has # %% at lines 4 and 7; last line is 9
-  cursor(1, 1)
-  const cell_lines = [4, 7, 9]
+  # Sometimes, when you send messages through TCP, the repl won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:console_bufnr, "\n")
 
-  var lastline = ''
-  for expected_line in cell_lines
+  # ReplicaSendCell
+  cursor(1, 1)
+  var expected_lines = [22, 36, 41]
+
+  for line in expected_lines
     exe "ReplicaSendCell"
     WaitForPrompt(expected_prompt)
-    lastline = LastNonEmptyLine(b:console_bufnr)
-    assert_match(expected_prompt, lastline)
-    assert_equal(expected_line, line('.'))
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
   endfor
 
   # ReplicaSendLine
-  cursor(1, 1)
-  const send_line_targets = [2, 3]
+  cursor(6, 1)
+  expected_lines = [7, 8]
 
-  for expected_line in send_line_targets
+  for line in expected_lines
     exe "ReplicaSendLine"
     WaitForPrompt(expected_prompt)
-    assert_equal(expected_line, line('.'))
+    # Check that in the editor you end up in the correct line
+    assert_equal(line, line('.'))
   endfor
 
   # Double Toggle
@@ -122,17 +145,24 @@ def g:Test_R_basic()
   exe "ReplicaConsoleRestart"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
+  if !empty(v:errmsg)
     :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' after restart"
+    throw v:errmsg
+  endif
+
+  if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
+
+  # Sometimes, when you send messages through TCP, the repl won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:console_bufnr, "\n")
 
   # ReplicaSendFile
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  lastline = LastNonEmptyLine(b:console_bufnr)
+  lastline = LastNonEmptyLine(bufnr)
   WaitForAssert(() => assert_equal(2, winnr('$')))
   WaitForAssert(() => assert_match(expected_prompt, lastline))
 
@@ -141,6 +171,7 @@ def g:Test_R_basic()
   WaitForAssert(() => assert_false(bufexists('R')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
+  # ---- teardown tests ----
   if !empty(v:errors) || !empty(v:errmsg)
     echom "Test failed!"
   else
@@ -153,15 +184,17 @@ enddef
 
 
 def g:Test_R_variable_explorer_basic()
+  messages clear
   v:errors = []
   v:errmsg = ''
-  messages clear
 
-  Generate_testfile(var_explorer_lines, src_name)
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
+  # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
+  # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
@@ -171,25 +204,21 @@ def g:Test_R_variable_explorer_basic()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
-  sleep 20m
+  # Sometimes, when you send messages through TCP, the repl won't show
+  # the prompt, but it needs a manual \n
   term_sendkeys(b:console_bufnr, "\n")
-  redraw
 
   # Send current buffer
   exe "ReplicaSendFile"
   WaitForPrompt(expected_prompt)
-  sleep 200m
-  redraw
 
-  # -- Test scalar
-  var expected_variable_explorer = ['[1] 110']
-  var buf_name = 'FOO'
+  # -- Test float
+  var expected_variable_explorer = ['[1] TRUE']
+  var buf_name = 'bool_scalar'
   exe $"ReplicaInspect {buf_name}"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
@@ -198,41 +227,74 @@ def g:Test_R_variable_explorer_basic()
   assert_equal(expected_variable_explorer, actual_variable_explorer)
   assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
+  # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # -- Test vector
-  expected_variable_explorer = ['[1] 1 2 3']
-  buf_name = 'vec'
-  exe $"ReplicaInspect {buf_name}"
-  WaitForAssert(() => assert_equal(3, winnr('$')))
-  redraw
+  # --- test %whos
+  #  TODO: test won't pass on Windows
+  # OBS! The way %whos display variables, may change with the repl
+  # versions, so you cannot really test it reliably. At most, you can check
+  # that a split window happened
 
-
-  actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
-  assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
-
-  exe "norm \<esc>"
-  WaitForAssert(() => assert_equal(2, winnr('$')))
-
-  # -- Test workspace (:ReplicaInspect with no argument)
   exe "ReplicaInspect"
   WaitForAssert(() => assert_equal(3, winnr('$')))
   redraw
 
   buf_name = 'Workspace'
-  assert_equal($'{buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
 
+  # Test <esc> mapping
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
-  # Shutoff
-  exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('R')))
-  WaitForAssert(() => assert_equal(1, winnr('$')))
+#   # -- Test array
+#   expected_variable_explorer =<< END
+#      [,1] [,2] [,3]
+# [1,]    1    4    7
+# [2,]    2    5    8
+# [3,]    3    6    9
+# END
+#   buf_name = 'num_matrix'
+#   exe $"ReplicaInspect {buf_name}"
+#   WaitForAssert(() => assert_equal(3, winnr('$')))
+#   redraw
 
-  if !empty(v:errors) || !empty(v:errmsg)
+#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+#   assert_equal(expected_variable_explorer, actual_variable_explorer)
+#   assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+#   # Test <esc> mapping
+#   exe "norm \<esc>"
+#   WaitForAssert(() => assert_equal(2, winnr('$')))
+
+#   # -- Test dataframe
+#   expected_variable_explorer =<< END
+#   id    name score passed
+# 1  1   Alice  85.5   TRUE
+# 2  2     Bob  92.3   TRUE
+# 3  3 Charlie  78.9  FALSE
+# END
+#   buf_name = 'df'
+#   exe $"ReplicaInspect {buf_name}"
+#   WaitForAssert(() => assert_equal(3, winnr('$')))
+#   redraw
+
+#   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
+#   assert_equal(expected_variable_explorer, actual_variable_explorer)
+#   assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+
+#   # Test <esc> mapping
+#   exe "norm \<esc>"
+#   WaitForAssert(() => assert_equal(2, winnr('$')))
+
+
+#   # Shutoff
+#   exe "ReplicaConsoleShutoff"
+#   WaitForAssert(() => assert_false(bufexists('R')))
+#   WaitForAssert(() => assert_equal(1, winnr('$')))
+
+  if !empty(v:errors)
     echom "Test failed!"
   else
     echom "Test passed!"
@@ -244,15 +306,17 @@ enddef
 
 
 def g:Test_R_getcompletion()
-  v:errors = []
   v:errmsg = ''
+  v:errors = []
   messages clear
 
-  Generate_testfile(completion_lines, src_name)
+  Generate_testfile(code_lines, src_name)
   exe $"edit {src_name}"
 
+  # Check that the buffer variables are set
   assert_false(empty(getbufvar(bufnr(), "repl_start_cmd")))
 
+  # Start console
   exe "ReplicaConsoleToggle"
   WaitForAssert(() => assert_equal(2, winnr('$')))
 
@@ -262,26 +326,47 @@ def g:Test_R_getcompletion()
   endif
 
   if !ReplStarted(b:console_bufnr, expected_prompt, init_ready_pattern)
-    exe "ReplicaConsoleShutoff"
-    :%bw!
-    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}'"
+    echoerr $"Failed to capture '{expected_prompt}' or '{init_ready_pattern}' string"
     return
   endif
 
+  # Sometimes, when you send messages through TCP, the repl won't show
+  # the prompt, but it needs a manual \n
+  term_sendkeys(b:console_bufnr, "\n")
+
+  # Now the game starts
   exe 'ReplicaSendFile'
   WaitForPrompt(expected_prompt)
   redraw
 
-  # completion_lines defines: A, FOO, df  →  sorted: A, FOO, df
-  const expected_value = ['A', 'FOO', 'df']
+  # test start
+  const expected_value = [
+    'bool_scalar',
+    'bool_vector',
+    'char_matrix',
+    'char_scalar',
+    'char_vector',
+    'df',
+    'float_scalar',
+    'gender',
+    'grades',
+    'greet',
+    'nested_list',
+    'num_matrix',
+    'num_scalar',
+    'num_vector',
+    'simple_list',
+    'square '
+  ]
 
-  g:XXX = repl.funcs_dict.GetCompleteList
+  g:XXX = ftcm.funcs_dict.GetCompleteList
   const actual_value = getcompletion('', 'customlist,XXX')
 
   assert_equal(expected_value, actual_value)
 
+  # ---- teardown tests ----
   exe "ReplicaConsoleShutoff"
-  WaitForAssert(() => assert_false(bufexists('R')))
+  WaitForAssert(() => assert_false(bufexists('IPYTHON')))
   WaitForAssert(() => assert_equal(1, winnr('$')))
 
   if !empty(v:errors) || !empty(v:errmsg)

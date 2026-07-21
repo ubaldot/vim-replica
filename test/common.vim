@@ -134,7 +134,7 @@ export def PatternCaught(buf_nr: number, pattern: string): bool
 enddef
 
 export def ReplStarted(
-    repl_bufnr: number,
+    console_bufnr: number,
     pattern_1: string,
     pattern_2: string): bool
 
@@ -144,12 +144,11 @@ export def ReplStarted(
 
   var counter = 0
   var counter_max = 100
-  while !(PatternCaught(repl_bufnr, pattern_1)
-      && PatternCaught(repl_bufnr, pattern_2))
+  while !(PatternCaught(console_bufnr, pattern_1)
+      && PatternCaught(console_bufnr, pattern_2))
         && counter < counter_max
     sleep 200m
     counter += 1
-		term_sendkeys(repl_bufnr, "\n")
     redraw
   endwhile
    if counter == counter_max
