@@ -22,7 +22,7 @@ const init_ready_pattern = 'Vim connected'
 def WaitForRSymbol(symbol: string)
   # Polls until R reports the symbol as defined in .GlobalEnv.
   # R's source() is synchronous, but this guards against slow machines and
-  # the later-based TCP loop firing with a slight delay.
+  # the socket polling callback firing with a slight delay.
   const buf_nr = b:console_bufnr
   const marker = '__VIM_REPLICA_READY__'
   const max_count = 50
@@ -222,7 +222,7 @@ def g:Test_R_variable_explorer_basic()
 
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name} (<esc> to close)', &l:statusline)
 
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))
@@ -235,7 +235,7 @@ def g:Test_R_variable_explorer_basic()
   redraw
 
   buf_name = 'Workspace'
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal("Workspace (<esc> to close)", &l:statusline)
 
   exe "norm \<esc>"
   WaitForAssert(() => assert_equal(2, winnr('$')))

@@ -229,9 +229,8 @@ def ConsoleOpen()
 
         # Probe until the server is actually processing requests, not just
         # accepting connections.  ch_open() succeeds as soon as the TCP
-        # handshake completes; the request handler (e.g. R's later::later()
-        # at 50 ms) may not have fired yet.  We send a no-op request and
-        # retry until we receive a valid response.
+        # handshake completes; the request handler may not be ready yet.
+        # We send a no-op request and retry until we receive a valid response.
         var probe_req = {id: 0, method: 'runtime/vim_variable_names'}
         var probe_counter = 0
         const probe_max = 10
@@ -408,6 +407,27 @@ enddef
 # ---------------------------------------
 # Functions for variable explorer
 # ---------------------------------------
+def RequestWithRetries(req: dict<any>, max_retries: number = 8): any
+  var resp = {}
+  var retries = 0
+
+  while retries < max_retries
+    # R pumps socket events at top-level task boundaries; this no-op command
+    # gives it a deterministic chance to drain pending requests.
+    if get(b:, 'console_name', '') ==# 'R' && get(b:, 'console_bufnr', -1) > 0
+      term_sendkeys(b:console_bufnr, "invisible(NULL)\n")
+    endif
+
+    resp = ch_evalexpr(repl_channel, req, {timeout: 400})
+    if !empty(resp)
+      break
+    endif
+    sleep 100m
+    retries += 1
+  endwhile
+
+  return resp
+enddef
 
 export def GetCompleteList(A: string, L: string, P: number): list<string>
 
@@ -418,7 +438,7 @@ export def GetCompleteList(A: string, L: string, P: number): list<string>
   req.method = 'runtime/vim_variable_names'
 
   logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-  var resp = ch_evalexpr(repl_channel, req)
+  var resp = RequestWithRetries(req)
 
   if empty(resp)
     # Do NOT call Echoerr() here: echoerr aborts the function in Vim9script,
@@ -503,9 +523,10 @@ def DisplayVariable(value: list<string>, variable_to_inspect: string)
 
   logger.Info('displaying variable')
 
-  const new_statusline = empty(variable_to_inspect)
+  const statusline_base = empty(variable_to_inspect)
     ? "Workspace"
     : $"Variable explorer: {variable_to_inspect}"
+  const new_statusline = $"{statusline_base} (<esc> to close)"
 
   if bufexists(variable_to_inspect)
     logger.Info($"reusing existing {g:replica_config.display_variables}")
@@ -564,7 +585,7 @@ export def VimInspect(
     req.params = {variable: variable_single_quoted}
 
     logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-    resp = ch_evalexpr(repl_channel, req)
+    resp = RequestWithRetries(req)
 
     if empty(resp)
       Echoerr("Empty response from the server")
@@ -583,7 +604,7 @@ export def VimInspect(
     req.params = {variable: ''}
 
     logger.Info($"channel_status: '{ch_status(repl_channel)}'")
-    resp = ch_evalexpr(repl_channel, req)
+    resp = RequestWithRetries(req)
 
     if empty(resp)
       Echoerr("Empty response from the server")

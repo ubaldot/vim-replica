@@ -158,7 +158,7 @@ adding any keys.
 
      "display_variables"  How the variable explorer is opened. Possible
                           values are 'split', 'vsplit', 'tab' and 'popup'.
-                          Default: 'vsplit'
+                          Default: 'tab'
 
                           Note: For large tabular data, it is not advisable
                           to use 'popup' because Vim popups currently cannot

@@ -167,7 +167,7 @@ import "../lib/highlight.vim"
 
 
 if !exists('g:replica_config.display_variables')
-  g:replica_config.display_variables = 'vsplit'
+  g:replica_config.display_variables = 'tab'
 endif
 
 # Timeout (ms) for waiting for "server running on" in the terminal buffer.

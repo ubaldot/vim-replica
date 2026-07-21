@@ -1,11 +1,11 @@
 # r_init.R -- vim-replica TCP server for R
 #
 # Requires:
-#   install.packages(c("jsonlite", "later"))
+#   install.packages("jsonlite")
 
 message("interactive = ", interactive())
 
-for (.pkg in c("jsonlite", "later")) {
+for (.pkg in c("jsonlite")) {
   if (!requireNamespace(.pkg, quietly = TRUE))
     stop(sprintf(
       "[vim-replica] Package '%s' is required. Install with install.packages('%s')",
@@ -16,7 +16,6 @@ for (.pkg in c("jsonlite", "later")) {
 rm(.pkg)
 
 library(jsonlite, quietly = TRUE)
-library(later, quietly = TRUE)
 
 .VIM_PORT <- 6969L
 
@@ -26,6 +25,7 @@ library(later, quietly = TRUE)
 
 .vim_srv <- serverSocket(.VIM_PORT)
 .vim_conn <- NULL
+.vim_task_callback_name <- ".vim_replica_task_callback"
 
 message("R TCP server running on 127.0.0.1:", .VIM_PORT)
 
@@ -312,7 +312,7 @@ message("R TCP server running on 127.0.0.1:", .VIM_PORT)
 # Polling
 # ---------------------------------------------------------------------------
 
-.vim_poll <- function() {
+.vim_poll_once <- function() {
 
   tryCatch({
 
@@ -380,17 +380,26 @@ message("R TCP server running on 127.0.0.1:", .VIM_PORT)
     }
   })
 
-  later::later(.vim_poll, 0.05)
+  invisible(NULL)
 }
 
-# ---------------------------------------------------------------------------
-# Diagnostics
-# ---------------------------------------------------------------------------
+.vim_task_callback <- function(expr, value, ok, visible) {
+  .vim_poll_once()
+  TRUE
+}
 
-later::later(function() {
-  message("[vim-replica] later callback is running")
-}, 1)
+# Bootstrap the first connection synchronously to avoid startup races.
+# ConsoleOpen() opens the client channel immediately after it sees
+# "server running on", so this loop is usually very short.
+for (i in seq_len(200)) {
+  .vim_poll_once()
+  if (!is.null(.vim_conn))
+    break
+  Sys.sleep(0.05)
+}
 
-later::later(.vim_poll, 0.05)
+if (is.null(.vim_conn))
+  message("[vim-replica] waiting for Vim connection")
 
-message("[vim-replica] polling started")
+addTaskCallback(.vim_task_callback, name = .vim_task_callback_name)
+message("[vim-replica] polling callback started")

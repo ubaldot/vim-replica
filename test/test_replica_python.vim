@@ -251,7 +251,7 @@ def g:Test_python_variable_explorer_basic()
 
   var actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name} (<esc> to close)', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -268,7 +268,7 @@ def g:Test_python_variable_explorer_basic()
   redraw
 
   buf_name = 'Workspace'
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal("Workspace (<esc> to close)", &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -286,7 +286,7 @@ def g:Test_python_variable_explorer_basic()
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal(&l:statusline, $'Variable explorer: {buf_name}')
+  assert_equal(&l:statusline, $'Variable explorer: {buf_name} (<esc> to close)')
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -301,7 +301,7 @@ def g:Test_python_variable_explorer_basic()
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name} (<esc> to close)', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -321,7 +321,7 @@ END
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name} (<esc> to close)', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
@@ -339,7 +339,7 @@ END
 
   actual_variable_explorer = getbufline(bufnr(buf_name), 1, '$')
   assert_equal(expected_variable_explorer, actual_variable_explorer)
-  assert_equal($'Variable explorer: {buf_name}', &l:statusline)
+  assert_equal($'Variable explorer: {buf_name} (<esc> to close)', &l:statusline)
 
   # Test <esc> mapping
   exe "norm \<esc>"
