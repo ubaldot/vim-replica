@@ -19,7 +19,7 @@ jobs:
           version: ${{ matrix.vim }}
 
       - name: Checkout vim-replica plugin code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
@@ -73,7 +73,7 @@ jobs:
           version: ${{ matrix.vim }}
 
       - name: Checkout vim-replica plugin code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v2
