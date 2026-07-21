@@ -98,7 +98,8 @@ if !exists('g:replica_config.repl_options')
     julia: "",
     r: "",
     sh: "",
-    zsh: ""
+    zsh: "",
+    ps1: ""
   }
 endif
 
@@ -108,7 +109,8 @@ var start_cmds = {
   julia: $"julia -i {replica_path}/languages/julia/julia_init.jl",
   r: $"R --no-save --no-restore --quiet",
   sh: "bash --noprofile --norc -i",
-  zsh: "zsh -f -i"
+  zsh: "zsh -f -i",
+  ps1: "pwsh -NoProfile -NoLogo"
 }
 
 var console_names = {
@@ -116,7 +118,8 @@ var console_names = {
   julia: "JULIA",
   r: "R",
   sh: "BASH",
-  zsh: "ZSH"
+  zsh: "ZSH",
+  ps1: "PWSH"
 }
 
 var run_scripts = {
@@ -124,7 +127,8 @@ var run_scripts = {
   julia: (filename) => $'include("{filename->substitute("\\", "/", "g")}")',
   r: (filename) => $'source("{filename->substitute("\\", "/", "g")}")',
   sh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
-  zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}"
+  zsh: (filename) => $"source {filename->substitute("\\", "/", "g")}",
+  ps1: (filename) => $". '{filename->substitute("\\", "/", "g")}'"
 }
 
 # Filetypes that support the TCP-based variable inspector (:ReplicaInspect)
@@ -143,7 +147,8 @@ var cell_delimiters = {
   julia: "# %%",
   r: "# %%",
   sh: "# %%",
-  zsh: "# %%"
+  zsh: "# %%",
+  ps1: "# %%"
 }
 
 if !exists('g:replica_config.display_range')
