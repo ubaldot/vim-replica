@@ -139,7 +139,7 @@ if !exists('g:replica_config.use_default_mapping')
   g:replica_config.use_default_mapping = false
 endif
 
-import "../lib/ftcommands_mappings.vim"
+import autoload "../lib/ftcommands_mappings.vim"
 
 # --- highlight setup ------
 var cell_delimiters = {
@@ -163,7 +163,7 @@ if !exists('g:replica_config.alt_highlight')
   g:replica_config.alt_highlight = false
 endif
 
-import "../lib/highlight.vim"
+import autoload "../lib/highlight.vim"
 
 
 if !exists('g:replica_config.display_variables')

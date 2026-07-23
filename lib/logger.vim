@@ -6,7 +6,7 @@ vim9script
 #   logger.Debug('starting replica')
 #   logger.Warn('fallback triggered')
 
-import "../lib/repl.vim"
+import autoload "../lib/repl.vim"
 
 enum LEVELS
   Debug,

@@ -2,8 +2,8 @@ vim9script
 
 # Module devoted to set commands and mappings
 
-import "../lib/repl.vim"
-import "../lib/logger.vim"
+import autoload "../lib/repl.vim"
+import autoload "../lib/logger.vim"
 
 #  ------------
 #  Mappings

@@ -1,7 +1,7 @@
 vim9script
 
 # Module for highlighing cells
-import "../lib/logger.vim"
+import autoload "../lib/logger.vim"
 
 sign define ReplicaConsoleHl  linehl=CursorLine
 sign define ReplicaConsoleHlFast  linehl=UnderLined
