@@ -25,7 +25,7 @@ jobs:
         uses: julia-actions/setup-julia@v3
 
       - name: Cache Julia environment
-        uses: julia-actions/cache@v2
+        uses: julia-actions/cache@v3
 
       - name: Install Julia packages
         run: julia .github/scripts/packages.jl
@@ -79,7 +79,7 @@ jobs:
         uses: julia-actions/setup-julia@v3
 
       - name: Cache Julia environment
-        uses: julia-actions/cache@v2
+        uses: julia-actions/cache@v3
 
       - name: Install Julia packages
         run: julia .github/scripts/packages.jl
