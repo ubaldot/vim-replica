@@ -120,7 +120,12 @@ def main() -> int:
     print(f"{_SEP}\n")
     print(f"Running {PLUGIN_NAME} tests...\n")
 
-    rc = subprocess.run(_vim_cmd(vim)).returncode
+    try:
+        rc = subprocess.run(_vim_cmd(vim), timeout=120).returncode
+    except subprocess.TimeoutExpired:
+        print("ERROR: Vim timed out (possible infinite loop).")
+        _cleanup(keep_results=not ci)
+        return 1
     if rc != 0:
         print(f"ERROR: Vim exited with code {rc}.")
         _cleanup(keep_results=not ci)
@@ -132,7 +137,10 @@ def main() -> int:
         return 1
 
     text = Path(_RESULTS).read_text(encoding="utf-8", errors="replace")
-    passed = "FAIL" not in _ANSI.sub("", text)
+    stripped = _ANSI.sub("", text)
+    passed = "FAIL" not in stripped and all(
+        f"o {f}" in stripped for f in TEST_FILES
+    )
 
     print(f"{PLUGIN_NAME} unit test results:\n{_SEP}")
     print(text.rstrip())
@@ -145,7 +153,7 @@ def main() -> int:
 
     print("ERROR: Some tests failed.")
     _cleanup(keep_results=not ci)
-    return 1 if ci else 0
+    return 1
 
 
 if __name__ == "__main__":
