@@ -52,8 +52,7 @@ jobs:
           uname -a
           export VIMPRG=${{ steps.vim.outputs.executable }}
           $VIMPRG --version
-          cd test
-          source ./run_tests.sh 1
+          python3 test/run_tests.py ci
 
 
   unit_test_windows:
@@ -107,5 +106,4 @@ jobs:
           echo "Vim command setup."
           $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
           & $Env:VIMPRG --version
-          cd test
-          .\run_tests.ps1
+          python test/run_tests.py ci
