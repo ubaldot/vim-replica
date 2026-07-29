@@ -65,21 +65,26 @@ EXTRA_SOURCE: list[str] = ["logger.vim"]
 # ── Harness (identical across all plugins – do not edit) ──────────────────────
 
 _RESULTS = "results.txt"
-_VIMRC   = "vimrc_for_tests"
-_ANSI    = re.compile(r"\x1b\[[0-9;]*m")
-_SEP     = "-" * 50
+_VIMRC = "vimrc_for_tests"
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+_SEP = "-" * 50
 
 
-def _find_vim() -> str:
+def _find_vim_exec() -> str:
+    # Needed for CI.
     for var in ("VIMPRG", "VIM_PRG"):
         if v := os.environ.get(var, "").strip():
             return v
+
     if found := shutil.which("vim.exe") or shutil.which("vim"):
         return found
-    sys.exit("ERROR: vim not found in PATH.  Set VIMPRG or VIM_PRG.")
+    sys.exit(
+        "ERROR: vim not found in PATH. Set VIMPRG or VIM_PRG to override."
+    )
 
 
 def _write_vimrc() -> None:
+    # Write .vimrc and add test files through g:TestFiles
     files_list = "[" + ", ".join(f"'{f}'" for f in TEST_FILES) + "]"
     Path(_VIMRC).write_text(
         VIMRC_PREAMBLE.rstrip("\n") + f"\ng:TestFiles = {files_list}\n",
@@ -92,8 +97,8 @@ def _write_extra() -> None:
         Path(name).write_text(content, encoding="utf-8")
 
 
-def _vim_cmd(vim: str) -> list[str]:
-    cmd = [vim, *VIM_FLAGS, "-u", _VIMRC]
+def _vim_cmd(vim_exec: str) -> list[str]:
+    cmd = [vim_exec, *VIM_FLAGS, "-u", _VIMRC]
     for src in EXTRA_SOURCE:
         cmd += ["-S", src]
     return [*cmd, "-S", "runner.vim"]
@@ -110,18 +115,18 @@ def main() -> int:
     ci = "ci" in sys.argv[1:]
     os.chdir(Path(__file__).parent)
 
-    vim = _find_vim()
+    vim_exec = _find_vim_exec()
     _write_vimrc()
     _write_extra()
 
-    print(f"Vim: {vim}")
+    print(f"Vim: {vim_exec}")
     print(f"\n{_SEP}\nvimrc ({_VIMRC}):")
     print(Path(_VIMRC).read_text(encoding="utf-8").rstrip())
     print(f"{_SEP}\n")
     print(f"Running {PLUGIN_NAME} tests...\n")
 
     try:
-        rc = subprocess.run(_vim_cmd(vim), timeout=120).returncode
+        rc = subprocess.run(_vim_cmd(vim_exec), timeout=120).returncode
     except subprocess.TimeoutExpired:
         print("ERROR: Vim timed out (possible infinite loop).")
         _cleanup(keep_results=not ci)
@@ -138,7 +143,7 @@ def main() -> int:
 
     text = Path(_RESULTS).read_text(encoding="utf-8", errors="replace")
     stripped = _ANSI.sub("", text)
-    passed = "FAIL" not in stripped and all(
+    failed = "FAIL" in stripped or not all(
         f"o {f}" in stripped for f in TEST_FILES
     )
 
@@ -146,14 +151,17 @@ def main() -> int:
     print(text.rstrip())
     print(_SEP)
 
-    if passed:
+    # Set exit_status
+    exit_status: int = 1
+    if failed:
+        print("ERROR: Some tests failed.")
+        _cleanup(keep_results=not ci)
+    else:
         print("SUCCESS: All tests passed.")
         _cleanup()
-        return 0
+        exit_status = 0
 
-    print("ERROR: Some tests failed.")
-    _cleanup(keep_results=not ci)
-    return 1
+    return exit_status
 
 
 if __name__ == "__main__":
