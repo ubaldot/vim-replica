@@ -237,6 +237,12 @@ augroup REPLICA_INIT_BUFFERS
   endfor
 augroup END
 
+# Force a FileType event.
+# Needed when you use :packadd vim-replica on an already opened buffer that
+# already triggered a FileType event
+
+doautocmd FileType
+
 def GetInitialGeometry()
 
   if !exists('g:replica_config.console_width')
