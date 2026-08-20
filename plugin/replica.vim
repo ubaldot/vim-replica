@@ -237,10 +237,9 @@ augroup REPLICA_INIT_BUFFERS
   endfor
 augroup END
 
-# Force a FileType event.
-# Needed when you use :packadd vim-replica on an already opened buffer that
-# already triggered a FileType event
-
+# We force InitBuffers() to allow :Replica* commands to be available
+# when FileType event already happened (e.g. when you run :packadd vim-replica
+# from an already opened e.g. python filetype buffer)
 if index(keys(start_cmds), &filetype) != -1
   InitBuffers()
 endif
