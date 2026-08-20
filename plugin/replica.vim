@@ -241,6 +241,10 @@ augroup END
 # Needed when you use :packadd vim-replica on an already opened buffer that
 # already triggered a FileType event
 
+if index(keys(start_cmds), &filetype) != -1
+  InitBuffers()
+endif
+
 # doautocmd FileType
 
 def GetInitialGeometry()
