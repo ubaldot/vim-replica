@@ -49,8 +49,8 @@ def Init()
 
   if empty(console_geometry) && exists('g:replica_config')
     console_geometry = {
-      width: get(g:replica_config, 'console_width', 40),
-      height: get(g:replica_config, 'console_height', 20)
+      width: get(g:replica_config, 'console_width', &columns / 2),
+      height: get(g:replica_config, 'console_height', &lines)
     }
   endif
 
